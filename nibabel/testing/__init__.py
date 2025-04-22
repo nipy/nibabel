@@ -6,53 +6,55 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Utilities for testing """
+"""Utilities for testing"""
 
-import re
+from __future__ import annotations
+
 import os
+import re
 import sys
-import warnings
-from pkg_resources import resource_filename
-
+import typing as ty
 import unittest
-
-import numpy as np
-from numpy.testing import assert_array_equal
-
-from .np_features import memmap_after_ufunc
-from .helpers import bytesio_filemap, bytesio_round_trip, assert_data_similar
-
+import warnings
+from contextlib import nullcontext
+from importlib.resources import as_file, files
 from itertools import zip_longest
 
-try:
-    from contextlib import nullcontext
-except ImportError:  # PY36
-    from contextlib import contextmanager
-    @contextmanager
-    def nullcontext():
-        yield
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
+
+from .helpers import assert_data_similar, bytesio_filemap, bytesio_round_trip
+from .np_features import memmap_after_ufunc
+
+if ty.TYPE_CHECKING:
+    from importlib.resources.abc import Traversable
 
 
-def test_data(subdir=None, fname=None):
+def get_test_data(
+    subdir: ty.Literal['gifti', 'nicom', 'externals'] | None = None,
+    fname: str | None = None,
+) -> Traversable:
+    parts: tuple[str, ...]
     if subdir is None:
-        resource = os.path.join('tests', 'data')
+        parts = ('tests', 'data')
     elif subdir in ('gifti', 'nicom', 'externals'):
-        resource = os.path.join(subdir, 'tests', 'data')
+        parts = (subdir, 'tests', 'data')
     else:
-        raise ValueError(f"Unknown test data directory: {subdir}")
+        raise ValueError(f'Unknown test data directory: {subdir}')
 
     if fname is not None:
-        resource = os.path.join(resource, fname)
+        parts += (fname,)
 
-    return resource_filename('nibabel', resource)
+    return files('nibabel').joinpath(*parts)
 
 
 # set path to example data
-data_path = test_data()
+data_path = get_test_data()
 
 
 def assert_dt_equal(a, b):
-    """ Assert two numpy dtype specifiers are equal
+    """Assert two numpy dtype specifiers are equal
 
     Avoids failed comparison between int32 / int64 and intp
     """
@@ -60,8 +62,7 @@ def assert_dt_equal(a, b):
 
 
 def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
-    """ Allclose in integers go all wrong for large integers
-    """
+    """Allclose in integers go all wrong for large integers"""
     a = np.atleast_1d(a)  # 0d arrays cannot be indexed
     a, b = np.broadcast_arrays(a, b)
     if match_nans:
@@ -83,21 +84,20 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
 
 
 def assert_arrays_equal(arrays1, arrays2):
-    """ Check two iterables yield the same sequence of arrays. """
+    """Check two iterables yield the same sequence of arrays."""
     for arr1, arr2 in zip_longest(arrays1, arrays2, fillvalue=None):
-        assert (arr1 is not None and arr2 is not None)
+        assert arr1 is not None and arr2 is not None
         assert_array_equal(arr1, arr2)
 
 
 def assert_re_in(regex, c, flags=0):
-    """Assert that container (list, str, etc) contains entry matching the regex
-    """
+    """Assert that container (list, str, etc) contains entry matching the regex"""
     if not isinstance(c, (list, tuple)):
         c = [c]
     for e in c:
         if re.match(regex, e, flags=flags):
             return
-    raise AssertionError(f"Not a single entry matched {regex!r} in {c!r}")
+    raise AssertionError(f'Not a single entry matched {regex!r} in {c!r}')
 
 
 def get_fresh_mod(mod_name=__name__):
@@ -111,7 +111,7 @@ def get_fresh_mod(mod_name=__name__):
 
 
 class clear_and_catch_warnings(warnings.catch_warnings):
-    """ Context manager that resets warning registry for catching warnings
+    """Context manager that resets warning registry for catching warnings
 
     Warnings can be slippery, because, whenever a warning is triggered, Python
     adds a ``__warningregistry__`` member to the *calling* module.  This makes
@@ -147,16 +147,18 @@ class clear_and_catch_warnings(warnings.catch_warnings):
     Examples
     --------
     >>> import warnings
-    >>> with clear_and_catch_warnings(modules=[np.core.fromnumeric]):
+    >>> with clear_and_catch_warnings(modules=[np.lib.scimath]):
     ...     warnings.simplefilter('always')
-    ...     # do something that raises a warning in np.core.fromnumeric
+    ...     # do something that raises a warning in np.lib.scimath
+    ...     _ = np.arccos(90)
     """
+
     class_modules = ()
 
     def __init__(self, record=True, modules=()):
         self.modules = set(modules).union(self.class_modules)
         self._warnreg_copies = {}
-        super(clear_and_catch_warnings, self).__init__(record=record)
+        super().__init__(record=record)
 
     def __enter__(self):
         for mod in self.modules:
@@ -164,10 +166,10 @@ class clear_and_catch_warnings(warnings.catch_warnings):
                 mod_reg = mod.__warningregistry__
                 self._warnreg_copies[mod] = mod_reg.copy()
                 mod_reg.clear()
-        return super(clear_and_catch_warnings, self).__enter__()
+        return super().__enter__()
 
     def __exit__(self, *exc_info):
-        super(clear_and_catch_warnings, self).__exit__(*exc_info)
+        super().__exit__(*exc_info)
         for mod in self.modules:
             if hasattr(mod, '__warningregistry__'):
                 mod.__warningregistry__.clear()
@@ -176,7 +178,7 @@ class clear_and_catch_warnings(warnings.catch_warnings):
 
 
 class error_warnings(clear_and_catch_warnings):
-    """ Context manager to check for warnings as errors.  Usually used with
+    """Context manager to check for warnings as errors.  Usually used with
     ``assert_raises`` in the with block
 
     Examples
@@ -188,17 +190,18 @@ class error_warnings(clear_and_catch_warnings):
     ...         print('I consider myself warned')
     I consider myself warned
     """
+
     filter = 'error'
 
     def __enter__(self):
-        mgr = super(error_warnings, self).__enter__()
+        mgr = super().__enter__()
         warnings.simplefilter(self.filter)
         return mgr
 
 
 class suppress_warnings(error_warnings):
-    """ Version of ``catch_warnings`` class that suppresses warnings
-    """
+    """Version of ``catch_warnings`` class that suppresses warnings"""
+
     filter = 'ignore'
 
 
@@ -207,25 +210,37 @@ EXTRA_SET = os.environ.get('NIPY_EXTRA_TESTS', '').split(',')
 
 def runif_extra_has(test_str):
     """Decorator checks to see if NIPY_EXTRA_TESTS env var contains test_str"""
-    return unittest.skipUnless(test_str in EXTRA_SET, f"Skip {test_str} tests.")
+    return unittest.skipUnless(test_str in EXTRA_SET, f'Skip {test_str} tests.')
 
 
 def assert_arr_dict_equal(dict1, dict2):
-    """ Assert that two dicts are equal, where dicts contain arrays
-    """
+    """Assert that two dicts are equal, where dicts contain arrays"""
     assert set(dict1) == set(dict2)
     for key, value1 in dict1.items():
         value2 = dict2[key]
         assert_array_equal(value1, value2)
 
 
-class BaseTestCase(unittest.TestCase):
-    """ TestCase that does not attempt to run if prefixed with a ``_``
+def expires(version):
+    """Decorator to mark a test as xfail with ExpiredDeprecationError after version"""
+    from packaging.version import Version
 
-    This restores the nose-like behavior of skipping so-named test cases
-    in test runners like pytest.
-    """
-    def setUp(self):
-        if self.__class__.__name__.startswith('_'):
-            raise unittest.SkipTest("Base test case - subclass to run")
-        super().setUp()
+    from nibabel import __version__ as nbver
+    from nibabel.deprecator import ExpiredDeprecationError
+
+    if Version(nbver) < Version(version):
+        return lambda x: x
+
+    return pytest.mark.xfail(raises=ExpiredDeprecationError)
+
+
+def deprecated_to(version):
+    """Context manager to expect DeprecationWarnings until a given version"""
+    from packaging.version import Version
+
+    from nibabel import __version__ as nbver
+
+    if Version(nbver) < Version(version):
+        return pytest.deprecated_call()
+
+    return nullcontext()

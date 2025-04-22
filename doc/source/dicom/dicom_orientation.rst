@@ -17,7 +17,7 @@ definitions`_ (2009):
    patient. The y-axis is increasing to the posterior side of the
    patient. The z-axis is increasing toward the head of the patient.
 
-(we'll ignore the quadupeds for now). 
+(we'll ignore the quadupeds for now).
 
 In a way it's funny to call this the 'patient-based' coordinate system.
 'Doctor-based coordinate system' is a better name.  Think of a doctor
@@ -33,7 +33,7 @@ patient.
 DICOM pixel data
 ================
 
-C.7.6.3.1.4 - Pixel Data 
+C.7.6.3.1.4 - Pixel Data
    Pixel Data (7FE0,0010) for this image. The order of pixels sent for
    each image plane is left to right, top to bottom, i.e., the upper
    left pixel (labeled 1,1) is sent first followed by the remainder of
@@ -110,21 +110,21 @@ system* - see `DICOM object definitions`_ section 3.17.1):
       \begin{bmatrix} P_x\\
                       P_y\\
                       P_z\\
-                      1 \end{bmatrix} = 
-      \begin{bmatrix} X_x\Delta{i} & Y_x\Delta{j} & 0 & S_x \\ 
+                      1 \end{bmatrix} =
+      \begin{bmatrix} X_x\Delta{i} & Y_x\Delta{j} & 0 & S_x \\
                       X_y\Delta{i} & Y_y\Delta{j} & 0 & S_y \\
                       X_z\Delta{i} & Y_z\Delta{j} & 0 & S_z \\
                       0   & 0   & 0 & 1 \end{bmatrix}
       \begin{bmatrix} i\\
                       j\\
                       0\\
-                      1 \end{bmatrix} 
-      = M 
+                      1 \end{bmatrix}
+      = M
       \begin{bmatrix} i\\
                       j\\
                       0\\
-                      1 \end{bmatrix} 
-      
+                      1 \end{bmatrix}
+
    Where:
 
    #. $P_{xyz}$ : The coordinates of the voxel (i,j) in the frame's
@@ -207,20 +207,20 @@ DICOM affine formula
    \begin{bmatrix} P_x\\
                    P_y\\
                    P_z\\
-                   1 \end{bmatrix} = 
-   \begin{bmatrix} F_{11}\Delta{r} & F_{12}\Delta{c} & 0 & S_x \\ 
+                   1 \end{bmatrix} =
+   \begin{bmatrix} F_{11}\Delta{r} & F_{12}\Delta{c} & 0 & S_x \\
                    F_{21}\Delta{r} & F_{22}\Delta{c} & 0 & S_y \\
                    F_{31}\Delta{r} & F_{32}\Delta{c} & 0 & S_z \\
                    0   & 0   & 0 & 1 \end{bmatrix}
    \begin{bmatrix} r\\
                    c\\
                    0\\
-                   1 \end{bmatrix} 
-   = A 
+                   1 \end{bmatrix}
+   = A
    \begin{bmatrix} r\\
                    c\\
                    0\\
-                   1 \end{bmatrix} 
+                   1 \end{bmatrix}
 
 Where:
 
@@ -258,7 +258,7 @@ In the *multi slice* case, we can assume that the
 'ImageOrientationPatient' field is the same for all the slices.
 
 We want to get the affine transformation matrix $A$ that maps from voxel
-coordinates in the DICOM file(s), to mm in the :ref:`dicom-pcs`.  
+coordinates in the DICOM file(s), to mm in the :ref:`dicom-pcs`.
 
 By voxel coordinates, we mean coordinates of form $(r, c, s)$ - the row,
 column and slice indices - as for the :ref:`dicom-slice-affine`.
@@ -305,7 +305,7 @@ For the multi-slice case, we can fill in $\mathbf{k}$ by using the information
 from $T^N$, because $T^N$ is the translation needed to take the
 first voxel in the last (slice index = $N-1$) slice to mm space.  So:
 
-.. math:: 
+.. math::
 
    \left(\begin{smallmatrix}T^N\\1\end{smallmatrix}\right) = A \left(\begin{smallmatrix}0\\0\\N - 1\\1\end{smallmatrix}\right)
 
@@ -325,7 +325,7 @@ and therefore:
 .. math::
 
    A_{multi} = \left(\begin{smallmatrix}F_{{11}} \Delta{r} & F_{{12}} \Delta{c} & \frac{T^{N}_{{1}} - T^{1}_{{1}}}{N - 1} & T^{1}_{{1}}\\F_{{21}} \Delta{r} & F_{{22}} \Delta{c} & \frac{T^{N}_{{2}} - T^{1}_{{2}}}{N - 1} & T^{1}_{{2}}\\F_{{31}} \Delta{r} & F_{{32}} \Delta{c} & \frac{T^{N}_{{3}} - T^{1}_{{3}}}{N - 1} & T^{1}_{{3}}\\0 & 0 & 0 & 1\end{smallmatrix}\right)
-   
+
    A_{single} = \left(\begin{smallmatrix}F_{{11}} \Delta{r} & F_{{12}} \Delta{c} & \Delta{s} n_{{1}} & T^{1}_{{1}}\\F_{{21}} \Delta{r} & F_{{22}} \Delta{c} & \Delta{s} n_{{2}} & T^{1}_{{2}}\\F_{{31}} \Delta{r} & F_{{32}} \Delta{c} & \Delta{s} n_{{3}} & T^{1}_{{3}}\\0 & 0 & 0 & 1\end{smallmatrix}\right)
 
 See :download:`derivations/spm_dicom_orient.py` for the derivations and
@@ -410,4 +410,3 @@ plus a constant.
 Again, see :download:`derivations/spm_dicom_orient.py` for the derivations.
 
 .. include:: ../links_names.txt
-

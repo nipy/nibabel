@@ -6,77 +6,114 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Testing for orientations module """
+"""Testing for orientations module"""
 
 import numpy as np
-import warnings
-
 import pytest
-
 from numpy.testing import assert_array_equal
 
-from ..orientations import (io_orientation, ornt_transform, inv_ornt_aff,
-                            flip_axis, apply_orientation, OrientationError,
-                            ornt2axcodes, axcodes2ornt, aff2axcodes,
-                            orientation_affine)
-
 from ..affines import from_matvec, to_matvec
+from ..orientations import (
+    OrientationError,
+    aff2axcodes,
+    apply_orientation,
+    axcodes2ornt,
+    flip_axis,
+    inv_ornt_aff,
+    io_orientation,
+    ornt2axcodes,
+    ornt_transform,
+)
+from ..testing import deprecated_to, expires
 
+IN_ARRS = [
+    np.eye(4),
+    [
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 1],
+    ],
+    [
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 1],
+    ],
+    [
+        [3, 1, 0, 0],
+        [1, 3, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ],
+    [
+        [1, 3, 0, 0],
+        [3, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ],
+]
 
-IN_ARRS = [np.eye(4),
-           [[0, 0, 1, 0],
-            [0, 1, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 1]],
-           [[0, 1, 0, 0],
-            [0, 0, 1, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 1]],
-           [[3, 1, 0, 0],
-            [1, 3, 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1]],
-           [[1, 3, 0, 0],
-            [3, 1, 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1]],
-           ]
+OUT_ORNTS = [
+    [
+        [0, 1],
+        [1, 1],
+        [2, 1],
+    ],
+    [
+        [2, 1],
+        [1, 1],
+        [0, 1],
+    ],
+    [
+        [2, 1],
+        [0, 1],
+        [1, 1],
+    ],
+    [
+        [0, 1],
+        [1, 1],
+        [2, 1],
+    ],
+    [
+        [1, 1],
+        [0, 1],
+        [2, 1],
+    ],
+]
 
-OUT_ORNTS = [[[0, 1],
-              [1, 1],
-              [2, 1]],
-             [[2, 1],
-              [1, 1],
-              [0, 1]],
-             [[2, 1],
-              [0, 1],
-              [1, 1]],
-             [[0, 1],
-              [1, 1],
-              [2, 1]],
-             [[1, 1],
-              [0, 1],
-              [2, 1]],
-             ]
+IN_ARRS.extend(
+    [
+        [np.cos(np.pi / 6 + i * np.pi / 2), np.sin(np.pi / 6 + i * np.pi / 2), 0, 0],
+        [-np.sin(np.pi / 6 + i * np.pi / 2), np.cos(np.pi / 6 + i * np.pi / 2), 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    ]
+    for i in range(4)
+)
 
-IN_ARRS = IN_ARRS + [[[np.cos(np.pi / 6 + i * np.pi / 2), np.sin(np.pi / 6 + i * np.pi / 2), 0, 0],
-                      [-np.sin(np.pi / 6 + i * np.pi / 2), np.cos(np.pi / 6 + i * np.pi / 2), 0, 0],
-                      [0, 0, 1, 0],
-                      [0, 0, 0, 1]] for i in range(4)]
-
-OUT_ORNTS = OUT_ORNTS + [[[0, 1],
-                          [1, 1],
-                          [2, 1]],
-                         [[1, -1],
-                          [0, 1],
-                          [2, 1]],
-                         [[0, -1],
-                          [1, -1],
-                          [2, 1]],
-                         [[1, 1],
-                          [0, -1],
-                          [2, 1]]
-                         ]
+OUT_ORNTS += [
+    [
+        [0, 1],
+        [1, 1],
+        [2, 1],
+    ],
+    [
+        [1, -1],
+        [0, 1],
+        [2, 1],
+    ],
+    [
+        [0, -1],
+        [1, -1],
+        [2, 1],
+    ],
+    [
+        [1, 1],
+        [0, -1],
+        [2, 1],
+    ],
+]
 
 
 IN_ARRS = [np.array(arr) for arr in IN_ARRS]
@@ -84,15 +121,27 @@ OUT_ORNTS = [np.array(ornt) for ornt in OUT_ORNTS]
 
 
 _LABELS = ['RL', 'AP', 'SI']
-ALL_AXCODES = [(_LABELS[i0][j0], _LABELS[i1][j1], _LABELS[i2][j2])
-               for i0 in range(3) for i1 in range(3) for i2 in range(3)
-               if i0 != i1 != i2 != i0
-               for j0 in range(2) for j1 in range(2) for j2 in range(2)]
+ALL_AXCODES = [
+    (_LABELS[i0][j0], _LABELS[i1][j1], _LABELS[i2][j2])
+    for i0 in range(3)
+    for i1 in range(3)
+    for i2 in range(3)
+    if i0 != i1 != i2 != i0
+    for j0 in range(2)
+    for j1 in range(2)
+    for j2 in range(2)
+]
 
-ALL_ORNTS = [[[i0, j0], [i1, j1], [i2, j2]]
-             for i0 in range(3) for i1 in range(3) for i2 in range(3)
-             if i0 != i1 != i2 != i0
-             for j0 in [1, -1] for j1 in [1, -1] for j2 in [1, -1]]
+ALL_ORNTS = [
+    [[i0, j0], [i1, j1], [i2, j2]]
+    for i0 in range(3)
+    for i1 in range(3)
+    for i2 in range(3)
+    if i0 != i1 != i2 != i0
+    for j0 in [1, -1]
+    for j1 in [1, -1]
+    for j2 in [1, -1]
+]
 
 
 def same_transform(taff, ornt, shape):
@@ -134,7 +183,6 @@ def test_apply():
         apply_orientation(a[:, :, 1], ornt)
     with pytest.raises(OrientationError):
         apply_orientation(a, [[0, 1], [np.nan, np.nan], [2, 1]])
-    shape = np.array(a.shape)
     for ornt in ALL_ORNTS:
         t_arr = apply_orientation(a, ornt)
         assert_array_equal(a.shape, np.array(t_arr.shape)[np.array(ornt)[:, 0]])
@@ -162,32 +210,50 @@ def test_io_orientation():
     rzs = np.c_[np.diag([2, 3, 4, 5]), np.zeros((4, 3))]
     arr = from_matvec(rzs, [15, 16, 17, 18])
     ornt = io_orientation(arr)
-    assert_array_equal(ornt, [[0, 1],
-                              [1, 1],
-                              [2, 1],
-                              [3, 1],
-                              [np.nan, np.nan],
-                              [np.nan, np.nan],
-                              [np.nan, np.nan]])
+    assert_array_equal(
+        ornt,
+        [
+            [0, 1],
+            [1, 1],
+            [2, 1],
+            [3, 1],
+            [np.nan, np.nan],
+            [np.nan, np.nan],
+            [np.nan, np.nan],
+        ],
+    )
     # Test behavior of thresholding
-    def_aff = np.array([[1., 1, 0, 0],
-                        [0, 0, 0, 0],
-                        [0, 0, 1, 0],
-                        [0, 0, 0, 1]])
-    fail_tol = np.array([[0, 1],
-                         [np.nan, np.nan],
-                         [2, 1]])
-    pass_tol = np.array([[0, 1],
-                         [1, 1],
-                         [2, 1]])
+    def_aff = np.array(
+        [
+            [1.0, 1, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ]
+    )
+    fail_tol = np.array(
+        [
+            [0, 1],
+            [np.nan, np.nan],
+            [2, 1],
+        ]
+    )
+    pass_tol = np.array(
+        [
+            [0, 1],
+            [1, 1],
+            [2, 1],
+        ]
+    )
     eps = np.finfo(float).eps
     # Test that a Y axis appears as we increase the difference between the
     # first two columns
-    for y_val, has_y in ((0, False),
-                         (eps, False),
-                         (eps * 5, False),
-                         (eps * 10, True),
-                         ):
+    for y_val, has_y in (
+        (0, False),
+        (eps, False),
+        (eps * 5, False),
+        (eps * 10, True),
+    ):
         def_aff[1, 1] = y_val
         res = pass_tol if has_y else fail_tol
         assert_array_equal(io_orientation(def_aff), res)
@@ -202,68 +268,74 @@ def test_io_orientation():
     aff_extra_col[-1, -1] = 1  # Not strictly necessary, but for completeness
     aff_extra_col[:3, :3] = mat
     aff_extra_col[:3, -1] = vec
-    assert_array_equal(io_orientation(aff_extra_col, tol=1e-5),
-                       [[0, 1],
-                        [np.nan, np.nan],
-                        [2, 1],
-                        [np.nan, np.nan]])
+    assert_array_equal(
+        io_orientation(aff_extra_col, tol=1e-5),
+        [
+            [0, 1],
+            [np.nan, np.nan],
+            [2, 1],
+            [np.nan, np.nan],
+        ],
+    )
     aff_extra_row = np.zeros((5, 4))
     aff_extra_row[-1, -1] = 1  # Not strictly necessary, but for completeness
     aff_extra_row[:3, :3] = mat
     aff_extra_row[:3, -1] = vec
-    assert_array_equal(io_orientation(aff_extra_row, tol=1e-5),
-                       [[0, 1],
-                        [np.nan, np.nan],
-                        [2, 1]])
+    assert_array_equal(
+        io_orientation(aff_extra_row, tol=1e-5),
+        [
+            [0, 1],
+            [np.nan, np.nan],
+            [2, 1],
+        ],
+    )
 
 
 def test_ornt_transform():
-    assert_array_equal(ornt_transform([[0, 1], [1, 1], [2, -1]],
-                                      [[1, 1], [0, 1], [2, 1]]),
-                       [[1, 1], [0, 1], [2, -1]]
-                       )
-    assert_array_equal(ornt_transform([[0, 1], [1, 1], [2, 1]],
-                                      [[2, 1], [0, -1], [1, 1]]),
-                       [[1, -1], [2, 1], [0, 1]]
-                       )
+    assert_array_equal(
+        ornt_transform(
+            [[0, 1], [1, 1], [2, -1]],
+            [[1, 1], [0, 1], [2, 1]],
+        ),
+        [[1, 1], [0, 1], [2, -1]],
+    )
+    assert_array_equal(
+        ornt_transform(
+            [[0, 1], [1, 1], [2, 1]],
+            [[2, 1], [0, -1], [1, 1]],
+        ),
+        [[1, -1], [2, 1], [0, 1]],
+    )
     # Must have same shape
     with pytest.raises(ValueError):
         ornt_transform([[0, 1], [1, 1]], [[0, 1], [1, 1], [2, 1]])
 
     # Must be (N,2) in shape
     with pytest.raises(ValueError):
-        ornt_transform([[0, 1, 1], [1, 1, 1]],
-                       [[0, 1, 1], [1, 1, 1]])
+        ornt_transform(
+            [[0, 1, 1], [1, 1, 1]],
+            [[0, 1, 1], [1, 1, 1]],
+        )
 
     # Target axes must exist in source
     with pytest.raises(ValueError):
-        ornt_transform([[0, 1], [1, 1], [1, 1]],
-                       [[0, 1], [1, 1], [2, 1]])
+        ornt_transform(
+            [[0, 1], [1, 1], [1, 1]],
+            [[0, 1], [1, 1], [2, 1]],
+        )
 
 
 def test_ornt2axcodes():
     # Recoding orientation to axis codes
     labels = (('left', 'right'), ('back', 'front'), ('down', 'up'))
-    assert ornt2axcodes([[0, 1],
-                         [1, 1],
-                         [2, 1]], labels) == ('right', 'front', 'up')
-    assert ornt2axcodes([[0, -1],
-                         [1, -1],
-                         [2, -1]], labels) == ('left', 'back', 'down')
-    assert ornt2axcodes([[2, -1],
-                         [1, -1],
-                         [0, -1]], labels) == ('down', 'back', 'left')
-    assert ornt2axcodes([[1, 1],
-                         [2, -1],
-                         [0, 1]], labels) == ('front', 'down', 'right')
+    assert ornt2axcodes([[0, 1], [1, 1], [2, 1]], labels) == ('right', 'front', 'up')
+    assert ornt2axcodes([[0, -1], [1, -1], [2, -1]], labels) == ('left', 'back', 'down')
+    assert ornt2axcodes([[2, -1], [1, -1], [0, -1]], labels) == ('down', 'back', 'left')
+    assert ornt2axcodes([[1, 1], [2, -1], [0, 1]], labels) == ('front', 'down', 'right')
     # default is RAS output directions
-    assert ornt2axcodes([[0, 1],
-                         [1, 1],
-                         [2, 1]]) == ('R', 'A', 'S')
+    assert ornt2axcodes([[0, 1], [1, 1], [2, 1]]) == ('R', 'A', 'S')
     # dropped axes produce None
-    assert ornt2axcodes([[0, 1],
-                         [np.nan, np.nan],
-                         [2, 1]]) == ('R', None, 'S')
+    assert ornt2axcodes([[0, 1], [np.nan, np.nan], [2, 1]]) == ('R', None, 'S')
     # Non integer axes raises error
     with pytest.raises(ValueError):
         ornt2axcodes([[0.1, 1]])
@@ -278,61 +350,35 @@ def test_ornt2axcodes():
 def test_axcodes2ornt():
     # Go from axcodes back to orientations
     labels = (('left', 'right'), ('back', 'front'), ('down', 'up'))
-    assert_array_equal(axcodes2ornt(('right', 'front', 'up'), labels),
-                       [[0, 1],
-                        [1, 1],
-                        [2, 1]]
-                       )
-    assert_array_equal(axcodes2ornt(('left', 'back', 'down'), labels),
-                       [[0, -1],
-                        [1, -1],
-                        [2, -1]]
-                       )
-    assert_array_equal(axcodes2ornt(('down', 'back', 'left'), labels),
-                       [[2, -1],
-                        [1, -1],
-                        [0, -1]]
-                       )
-    assert_array_equal(axcodes2ornt(('front', 'down', 'right'), labels),
-                       [[1, 1],
-                        [2, -1],
-                        [0, 1]]
-                       )
+    assert_array_equal(axcodes2ornt(('right', 'front', 'up'), labels), [[0, 1], [1, 1], [2, 1]])
+    assert_array_equal(axcodes2ornt(('left', 'back', 'down'), labels), [[0, -1], [1, -1], [2, -1]])
+    assert_array_equal(axcodes2ornt(('down', 'back', 'left'), labels), [[2, -1], [1, -1], [0, -1]])
+    assert_array_equal(axcodes2ornt(('front', 'down', 'right'), labels), [[1, 1], [2, -1], [0, 1]])
 
     # default is RAS output directions
     default = np.c_[range(3), [1] * 3]
     assert_array_equal(axcodes2ornt(('R', 'A', 'S')), default)
 
     # dropped axes produce None
-    assert_array_equal(axcodes2ornt(('R', None, 'S')),
-                       [[0, 1],
-                        [np.nan, np.nan],
-                        [2, 1]]
-                       )
+    assert_array_equal(axcodes2ornt(('R', None, 'S')), [[0, 1], [np.nan, np.nan], [2, 1]])
 
     # Missing axcodes raise an error
     assert_array_equal(axcodes2ornt('RAS'), default)
     with pytest.raises(ValueError):
         axcodes2ornt('rAS')
     # None is OK as axis code
-    assert_array_equal(axcodes2ornt(('R', None, 'S')),
-                                    [[0, 1],
-                                     [np.nan, np.nan],
-                                     [2, 1]])
+    assert_array_equal(axcodes2ornt(('R', None, 'S')), [[0, 1], [np.nan, np.nan], [2, 1]])
     # Bad axis code with None also raises error.
     with pytest.raises(ValueError):
         axcodes2ornt(('R', None, 's'))
     # Axis codes checked with custom labels
     labels = ('SD', 'BF', 'lh')
-    assert_array_equal(axcodes2ornt('BlD', labels),
-                       [[1, -1],
-                        [2, -1],
-                        [0, 1]])
+    assert_array_equal(axcodes2ornt('BlD', labels), [[1, -1], [2, -1], [0, 1]])
     with pytest.raises(ValueError):
         axcodes2ornt('blD', labels)
 
     # Duplicate labels
-    for labels in [('SD', 'BF', 'lD'),('SD', 'SF', 'lD')]:
+    for labels in [('SD', 'BF', 'lD'), ('SD', 'SF', 'lD')]:
         with pytest.raises(ValueError):
             axcodes2ornt('blD', labels)
 
@@ -354,16 +400,10 @@ def test_inv_ornt_aff():
         inv_ornt_aff([[0, 1], [1, -1], [np.nan, np.nan]], (3, 4, 5))
 
 
-def test_orientation_affine_deprecation():
-    aff1 = inv_ornt_aff([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
-    with pytest.deprecated_call():
-        aff2 = orientation_affine([[0, 1], [1, -1], [2, 1]], (3, 4, 5))
-    assert_array_equal(aff1, aff2)
-
-
+@expires('5.0.0')
 def test_flip_axis_deprecation():
     a = np.arange(24).reshape((2, 3, 4))
     axis = 1
-    with pytest.deprecated_call():
+    with deprecated_to('5.0.0'):
         a_flipped = flip_axis(a, axis)
     assert_array_equal(a_flipped, np.flip(a, axis))

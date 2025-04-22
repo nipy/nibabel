@@ -13,12 +13,12 @@
 Installation
 ************
 
-NiBabel is a pure Python package at the moment, and it should be easy to get
-NiBabel running on any system. For the most popular platforms and operating
-systems there should be packages in the respective native packaging format
-(DEB, RPM or installers). On other systems you can install NiBabel using
-pip_ or by downloading the source package and running the usual ``python
-setup.py install``.
+NiBabel is a pure Python package,
+and it should be easy to get NiBabel running on any system.
+For the most popular platforms and operating systems
+there should be packages in the respective native packaging format
+(DEB, RPM or installers).
+On other systems you can install NiBabel using pip_.
 
 .. This remark below is not yet true; comment to avoid confusion
    To run all of the tests, you may need some extra data packages - see
@@ -43,7 +43,7 @@ Windows), and type::
 
 This will download and install NiBabel.
 
-If you really like doing stuff manually, you can install NiBabel by downoading
+If you really like doing stuff manually, you can install NiBabel by downloading
 the source from `NiBabel pypi`_ .  Go to the pypi page and select the source
 distribution you want.  Download the distribution, unpack it, and then, from
 the unpacked directory, run::
@@ -81,15 +81,16 @@ is for you.
 Requirements
 ------------
 
-.. check these against setup.cfg
+.. check these against pyproject.toml / tox.ini
 
-*  Python_ 3.6 or greater
-*  NumPy_ 1.14 or greater
-*  Packaging_ 14.3 or greater
-*  SciPy_ (optional, for full SPM-ANALYZE support)
-*  h5py_ (optional, for MINC2 support)
-*  PyDICOM_ 0.9.9 or greater (optional, for DICOM support)
-*  `Python Imaging Library`_ (optional, for PNG conversion in DICOMFS)
+*  Python_ 3.9 or greater
+*  NumPy_ 1.22 or greater
+*  Packaging_ 20.0 or greater
+*  importlib-resources_ 5.12 or greater (or Python 3.12+)
+*  SciPy_ 1.8 or greater (optional, for full SPM-ANALYZE support)
+*  h5py_ 3.5 or greater (optional, for MINC2 support)
+*  PyDICOM_ 2.3.0 or greater (optional, for DICOM support)
+*  `Python Imaging Library`_ 8.4 or greater (optional, for PNG conversion in DICOMFS)
 *  pytest_ (optional, to run the tests)
 *  sphinx_ (optional, to build the documentation)
 
@@ -121,14 +122,15 @@ Validating your install
 For a basic test of your installation, fire up Python and try importing the
 module to see if everything is fine.  It should look something like this::
 
-    Python 2.7.8 (v2.7.8:ee879c0ffa11, Jun 29 2014, 21:07:35)
-    [GCC 4.2.1 (Apple Inc. build 5666) (dot 3)] on darwin
+    Python 3.8.5 (default, Sep  4 2020, 07:30:14)
+    [GCC 7.3.0] :: Anaconda, Inc. on linux
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import nibabel
     >>>
 
 
-To run the nibabel test suite, from the terminal run ``pytest nibabel`` or
+To run the nibabel test suite, from the terminal run
+``pytest --pyargs nibabel`` or
 ``python -c "import nibabel; nibabel.test()``.
 
 To run an extended test suite that validates ``nibabel`` for long-running and

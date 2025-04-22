@@ -6,67 +6,60 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Test Analyze headers
+"""Test Analyze headers
 
 See test_wrapstruct.py for tests of the wrapped structarr-ness of the Analyze
 header
 """
 
-import os
-import re
-import logging
-import pickle
 import itertools
+import logging
+import os
+import pickle
+import re
+from io import BytesIO, StringIO
 
 import numpy as np
-
-from io import BytesIO, StringIO
-from ..spatialimages import (HeaderDataError, HeaderTypeError,
-                             supported_np_types)
-from ..analyze import AnalyzeHeader, AnalyzeImage
-from ..nifti1 import Nifti1Header
-from ..loadsave import read_img_data
-from .. import imageglobals
-from ..casting import as_int
-from ..tmpdirs import InTemporaryDirectory
-from ..arraywriters import WriterError
-from ..optpkg import optional_package
-
 import pytest
-from numpy.testing import (assert_array_equal, assert_array_almost_equal)
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from ..testing import (data_path, suppress_warnings, assert_dt_equal,
-                       bytesio_filemap, bytesio_round_trip)
-
-from .test_wrapstruct import _TestLabeledWrapStruct
+from .. import imageglobals
+from ..analyze import AnalyzeHeader, AnalyzeImage
+from ..arraywriters import WriterError
+from ..casting import sctypes_aliases
+from ..nifti1 import Nifti1Header
+from ..optpkg import optional_package
+from ..spatialimages import HeaderDataError, HeaderTypeError, supported_np_types
+from ..testing import (
+    assert_dt_equal,
+    bytesio_filemap,
+    bytesio_round_trip,
+    data_path,
+    suppress_warnings,
+)
+from ..tmpdirs import InTemporaryDirectory
 from . import test_spatialimages as tsi
+from . import test_wrapstruct as tws
 
-HAVE_ZSTD = optional_package("pyzstd")[1]
+HAVE_ZSTD = optional_package('pyzstd')[1]
 
 header_file = os.path.join(data_path, 'analyze.hdr')
 
 PIXDIM0_MSG = 'pixdim[1,2,3] should be non-zero; setting 0 dims to 1'
 
 
-def add_intp(supported_np_types):
-    # Add intp, uintp to supported types as necessary
-    supported_dtypes = [np.dtype(t) for t in supported_np_types]
-    for np_type in (np.intp, np.uintp):
-        if np.dtype(np_type) in supported_dtypes:
-            supported_np_types.add(np_type)
+def add_duplicate_types(supported_np_types):
+    # Update supported numpy types with named scalar types that map to the same set of dtypes
+    dtypes = {np.dtype(t) for t in supported_np_types}
+    supported_np_types.update(scalar for scalar in sctypes_aliases if np.dtype(scalar) in dtypes)
 
 
-class TestAnalyzeHeader(_TestLabeledWrapStruct):
+class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
     header_class = AnalyzeHeader
     example_file = header_file
     sizeof_hdr = AnalyzeHeader.sizeof_hdr
-    supported_np_types = set((np.uint8,
-                              np.int16,
-                              np.int32,
-                              np.float32,
-                              np.float64,
-                              np.complex64))
-    add_intp(supported_np_types)
+    supported_np_types = {np.uint8, np.int16, np.int32, np.float32, np.float64, np.complex64}
+    add_duplicate_types(supported_np_types)
 
     def test_supported_types(self):
         hdr = self.header_class()
@@ -78,7 +71,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         return b'\x00' * self.header_class.template_dtype.itemsize
 
     def test_general_init(self):
-        super(TestAnalyzeHeader, self).test_general_init()
+        super().test_general_init()
         hdr = self.header_class()
         # an empty header has shape (0,) - like an empty array
         # (np.array([]))
@@ -88,8 +81,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # is True (which it is by default). We have to be careful of the
         # translations though - these arise from SPM's use of the origin
         # field, and the center of the image.
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                           [-1, 1, 1, 1])
+        assert_array_equal(np.diag(hdr.get_base_affine()), [-1, 1, 1, 1])
         # But zooms only go with number of dimensions
         assert hdr.get_zooms() == (1.0,)
 
@@ -144,8 +136,10 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             fhdr, message, raiser = self.log_chk(hdr, 30)
 
         assert fhdr['sizeof_hdr'] == self.sizeof_hdr
-        assert (message == f'sizeof_hdr should be {self.sizeof_hdr}; '
-                           f'set sizeof_hdr to {self.sizeof_hdr}')
+        assert (
+            message == f'sizeof_hdr should be {self.sizeof_hdr}; '
+            f'set sizeof_hdr to {self.sizeof_hdr}'
+        )
         pytest.raises(*raiser)
         # RGB datatype does not raise error
         hdr = HC()
@@ -195,8 +189,10 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         fhdr, message, raiser = self.log_chk(hdr, 35)
         assert fhdr['pixdim'][1] == 1
         assert fhdr['pixdim'][2] == 2
-        assert message == ('pixdim[1,2,3] should be non-zero and pixdim[1,2,3] should be '
-                           'positive; setting 0 dims to 1 and setting to abs of pixdim values')
+        assert message == (
+            'pixdim[1,2,3] should be non-zero and pixdim[1,2,3] should be '
+            'positive; setting 0 dims to 1 and setting to abs of pixdim values'
+        )
         pytest.raises(*raiser)
 
     def test_no_scaling_fixes(self):
@@ -238,8 +234,9 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             # Check log message appears in new logger
             imageglobals.logger = logger
             hdr.copy().check_fix()
-            assert str_io.getvalue() == ('bitpix does not match datatype; '
-                                         'setting bitpix to match datatype\n')
+            assert str_io.getvalue() == (
+                'bitpix does not match datatype; setting bitpix to match datatype\n'
+            )
             # Check that error_level in fact causes error to be raised
             imageglobals.error_level = 10
             with pytest.raises(HeaderDataError):
@@ -250,15 +247,15 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
     def test_data_dtype(self):
         # check getting and setting of data type
         # codes / types supported by all binary headers
-        all_supported_types = ((2, np.uint8),
-                               (4, np.int16),
-                               (8, np.int32),
-                               (16, np.float32),
-                               (32, np.complex64),
-                               (64, np.float64),
-                               (128, np.dtype([('R', 'u1'),
-                                               ('G', 'u1'),
-                                               ('B', 'u1')])))
+        all_supported_types = (
+            (2, np.uint8),
+            (4, np.int16),
+            (8, np.int32),
+            (16, np.float32),
+            (32, np.complex64),
+            (64, np.float64),
+            (128, np.dtype([('R', 'u1'), ('G', 'u1'), ('B', 'u1')])),
+        )
         # and unsupported - here using some labels instead
         all_unsupported_types = (np.void, 'none', 'all', 0)
 
@@ -266,6 +263,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             hdr = self.header_class()
             hdr.set_data_dtype(dt_spec)
             assert_dt_equal(hdr.get_data_dtype(), np_dtype)
+
         # Test code, type known to be supported by all types
         for code, npt in all_supported_types:
             # Can set with code value
@@ -290,7 +288,12 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # Test aliases to Python types
         assert_set_dtype(float, np.float64)  # float64 always supported
         np_sys_int = np.dtype(int).type  # int could be 32 or 64 bit
-        if np_sys_int in self.supported_np_types:  # no int64 for Analyze
+        if issubclass(self.header_class, Nifti1Header):
+            # We don't allow int aliases in Nifti
+            with pytest.raises(ValueError):
+                hdr = self.header_class()
+                hdr.set_data_dtype(int)
+        elif np_sys_int in self.supported_np_types:  # no int64 for Analyze
             assert_set_dtype(int, np_sys_int)
         hdr = self.header_class()
         for inp in all_unsupported_types:
@@ -305,8 +308,7 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             assert hdr.get_data_shape() == shape
         # Check max works, but max+1 raises error
         dim_dtype = hdr.structarr['dim'].dtype
-        # as_int for safety to deal with numpy 1.4.1 int conversion errors
-        mx = as_int(np.iinfo(dim_dtype).max)
+        mx = int(np.iinfo(dim_dtype).max)
         shape = (mx,)
         hdr.set_data_shape(shape)
         assert hdr.get_data_shape() == shape
@@ -456,23 +458,19 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         hdr.set_data_shape((1, 2, 3))
         assert_array_equal(hdr.get_zooms(), (4, 5, 1))
         # Setting zooms changes affine
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                           [-4, 5, 1, 1])
+        assert_array_equal(np.diag(hdr.get_base_affine()), [-4, 5, 1, 1])
         hdr.set_zooms((1, 1, 1))
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                           [-1, 1, 1, 1])
+        assert_array_equal(np.diag(hdr.get_base_affine()), [-1, 1, 1, 1])
 
     def test_default_x_flip(self):
         hdr = self.header_class()
         hdr.default_x_flip = True
         hdr.set_data_shape((1, 2, 3))
         hdr.set_zooms((1, 1, 1))
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                           [-1, 1, 1, 1])
+        assert_array_equal(np.diag(hdr.get_base_affine()), [-1, 1, 1, 1])
         hdr.default_x_flip = False
         # Check avoids translations
-        assert_array_equal(np.diag(hdr.get_base_affine()),
-                           [1, 1, 1, 1])
+        assert_array_equal(np.diag(hdr.get_base_affine()), [1, 1, 1, 1])
 
     def test_from_eg_file(self):
         fileobj = open(self.example_file, 'rb')
@@ -495,11 +493,11 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         assert_array_equal(hdr.get_base_affine(), aff)
 
     def test_str(self):
-        super(TestAnalyzeHeader, self).test_str()
+        super().test_str()
         hdr = self.header_class()
         s1 = str(hdr)
         # check the datacode recoding
-        rexp = re.compile('^datatype +: float32', re.MULTILINE)
+        rexp = re.compile(r'^datatype +: float32', re.MULTILINE)
         assert rexp.search(s1) is not None
 
     def test_from_header(self):
@@ -518,13 +516,16 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
             assert hdr == copy
             assert hdr is not copy
 
-        class C(object):
+        class C:
+            def get_data_dtype(self):
+                return np.dtype('i2')
 
-            def get_data_dtype(self): return np.dtype('i2')
+            def get_data_shape(self):
+                return (5, 4, 3)
 
-            def get_data_shape(self): return (5, 4, 3)
+            def get_zooms(self):
+                return (10.0, 9.0, 8.0)
 
-            def get_zooms(self): return (10.0, 9.0, 8.0)
         converted = klass.from_header(C())
         assert isinstance(converted, klass)
         assert converted.get_data_dtype() == np.dtype('i2')
@@ -539,24 +540,33 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         assert hdr.default_x_flip
         assert_array_almost_equal(
             hdr.get_base_affine(),
-            [[-3., 0., 0., 3.],
-             [0., 2., 0., -4.],
-             [0., 0., 1., -3.],
-             [0., 0., 0., 1.]])
+            [
+                [-3.0, 0.0, 0.0, 3.0],
+                [0.0, 2.0, 0.0, -4.0],
+                [0.0, 0.0, 1.0, -3.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        )
         hdr.set_data_shape((3, 5))
         assert_array_almost_equal(
             hdr.get_base_affine(),
-            [[-3., 0., 0., 3.],
-             [0., 2., 0., -4.],
-             [0., 0., 1., -0.],
-             [0., 0., 0., 1.]])
+            [
+                [-3.0, 0.0, 0.0, 3.0],
+                [0.0, 2.0, 0.0, -4.0],
+                [0.0, 0.0, 1.0, -0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        )
         hdr.set_data_shape((3, 5, 7))
         assert_array_almost_equal(
             hdr.get_base_affine(),
-            [[-3., 0., 0., 3.],
-             [0., 2., 0., -4.],
-             [0., 0., 1., -3.],
-             [0., 0., 0., 1.]])
+            [
+                [-3.0, 0.0, 0.0, 3.0],
+                [0.0, 2.0, 0.0, -4.0],
+                [0.0, 0.0, 1.0, -3.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        )
 
     def test_scaling(self):
         # Test integer scaling from float
@@ -593,15 +603,17 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
     def test_slope_inter(self):
         hdr = self.header_class()
         assert hdr.get_slope_inter() == (None, None)
-        for slinter in ((None,),
-                        (None, None),
-                        (np.nan, np.nan),
-                        (np.nan, None),
-                        (None, np.nan),
-                        (1.0,),
-                        (1.0, None),
-                        (None, 0),
-                        (1.0, 0)):
+        for slinter in (
+            (None,),
+            (None, None),
+            (np.nan, np.nan),
+            (np.nan, None),
+            (None, np.nan),
+            (1.0,),
+            (1.0, None),
+            (None, 0),
+            (1.0, 0),
+        ):
             hdr.set_slope_inter(*slinter)
             assert hdr.get_slope_inter() == (None, None)
         with pytest.raises(HeaderTypeError):
@@ -614,29 +626,30 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         klass = self.header_class
         # Header needs to implement data_dtype, data_shape, zooms
 
-        class H1(object):
+        class H1:
             pass
+
         with pytest.raises(AttributeError):
             klass.from_header(H1())
 
-        class H2(object):
-
+        class H2:
             def get_data_dtype(self):
                 return np.dtype('u1')
+
         with pytest.raises(AttributeError):
             klass.from_header(H2())
 
         class H3(H2):
-
             def get_data_shape(self):
                 return (2, 3, 4)
+
         with pytest.raises(AttributeError):
             klass.from_header(H3())
 
         class H4(H3):
-
             def get_zooms(self):
-                return 4., 5., 6.
+                return 4.0, 5.0, 6.0
+
         exp_hdr = klass()
         exp_hdr.set_data_dtype(np.dtype('u1'))
         exp_hdr.set_data_shape((2, 3, 4))
@@ -645,30 +658,29 @@ class TestAnalyzeHeader(_TestLabeledWrapStruct):
         # cal_max, cal_min get properly set from ``as_analyze_map``
 
         class H5(H4):
-
             def as_analyze_map(self):
                 return dict(cal_min=-100, cal_max=100)
+
         exp_hdr['cal_min'] = -100
         exp_hdr['cal_max'] = 100
         assert klass.from_header(H5()) == exp_hdr
-        # set_* methods override fields fron header
+        # set_* methods override fields from header
 
         class H6(H5):
-
             def as_analyze_map(self):
-                return dict(datatype=4, bitpix=32,
-                            cal_min=-100, cal_max=100)
+                return dict(datatype=4, bitpix=32, cal_min=-100, cal_max=100)
+
         assert klass.from_header(H6()) == exp_hdr
         # Any mapping will do, including a Nifti header
 
         class H7(H5):
-
             def as_analyze_map(self):
                 n_hdr = Nifti1Header()
                 n_hdr.set_data_dtype(np.dtype('i2'))
                 n_hdr['cal_min'] = -100
                 n_hdr['cal_max'] = 100
                 return n_hdr
+
         # Values from methods still override values from header (shape, dtype,
         # zooms still at defaults from n_hdr header fields above)
         assert klass.from_header(H7()) == exp_hdr
@@ -711,13 +723,13 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
 
     def test_data_hdr_cache(self):
         # test the API for loaded images, such that the data returned
-        # from np.asanyarray(img.dataobj) and img,get_fdata() are not
+        # from np.asanyarray(img.dataobj) and img.get_fdata() are not
         # affected by subsequent changes to the header.
         IC = self.image_class
         # save an image to a file map
         fm = IC.make_file_map()
-        for key, value in fm.items():
-            fm[key].fileobj = BytesIO()
+        for value in fm.values():
+            value.fileobj = BytesIO()
         shape = (2, 3, 4)
         data = np.arange(24, dtype=np.int8).reshape(shape)
         affine = np.eye(4)
@@ -735,14 +747,6 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert hdr.get_data_dtype() == np.dtype(np.uint8)
         assert_array_equal(img2.get_fdata(), data)
         assert_array_equal(np.asanyarray(img2.dataobj), data)
-        # now check read_img_data function - here we do see the changed
-        # header
-        with pytest.deprecated_call(match="from version: 3.2"):
-            sc_data = read_img_data(img2)
-        assert sc_data.shape == (3, 2, 2)
-        with pytest.deprecated_call(match="from version: 3.2"):
-            us_data = read_img_data(img2, prefer='unscaled')
-        assert us_data.shape == (3, 2, 2)
 
     def test_affine_44(self):
         IC = self.image_class
@@ -758,6 +762,20 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         # Not OK - affine wrong shape
         with pytest.raises(ValueError):
             IC(data, np.diag([2, 3, 4]))
+
+    def test_dtype_init_arg(self):
+        # data_dtype can be set by argument in absence of header
+        img_klass = self.image_class
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        aff = np.eye(4)
+        for dtype in self.supported_np_types:
+            img = img_klass(arr, aff, dtype=dtype)
+            assert img.get_data_dtype() == dtype
+        # It can also override the header dtype
+        hdr = img.header
+        for dtype in self.supported_np_types:
+            img = img_klass(arr, aff, hdr, dtype=dtype)
+            assert img.get_data_dtype() == dtype
 
     def test_offset_to_zero(self):
         # Check offset is always set to zero when creating images
@@ -813,7 +831,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         hdr = img.header
         hdr.set_zooms((4, 5, 6))
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         hdr_back = img.from_file_map(img.file_map).header
@@ -824,7 +842,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_array_equal(hdr.get_zooms(), (2, 3, 4))
         # Modify affine in-place? Update on save.
         img.affine[0, 0] = 9
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         hdr_back = img.from_file_map(img.file_map).header
@@ -846,7 +864,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_array_equal(img.get_fdata(), img2.get_fdata())
         assert img.header == img2.header
         # Save / reload using bytes IO objects
-        for key, value in img.file_map.items():
+        for value in img.file_map.values():
             value.fileobj = BytesIO()
         img.to_file_map()
         img_prox = img.from_file_map(img.file_map)
@@ -872,6 +890,21 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         img.to_file_map(fm)
         img_back = self.image_class.from_file_map(fm)
         assert_array_equal(img_back.dataobj, 0)
+
+    def test_dtype_to_filename_arg(self):
+        # data_dtype can be set by argument in absence of header
+        img_klass = self.image_class
+        arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+        aff = np.eye(4)
+        img = img_klass(arr, aff)
+        fname = 'test' + img_klass.files_types[0][1]
+        with InTemporaryDirectory():
+            for dtype in self.supported_np_types:
+                img.to_filename(fname, dtype=dtype)
+                new_img = img_klass.from_filename(fname)
+                assert new_img.get_data_dtype() == dtype
+                # data_type is reset after write
+                assert img.get_data_dtype() == np.int16
 
 
 def test_unsupported():

@@ -22,7 +22,7 @@ In what follows we'll refer to the upstream nibabel ``master`` branch, as
 * Name your branch for the purpose of the changes - e.g.
   ``bugfix-for-issue-14`` or ``refactor-database-code``.
 * If you can possibly avoid it, avoid merging trunk or any other branches into
-  your feature branch while you are working.  
+  your feature branch while you are working.
 * If you do find yourself merging from trunk, consider :ref:`rebase-on-trunk`
 * Ask on the `nibabel mailing list`_ if you get stuck.
 * Ask for code review!
@@ -334,7 +334,7 @@ Rewriting commit history
 
    Do this only for your own feature branches.
 
-There's an embarassing typo in a commit you made? Or perhaps the you
+There's an embarrassing typo in a commit you made? Or perhaps the you
 made several false starts you would like the posterity not to see.
 
 This can be done via *interactive rebasing*.

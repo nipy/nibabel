@@ -3,7 +3,7 @@
 	url = https://github.com/yarikoptic/nitest-balls1
 [submodule "nibabel-data/nitest-minc2"]
 	path = nibabel-data/nitest-minc2
-	url = git://github.com/matthew-brett/nitest-minc2.git
+	url = https://github.com/matthew-brett/nitest-minc2.git
 [submodule "nipy-ecattest"]
 	path = nibabel-data/nipy-ecattest
 	url = https://github.com/effigies/nipy-ecattest
@@ -19,3 +19,6 @@
 [submodule "nibabel-data/nitest-dicom"]
 	path = nibabel-data/nitest-dicom
 	url = https://github.com/effigies/nitest-dicom
+[submodule "nibabel-data/dcm_qa_xa30"]
+	path = nibabel-data/dcm_qa_xa30
+	url = https://github.com/neurolabusc/dcm_qa_xa30.git

@@ -6,20 +6,20 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Test we can correctly import example MINC2_PATH files
-"""
+"""Test we can correctly import example MINC2_PATH files"""
 
 import os
 from os.path import join as pjoin
 
 import numpy as np
+from numpy.testing import assert_almost_equal, assert_array_equal
 
-from .._h5py_compat import h5py, have_h5py, setup_module
-
+from .. import Nifti1Image
+from .. import load as top_load
+from ..optpkg import optional_package
 from .nibabel_data import get_nibabel_data, needs_nibabel_data
-from .. import load as top_load, Nifti1Image
 
-from numpy.testing import (assert_array_equal, assert_almost_equal)
+h5py, have_h5py, setup_module = optional_package('h5py')
 
 MINC2_PATH = pjoin(get_nibabel_data(), 'nitest-minc2')
 
@@ -33,33 +33,31 @@ def _make_affine(coses, zooms, starts):
     return affine
 
 
-class TestEPIFrame(object):
+class TestEPIFrame:
     opener = staticmethod(top_load)
     x_cos = [1, 0, 0]
-    y_cos = [0., 1, 0]
+    y_cos = [0.0, 1, 0]
     z_cos = [0, 0, 1]
-    zooms = [-0.8984375, -0.8984375, 3.]
+    zooms = [-0.8984375, -0.8984375, 3.0]
     starts = [117.25609125, 138.89861125, -54.442028]
     example_params = dict(
         fname=os.path.join(MINC2_PATH, 'mincex_EPI-frame.mnc'),
         shape=(40, 256, 256),
         type=np.int16,
-        affine=_make_affine((z_cos, y_cos, x_cos),
-                            zooms[::-1],
-                            starts[::-1]),
+        affine=_make_affine((z_cos, y_cos, x_cos), zooms[::-1], starts[::-1]),
         zooms=[abs(v) for v in zooms[::-1]],
         # These values from mincstats
-        min=0.,
+        min=0.0,
         max=1273,
-        mean=93.52085367)
+        mean=93.52085367,
+    )
 
     @needs_nibabel_data('nitest-minc2')
     def test_load(self):
         # Check highest level load of minc works
         img = self.opener(self.example_params['fname'])
         assert img.shape == self.example_params['shape']
-        assert_almost_equal(img.header.get_zooms(),
-                            self.example_params['zooms'], 5)
+        assert_almost_equal(img.header.get_zooms(), self.example_params['zooms'], 5)
         assert_almost_equal(img.affine, self.example_params['affine'], 4)
         assert img.get_data_dtype().type == self.example_params['type']
         # Check correspondence of data and recorded shape
@@ -76,8 +74,8 @@ class TestEPIFrame(object):
 
 
 class TestB0(TestEPIFrame):
-    x_cos = [0.9970527523765, 0., 0.0767190261828617]
-    y_cos = [0., 1., -6.9388939e-18]
+    x_cos = [0.9970527523765, 0.0, 0.0767190261828617]
+    y_cos = [0.0, 1.0, -6.9388939e-18]
     z_cos = [-0.0767190261828617, 6.9184432614435e-18, 0.9970527523765]
     zooms = [-0.8984375, -0.8984375, 6.49999990444107]
     starts = [105.473101260826, 151.74885125, -61.8714747993248]
@@ -85,14 +83,13 @@ class TestB0(TestEPIFrame):
         fname=os.path.join(MINC2_PATH, 'mincex_diff-B0.mnc'),
         shape=(19, 256, 256),
         type=np.int16,
-        affine=_make_affine((z_cos, y_cos, x_cos),
-                            zooms[::-1],
-                            starts[::-1]),
+        affine=_make_affine((z_cos, y_cos, x_cos), zooms[::-1], starts[::-1]),
         zooms=[abs(v) for v in zooms[::-1]],
         # These values from mincstats
         min=4.566971917,
         max=3260.121093,
-        mean=163.8305553)
+        mean=163.8305553,
+    )
 
 
 class TestFA(TestEPIFrame):
@@ -102,28 +99,28 @@ class TestFA(TestEPIFrame):
         # These values from mincstats
         min=0.008068881038,
         max=1.224754546,
-        mean=0.7520087469)
+        mean=0.7520087469,
+    )
     example_params.update(new_params)
 
 
 class TestGado(TestEPIFrame):
     x_cos = [0.999695413509548, -0.0174524064372835, 0.0174497483512505]
     y_cos = [0.0174497483512505, 0.999847695156391, 0.000304586490452135]
-    z_cos = [-0.0174524064372835, 0., 0.999847695156391]
+    z_cos = [-0.0174524064372835, 0.0, 0.999847695156391]
     zooms = [1, -1, -1]
     starts = [-75.76775, 115.80462, 81.38605]
     example_params = dict(
         fname=os.path.join(MINC2_PATH, 'mincex_gado-contrast.mnc'),
         shape=(100, 170, 146),
         type=np.int16,
-        affine=_make_affine((z_cos, y_cos, x_cos),
-                            zooms[::-1],
-                            starts[::-1]),
+        affine=_make_affine((z_cos, y_cos, x_cos), zooms[::-1], starts[::-1]),
         zooms=[abs(v) for v in zooms[::-1]],
         # These values from mincstats
         min=0,
         max=938668.8698,
-        mean=128169.3488)
+        mean=128169.3488,
+    )
 
 
 class TestT1(TestEPIFrame):
@@ -136,14 +133,13 @@ class TestT1(TestEPIFrame):
         fname=os.path.join(MINC2_PATH, 'mincex_t1.mnc'),
         shape=(110, 217, 181),
         type=np.int16,
-        affine=_make_affine((z_cos, y_cos, x_cos),
-                            zooms[::-1],
-                            starts[::-1]),
+        affine=_make_affine((z_cos, y_cos, x_cos), zooms[::-1], starts[::-1]),
         zooms=[abs(v) for v in zooms[::-1]],
         # These values from mincstats
         min=0,
         max=100,
-        mean=23.1659928)
+        mean=23.1659928,
+    )
 
 
 class TestPD(TestEPIFrame):
@@ -153,7 +149,8 @@ class TestPD(TestEPIFrame):
         # These values from mincstats
         min=0,
         max=102.5024482,
-        mean=23.82625718)
+        mean=23.82625718,
+    )
     example_params.update(new_params)
 
 
@@ -165,5 +162,6 @@ class TestMask(TestEPIFrame):
         # These values from mincstats
         min=0,
         max=1,
-        mean=0.3817466618)
+        mean=0.3817466618,
+    )
     example_params.update(new_params)

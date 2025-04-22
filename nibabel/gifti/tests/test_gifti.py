@@ -1,33 +1,44 @@
-""" Testing gifti objects
-"""
-import warnings
+"""Testing gifti objects"""
+
+import itertools
 import sys
 from io import BytesIO
 
 import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
 
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from ... import load
-from .. import (GiftiImage, GiftiDataArray, GiftiLabel,
-                GiftiLabelTable, GiftiMetaData, GiftiNVPairs,
-                GiftiCoordSystem)
-from ..gifti import data_tag
-from ...nifti1 import data_type_codes
 from ...fileholders import FileHolder
+from ...nifti1 import data_type_codes
+from ...testing import deprecated_to, expires, get_test_data
+from .. import (
+    GiftiCoordSystem,
+    GiftiDataArray,
+    GiftiImage,
+    GiftiLabel,
+    GiftiLabelTable,
+    GiftiMetaData,
+    GiftiNVPairs,
+)
+from .test_parse_gifti_fast import (
+    DATA_FILE1,
+    DATA_FILE2,
+    DATA_FILE3,
+    DATA_FILE4,
+    DATA_FILE5,
+    DATA_FILE6,
+)
 
-from numpy.testing import assert_array_almost_equal, assert_array_equal
-import pytest
-from ...testing import clear_and_catch_warnings, test_data
-from .test_parse_gifti_fast import (DATA_FILE1, DATA_FILE2, DATA_FILE3,
-                                    DATA_FILE4, DATA_FILE5, DATA_FILE6)
-import itertools
+rng = np.random.default_rng()
 
 
 def test_agg_data():
-    surf_gii_img = load(test_data('gifti', 'ascii.gii'))
-    func_gii_img = load(test_data('gifti', 'task.func.gii'))
-    shape_gii_img = load(test_data('gifti', 'rh.shape.curv.gii'))
+    surf_gii_img = load(get_test_data('gifti', 'ascii.gii'))
+    func_gii_img = load(get_test_data('gifti', 'task.func.gii'))
+    shape_gii_img = load(get_test_data('gifti', 'rh.shape.curv.gii'))
     # add timeseries data with intent code ``none``
 
     point_data = surf_gii_img.get_arrays_from_intent('pointset')[0].data
@@ -52,12 +63,13 @@ def test_agg_data():
     assert surf_gii_img.agg_data(('pointset', 'triangle')) == (point_data, triangle_data)
     assert surf_gii_img.agg_data(('triangle', 'pointset')) == (triangle_data, point_data)
 
+
 def test_gifti_image():
     # Check that we're not modifying the default empty list in the default
     # arguments.
     gi = GiftiImage()
     assert gi.darrays == []
-    assert gi.meta.metadata == {}
+    assert gi.meta == {}
     assert gi.labeltable.labels == []
     arr = np.zeros((2, 3))
     gi.darrays.append(arr)
@@ -70,7 +82,7 @@ def test_gifti_image():
     assert gi.numDA == 0
 
     # Test from numpy numeric array
-    data = np.random.random((5,))
+    data = rng.random(5, dtype=np.float32)
     da = GiftiDataArray(data)
     gi.add_gifti_data_array(da)
     assert gi.numDA == 1
@@ -87,7 +99,7 @@ def test_gifti_image():
 
     # Remove one
     gi = GiftiImage()
-    da = GiftiDataArray(np.zeros((5,)), intent=0)
+    da = GiftiDataArray(np.zeros((5,), np.float32), intent=0)
     gi.add_gifti_data_array(da)
 
     gi.remove_gifti_data_array_by_intent(3)
@@ -105,12 +117,50 @@ def test_gifti_image_bad_inputs():
     # Try to set to non-table
     def assign_labeltable(val):
         img.labeltable = val
+
     pytest.raises(TypeError, assign_labeltable, 'not-a-table')
 
     # Try to set to non-table
     def assign_metadata(val):
         img.meta = val
+
     pytest.raises(TypeError, assign_metadata, 'not-a-meta')
+
+
+@pytest.mark.parametrize('label', data_type_codes.value_set('label'))
+def test_image_typing(label):
+    dtype = data_type_codes.dtype[label]
+    if dtype == np.void:
+        return
+    arr = 127 * rng.random(20)
+    try:
+        cast = arr.astype(label)
+    except TypeError:
+        return
+    darr = GiftiDataArray(cast, datatype=label)
+    img = GiftiImage(darrays=[darr])
+
+    # Force-write always works
+    force_rt = img.from_bytes(img.to_bytes(mode='force'))
+    assert np.array_equal(cast, force_rt.darrays[0].data)
+
+    # Compatibility mode does its best
+    if np.issubdtype(dtype, np.integer) or np.issubdtype(dtype, np.floating):
+        compat_rt = img.from_bytes(img.to_bytes(mode='compat'))
+        compat_darr = compat_rt.darrays[0].data
+        assert np.allclose(cast, compat_darr)
+        assert compat_darr.dtype in ('uint8', 'int32', 'float32')
+    else:
+        with pytest.raises(ValueError):
+            img.to_bytes(mode='compat')
+
+    # Strict mode either works or fails
+    if label in ('uint8', 'int32', 'float32'):
+        strict_rt = img.from_bytes(img.to_bytes(mode='strict'))
+        assert np.array_equal(cast, strict_rt.darrays[0].data)
+    else:
+        with pytest.raises(ValueError):
+            img.to_bytes(mode='strict')
 
 
 def test_dataarray_empty():
@@ -125,7 +175,7 @@ def test_dataarray_empty():
     assert null_da.coordsys.xformspace == 0
     assert_array_equal(null_da.coordsys.xform, np.eye(4))
     assert null_da.ind_ord == 1
-    assert null_da.meta.metadata == {}
+    assert null_da.meta == {}
     assert null_da.ext_fname == ''
     assert null_da.ext_offset == 0
 
@@ -173,56 +223,45 @@ def test_dataarray_init():
     assert gda(ordering='ColumnMajorOrder').ind_ord == 2
     pytest.raises(KeyError, gda, ordering='not an ordering')
     # metadata
-    meta_dict=dict(one=1, two=2)
-    assert gda(meta=GiftiMetaData.from_dict(meta_dict)).meta.metadata == meta_dict
-    assert gda(meta=meta_dict).meta.metadata == meta_dict
-    assert gda(meta=None).meta.metadata == {}
+    meta_dict = dict(one=1, two=2)
+    assert gda(meta=GiftiMetaData(meta_dict)).meta == meta_dict
+    assert gda(meta=meta_dict).meta == meta_dict
+    assert gda(meta=None).meta == {}
     # ext_fname and ext_offset
     assert gda(ext_fname='foo').ext_fname == 'foo'
     assert gda(ext_offset=12).ext_offset == 12
 
 
-def test_dataarray_from_array():
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        da = GiftiDataArray.from_array(np.ones((3, 4)))
-        assert len(w) == 1
-        for dt_code in data_type_codes.value_set():
-            data_type = data_type_codes.type[dt_code]
-            if data_type is np.void:  # not supported
-                continue
-            arr = np.zeros((10, 3), dtype=data_type)
-            da = GiftiDataArray.from_array(arr, 'triangle')
-            assert da.datatype == data_type_codes[arr.dtype]
-            bs_arr = arr.byteswap().newbyteorder()
-            da = GiftiDataArray.from_array(bs_arr, 'triangle')
-            assert da.datatype == data_type_codes[arr.dtype]
+@pytest.mark.parametrize('label', data_type_codes.value_set('label'))
+def test_dataarray_typing(label):
+    dtype = data_type_codes.dtype[label]
+    code = data_type_codes.code[label]
+    arr = np.zeros((5,), dtype=dtype)
 
+    # Default interface: accept standards-conformant arrays, reject else
+    if dtype in ('uint8', 'int32', 'float32'):
+        assert GiftiDataArray(arr).datatype == code
+    else:
+        with pytest.raises(ValueError):
+            GiftiDataArray(arr)
 
-def test_to_xml_open_close_deprecations():
-    # Smoke test on deprecated functions
-    da = GiftiDataArray(np.ones((1,)), 'triangle')
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        assert isinstance(da.to_xml_open(), str)
-        assert len(w) == 1
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
-        assert isinstance(da.to_xml_close(), str)
-        assert len(w) == 1
+    # Explicit override - permit for now, may want to warn or eventually
+    # error
+    assert GiftiDataArray(arr, datatype=label).datatype == code
+    assert GiftiDataArray(arr, datatype=code).datatype == code
+    # Void is how we say we don't know how to do something, so it's not unique
+    if dtype != np.dtype('void'):
+        assert GiftiDataArray(arr, datatype=dtype).datatype == code
 
-
-def test_num_dim_deprecation():
-    da = GiftiDataArray(np.ones((2, 3, 4)))
-    # num_dim is property, set automatically from len(da.dims)
-    assert da.num_dim == 3
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        # OK setting num_dim to correct value, but raises DeprecationWarning
-        da.num_dim = 3
-        assert len(w) == 1
-        # Any other value gives a ValueError
-        pytest.raises(ValueError, setattr, da, 'num_dim', 4)
+    # Side-load data array (as in parsing)
+    # We will probably always want this to load legacy images, but it's
+    # probably not ideal to make it easy to silently propagate nonconformant
+    # arrays
+    gda = GiftiDataArray()
+    gda.data = arr
+    gda.datatype = data_type_codes.code[label]
+    assert gda.data.dtype == dtype
+    assert gda.datatype == data_type_codes.code[label]
 
 
 def test_labeltable():
@@ -234,33 +273,108 @@ def test_labeltable():
     img.labeltable = new_table
     assert len(img.labeltable.labels) == 2
 
-    # Test deprecations
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        newer_table = GiftiLabelTable()
-        newer_table.labels += ['test', 'me', 'again']
-        img.set_labeltable(newer_table)
-        assert len(w) == 1
-        assert len(img.get_labeltable().labels) == 3
-        assert len(w) == 2
 
-
+@expires('6.0.0')
 def test_metadata():
-    nvpair = GiftiNVPairs('key', 'value')
-    md = GiftiMetaData(nvpair=nvpair)
-    assert md.data[0].name == 'key'
-    assert md.data[0].value == 'value'
-    # Test deprecation
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        assert md.get_metadata() == dict(key='value')
-        assert len(w) == 1
-        assert len(GiftiDataArray().get_metadata()) == 0
-        assert len(w) == 2
+    md = GiftiMetaData(key='value')
+    # Old initialization methods
+    with deprecated_to('6.0.0'):
+        nvpair = GiftiNVPairs('key', 'value')
+    with pytest.warns(FutureWarning) as w:
+        md2 = GiftiMetaData(nvpair=nvpair)
+    assert len(w) == 1
+    with deprecated_to('6.0.0'):
+        md3 = GiftiMetaData.from_dict({'key': 'value'})
+    assert md == md2 == md3 == {'key': 'value'}
+    # .data as a list of NVPairs is going away
+    with deprecated_to('6.0.0'):
+        assert md.data[0].name == 'key'
+    with deprecated_to('6.0.0'):
+        assert md.data[0].value == 'value'
+
+
+@expires('6.0.0')
+def test_metadata_list_interface():
+    md = GiftiMetaData(key='value')
+    with deprecated_to('6.0.0'):
+        mdlist = md.data
+    assert len(mdlist) == 1
+    assert mdlist[0].name == 'key'
+    assert mdlist[0].value == 'value'
+
+    # Modify elements in-place
+    mdlist[0].name = 'foo'
+    assert mdlist[0].name == 'foo'
+    assert 'foo' in md
+    assert 'key' not in md
+    assert md['foo'] == 'value'
+    mdlist[0].value = 'bar'
+    assert mdlist[0].value == 'bar'
+    assert md['foo'] == 'bar'
+
+    # Append new NVPair
+    with deprecated_to('6.0.0'):
+        nvpair = GiftiNVPairs('key', 'value')
+    mdlist.append(nvpair)
+    assert len(mdlist) == 2
+    assert mdlist[1].name == 'key'
+    assert mdlist[1].value == 'value'
+    assert len(md) == 2
+    assert md == {'foo': 'bar', 'key': 'value'}
+
+    # Clearing empties both
+    mdlist.clear()
+    assert len(mdlist) == 0
+    assert len(md) == 0
+
+    # Extension adds multiple keys
+    with deprecated_to('6.0'):
+        foobar = GiftiNVPairs('foo', 'bar')
+    mdlist.extend([nvpair, foobar])
+    assert len(mdlist) == 2
+    assert len(md) == 2
+    assert md == {'key': 'value', 'foo': 'bar'}
+
+    # Insertion updates list order, though we don't attempt to preserve it in the dict
+    with deprecated_to('6.0'):
+        lastone = GiftiNVPairs('last', 'one')
+    mdlist.insert(1, lastone)
+    assert len(mdlist) == 3
+    assert len(md) == 3
+    assert mdlist[1].name == 'last'
+    assert mdlist[1].value == 'one'
+    assert md == {'key': 'value', 'foo': 'bar', 'last': 'one'}
+
+    # Popping returns a pair
+    mypair = mdlist.pop(0)
+    assert isinstance(mypair, GiftiNVPairs)
+    assert mypair.name == 'key'
+    assert mypair.value == 'value'
+    assert len(mdlist) == 2
+    assert len(md) == 2
+    assert 'key' not in md
+    assert md == {'foo': 'bar', 'last': 'one'}
+    # Modifying the pair now does not affect md
+    mypair.name = 'completelynew'
+    mypair.value = 'strings'
+    assert 'completelynew' not in md
+    assert md == {'foo': 'bar', 'last': 'one'}
+    # Check popping from the end (last one inserted before foobar)
+    mdlist.pop()
+    assert len(mdlist) == 1
+    assert len(md) == 1
+    assert md == {'last': 'one'}
+
+    # And let's remove an old pair with a new object
+    with deprecated_to('6.0'):
+        lastoneagain = GiftiNVPairs('last', 'one')
+    mdlist.remove(lastoneagain)
+    assert len(mdlist) == 0
+    assert len(md) == 0
 
 
 def test_gifti_label_rgba():
-    rgba = np.random.rand(4)
+    rgba = rng.random(4)
     kwargs = dict(zip(['red', 'green', 'blue', 'alpha'], rgba))
 
     gl1 = GiftiLabel(**kwargs)
@@ -278,15 +392,10 @@ def test_gifti_label_rgba():
 
     def assign_rgba(gl, val):
         gl.rgba = val
+
     gl3 = GiftiLabel(**kwargs)
     pytest.raises(ValueError, assign_rgba, gl3, rgba[:2])
     pytest.raises(ValueError, assign_rgba, gl3, rgba.tolist() + rgba.tolist())
-
-    # Test deprecation
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
-        assert kwargs['red'] == gl3.get_rgba()[0]
-        assert len(w) == 1
 
     # Test default value
     gl4 = GiftiLabel()
@@ -294,36 +403,43 @@ def test_gifti_label_rgba():
     assert np.all([elem is None for elem in gl4.rgba])
 
 
-def test_print_summary():
-    for fil in [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4,
-                DATA_FILE5, DATA_FILE6]:
-        gimg = load(fil)
-        gimg.print_summary()
+@pytest.mark.parametrize(
+    'fname', [DATA_FILE1, DATA_FILE2, DATA_FILE3, DATA_FILE4, DATA_FILE5, DATA_FILE6]
+)
+def test_print_summary(fname, capsys):
+    gimg = load(fname)
+    gimg.print_summary()
+    captured = capsys.readouterr()
+    assert captured.out.startswith('----start----\n')
 
 
-def test_gifti_coord():
+def test_gifti_coord(capsys):
     from ..gifti import GiftiCoordSystem
+
     gcs = GiftiCoordSystem()
     assert gcs.xform is not None
 
     # Smoke test
     gcs.xform = None
     gcs.print_summary()
+    captured = capsys.readouterr()
+    assert (
+        captured.out
+        == """\
+Dataspace:  NIFTI_XFORM_UNKNOWN
+XFormSpace:  NIFTI_XFORM_UNKNOWN
+Affine Transformation Matrix:
+ None
+"""
+    )
     gcs.to_xml()
-
-
-def test_data_tag_deprecated():
-    with clear_and_catch_warnings() as w:
-        warnings.filterwarnings('once', category=DeprecationWarning)
-        data_tag(np.array([]), 'ASCII', '%i', 1)
-        assert len(w) == 1
 
 
 def test_gifti_round_trip():
     # From section 14.4 in GIFTI Surface Data Format Version 1.0
     # (with some adaptations)
 
-    test_data = b'''<?xml version="1.0" encoding="UTF-8"?>
+    test_data = b"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE GIFTI SYSTEM "http://www.nitrc.org/frs/download.php/1594/gifti.dtd">
 <GIFTI
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -380,14 +496,13 @@ ExternalFileName="" ExternalFileOffset="">
 0 2 3
 </Data>
 </DataArray>
-</GIFTI>'''
+</GIFTI>"""
 
     exp_verts = np.zeros((4, 3))
     exp_verts[0, 0] = 10.5
     exp_verts[1, 1] = 20.5
     exp_verts[2, 2] = 30.5
-    exp_faces = np.asarray([[0, 1, 2], [1, 2, 3], [0, 1, 3], [0, 2, 3]],
-                           dtype=np.int32)
+    exp_faces = np.asarray([[0, 1, 2], [1, 2, 3], [0, 1, 3], [0, 2, 3]], dtype=np.int32)
 
     def _check_gifti(gio):
         vertices = gio.get_arrays_from_intent('NIFTI_INTENT_POINTSET')[0].data
@@ -433,23 +548,22 @@ def test_data_array_round_trip():
 def test_darray_dtype_coercion_failures():
     dtypes = (np.uint8, np.int32, np.int64, np.float32, np.float64)
     encodings = ('ASCII', 'B64BIN', 'B64GZ')
-    for data_dtype, darray_dtype, encoding in itertools.product(dtypes,
-                                                                dtypes,
-                                                                encodings):
-        da = GiftiDataArray(np.arange(10).astype(data_dtype),
-                            encoding=encoding,
-                            intent='NIFTI_INTENT_NODE_INDEX',
-                            datatype=darray_dtype)
+    for data_dtype, darray_dtype, encoding in itertools.product(dtypes, dtypes, encodings):
+        da = GiftiDataArray(
+            np.arange(10, dtype=data_dtype),
+            encoding=encoding,
+            intent='NIFTI_INTENT_NODE_INDEX',
+            datatype=darray_dtype,
+        )
         gii = GiftiImage(darrays=[da])
-        gii_copy = GiftiImage.from_bytes(gii.to_bytes())
+        gii_copy = GiftiImage.from_bytes(gii.to_bytes(mode='force'))
         da_copy = gii_copy.darrays[0]
         assert np.dtype(da_copy.data.dtype) == np.dtype(darray_dtype)
         assert_array_equal(da_copy.data, da.data)
 
 
-def test_gifti_file_close():
-    gii = load(test_data('gifti', 'ascii.gii'))
-    with pytest.WarningsRecorder() as record:
-        with InTemporaryDirectory():
-            gii.to_filename('test.gii')
-    assert not any(isinstance(r.message, ResourceWarning) for r in record.list)
+def test_gifti_file_close(recwarn):
+    gii = load(get_test_data('gifti', 'ascii.gii'))
+    with InTemporaryDirectory():
+        gii.to_filename('test.gii')
+    assert not any(isinstance(r.message, ResourceWarning) for r in recwarn)

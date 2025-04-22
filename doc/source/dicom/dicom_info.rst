@@ -47,5 +47,5 @@ Here is a selected list of other tools and relevant resources:
 * http://www.barre.nom.fr/medical/samples/
 * http://pubimage.hcuge.ch:8080/
 * Via links from the dcm2nii_ page.
- 
+
 .. include:: ../links_names.txt

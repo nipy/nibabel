@@ -6,26 +6,36 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Common interface for any image format--volume or surface, binary or xml."""
+"""Common interface for any image format--volume or surface, binary or xml"""
+
+from __future__ import annotations
 
 import io
+import typing as ty
 from copy import deepcopy
-from .fileholders import FileHolder
-from .filename_parser import (types_filenames, TypesFilenamesError,
-                              splitext_addext)
+from urllib import request
+
+from ._compression import COMPRESSION_ERRORS
+from .fileholders import FileHolder, FileMap
+from .filename_parser import TypesFilenamesError, _stringify_path, splitext_addext, types_filenames
 from .openers import ImageOpener
-from .deprecated import deprecate_with_version
+
+if ty.TYPE_CHECKING:
+    from ._typing import Self
+    from .filename_parser import ExtensionSpec, FileSpec
+
+FileSniff = tuple[bytes, str]
 
 
 class ImageFileError(Exception):
     pass
 
 
-class FileBasedHeader(object):
-    """ Template class to implement header protocol """
+class FileBasedHeader:
+    """Template class to implement header protocol"""
 
     @classmethod
-    def from_header(klass, header=None):
+    def from_header(klass, header: FileBasedHeader | ty.Mapping | None = None) -> Self:
         if header is None:
             return klass()
         # I can't do isinstance here because it is not necessarily true
@@ -34,24 +44,25 @@ class FileBasedHeader(object):
         # different field names
         if type(header) == klass:
             return header.copy()
-        raise NotImplementedError("Header class requires a conversion "
-                                  f"from {klass} to {type(header)}")
+        raise NotImplementedError(
+            f'Header class requires a conversion from {klass} to {type(header)}'
+        )
 
     @classmethod
-    def from_fileobj(klass, fileobj):
+    def from_fileobj(klass, fileobj: io.IOBase) -> Self:
         raise NotImplementedError
 
-    def write_to(self, fileobj):
+    def write_to(self, fileobj: io.IOBase) -> None:
         raise NotImplementedError
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         raise NotImplementedError
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
-    def copy(self):
-        """ Copy object to independent representation
+    def copy(self) -> Self:
+        """Copy object to independent representation
 
         The copy should not be affected by any changes to the original
         object.
@@ -59,7 +70,7 @@ class FileBasedHeader(object):
         return deepcopy(self)
 
 
-class FileBasedImage(object):
+class FileBasedImage:
     """
     Abstract image class with interface for loading/saving images from disk.
 
@@ -73,12 +84,10 @@ class FileBasedImage(object):
 
     properties:
 
-       * shape
        * header
 
     methods:
 
-       * get_header() (deprecated, use header property instead)
        * to_filename(fname) - writes data to filename(s) derived from
          ``fname``, where the derivation may differ between formats.
        * to_file_map() - save image to files with which the image is already
@@ -118,25 +127,6 @@ class FileBasedImage(object):
 
        img.to_file_map()
 
-    You can get the data out again with::
-
-        img.get_fdata()
-
-    Less commonly, for some image types that support it, you might want to
-    fetch out the unscaled array via the object containing the data::
-
-        unscaled_data = img.dataoobj.get_unscaled()
-
-    Analyze-type images (including nifti) support this, but others may not
-    (MINC, for example).
-
-    Sometimes you might to avoid any loss of precision by making the
-    data type the same as the input::
-
-        hdr = img.header
-        hdr.set_data_dtype(data.dtype)
-        img.to_filename(fname)
-
     **Files interface**
 
     The image has an attribute ``file_map``.  This is a mapping, that has keys
@@ -158,22 +148,28 @@ class FileBasedImage(object):
     contain enough information so that an existing image instance can save
     itself back to the files pointed to in ``file_map``.  When a file holder
     holds active file-like objects, then these may be affected by the
-    initial file read; in this case, the contains file-like objects need to
+    initial file read; in this case, the file-like objects need to
     carry the position at which a write (with ``to_file_map``) should place the
     data.  The ``file_map`` contents should therefore be such, that this will
     work.
     """
-    header_class = FileBasedHeader
-    _meta_sniff_len = 0
-    files_types = (('image', None),)
-    valid_exts = ()
-    _compressed_suffixes = ()
 
-    makeable = True  # Used in test code
-    rw = True  # Used in test code
+    header_class: type[FileBasedHeader] = FileBasedHeader
+    _meta_sniff_len: int = 0
+    files_types: tuple[ExtensionSpec, ...] = (('image', None),)
+    valid_exts: tuple[str, ...] = ()
+    _compressed_suffixes: tuple[str, ...] = ()
 
-    def __init__(self, header=None, extra=None, file_map=None):
-        """ Initialize image
+    makeable: bool = True  # Used in test code
+    rw: bool = True  # Used in test code
+
+    def __init__(
+        self,
+        header: FileBasedHeader | ty.Mapping | None = None,
+        extra: ty.Mapping | None = None,
+        file_map: FileMap | None = None,
+    ):
+        """Initialize image
 
         The image is a combination of (header), with
         optional metadata in `extra`, and filename / file-like objects
@@ -192,32 +188,22 @@ class FileBasedImage(object):
         self._header = self.header_class.from_header(header)
         if extra is None:
             extra = {}
-        self.extra = extra
+        self.extra = dict(extra)
 
         if file_map is None:
             file_map = self.__class__.make_file_map()
         self.file_map = file_map
 
     @property
-    def header(self):
+    def header(self) -> FileBasedHeader:
         return self._header
 
-    def __getitem__(self, key):
-        """ No slicing or dictionary interface for images
-        """
-        raise TypeError("Cannot slice image objects.")
+    def __getitem__(self, key) -> None:
+        """No slicing or dictionary interface for images"""
+        raise TypeError('Cannot slice image objects.')
 
-    @deprecate_with_version('get_header method is deprecated.\n'
-                            'Please use the ``img.header`` property '
-                            'instead.',
-                            '2.1', '4.0')
-    def get_header(self):
-        """ Get header from image
-        """
-        return self.header
-
-    def get_filename(self):
-        """ Fetch the image filename
+    def get_filename(self) -> str | None:
+        """Fetch the image filename
 
         Parameters
         ----------
@@ -237,8 +223,8 @@ class FileBasedImage(object):
         characteristic_type = self.files_types[0][0]
         return self.file_map[characteristic_type].filename
 
-    def set_filename(self, filename):
-        """ Sets the files in the object from a given filename
+    def set_filename(self, filename: str) -> None:
+        """Sets the files in the object from a given filename
 
         The different image formats may check whether the filename has
         an extension characteristic of the format, and raise an error if
@@ -255,17 +241,17 @@ class FileBasedImage(object):
         self.file_map = self.__class__.filespec_to_file_map(filename)
 
     @classmethod
-    def from_filename(klass, filename):
+    def from_filename(klass, filename: FileSpec) -> Self:
         file_map = klass.filespec_to_file_map(filename)
         return klass.from_file_map(file_map)
 
     @classmethod
-    def from_file_map(klass, file_map):
+    def from_file_map(klass, file_map: FileMap) -> Self:
         raise NotImplementedError
 
     @classmethod
-    def filespec_to_file_map(klass, filespec):
-        """ Make `file_map` for this class from filename `filespec`
+    def filespec_to_file_map(klass, filespec: FileSpec) -> FileMap:
+        """Make `file_map` for this class from filename `filespec`
 
         Class method
 
@@ -289,18 +275,17 @@ class FileBasedImage(object):
         """
         try:
             filenames = types_filenames(
-                filespec, klass.files_types,
-                trailing_suffixes=klass._compressed_suffixes)
+                filespec, klass.files_types, trailing_suffixes=klass._compressed_suffixes
+            )
         except TypesFilenamesError:
-            raise ImageFileError(
-                f'Filespec "{filespec}" does not look right for class {klass}')
+            raise ImageFileError(f'Filespec "{filespec}" does not look right for class {klass}')
         file_map = {}
         for key, fname in filenames.items():
             file_map[key] = FileHolder(filename=fname)
         return file_map
 
-    def to_filename(self, filename):
-        """ Write image to files implied by filename string
+    def to_filename(self, filename: FileSpec, **kwargs) -> None:
+        r"""Write image to files implied by filename string
 
         Parameters
         ----------
@@ -308,20 +293,22 @@ class FileBasedImage(object):
            filename to which to save image.  We will parse `filename`
            with ``filespec_to_file_map`` to work out names for image,
            header etc.
+        \*\*kwargs : keyword arguments
+           Keyword arguments to format-specific save
 
         Returns
         -------
         None
         """
         self.file_map = self.filespec_to_file_map(filename)
-        self.to_file_map()
+        self.to_file_map(**kwargs)
 
-    def to_file_map(self, file_map=None):
+    def to_file_map(self, file_map: FileMap | None = None, **kwargs) -> None:
         raise NotImplementedError
 
     @classmethod
-    def make_file_map(klass, mapping=None):
-        """ Class method to make files holder for this image type
+    def make_file_map(klass, mapping: ty.Mapping[str, str | io.IOBase] | None = None) -> FileMap:
+        """Class method to make files holder for this image type
 
         Parameters
         ----------
@@ -353,8 +340,8 @@ class FileBasedImage(object):
     load = from_filename
 
     @classmethod
-    def instance_to_filename(klass, img, filename):
-        """ Save `img` in our own format, to name implied by `filename`
+    def instance_to_filename(klass, img: FileBasedImage, filename: FileSpec) -> None:
+        """Save `img` in our own format, to name implied by `filename`
 
         This is a class method
 
@@ -369,24 +356,29 @@ class FileBasedImage(object):
         img.to_filename(filename)
 
     @classmethod
-    def from_image(klass, img):
-        """ Class method to create new instance of own class from `img`
+    def from_image(klass, img: FileBasedImage) -> Self:
+        """Class method to create new instance of own class from `img`
 
         Parameters
         ----------
-        img : ``spatialimage`` instance
+        img : ``FileBasedImage`` instance
            In fact, an object with the API of ``FileBasedImage``.
 
         Returns
         -------
-        cimg : ``spatialimage`` instance
+        img : ``FileBasedImage`` instance
            Image, of our own class
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
-    def _sniff_meta_for(klass, filename, sniff_nbytes, sniff=None):
-        """ Sniff metadata for image represented by `filename`
+    def _sniff_meta_for(
+        klass,
+        filename: FileSpec,
+        sniff_nbytes: int,
+        sniff: FileSniff | None = None,
+    ) -> FileSniff | None:
+        """Sniff metadata for image represented by `filename`
 
         Parameters
         ----------
@@ -410,14 +402,12 @@ class FileBasedImage(object):
             metadata file, whichever is the shorter. `fname` is the name of
             the sniffed file.
         """
-        froot, ext, trailing = splitext_addext(filename,
-                                               klass._compressed_suffixes)
+        froot, ext, trailing = splitext_addext(filename, klass._compressed_suffixes)
         # Determine the metadata location
         t_fnames = types_filenames(
-            filename,
-            klass.files_types,
-            trailing_suffixes=klass._compressed_suffixes)
-        meta_fname = t_fnames.get('header', filename)
+            filename, klass.files_types, trailing_suffixes=klass._compressed_suffixes
+        )
+        meta_fname = t_fnames.get('header', _stringify_path(filename))
 
         # Do not re-sniff if it would be from the same file
         if sniff is not None and sniff[1] == meta_fname:
@@ -427,13 +417,18 @@ class FileBasedImage(object):
         try:
             with ImageOpener(meta_fname, 'rb') as fobj:
                 binaryblock = fobj.read(sniff_nbytes)
-        except IOError:
+        except COMPRESSION_ERRORS + (OSError, EOFError):
             return None
         return (binaryblock, meta_fname)
 
     @classmethod
-    def path_maybe_image(klass, filename, sniff=None, sniff_max=1024):
-        """ Return True if `filename` may be image matching this class
+    def path_maybe_image(
+        klass,
+        filename: FileSpec,
+        sniff: FileSniff | None = None,
+        sniff_max: int = 1024,
+    ) -> tuple[bool, FileSniff | None]:
+        """Return True if `filename` may be image matching this class
 
         Parameters
         ----------
@@ -466,8 +461,7 @@ class FileBasedImage(object):
             Read bytes content from found metadata.  May be None if the file
             does not appear to have useful metadata.
         """
-        froot, ext, trailing = splitext_addext(filename,
-                                               klass._compressed_suffixes)
+        froot, ext, trailing = splitext_addext(filename, klass._compressed_suffixes)
         if ext.lower() not in klass.valid_exts:
             return False, sniff
         if not hasattr(klass.header_class, 'may_contain_header'):
@@ -476,9 +470,7 @@ class FileBasedImage(object):
         # Force re-sniff on too-short sniff
         if sniff is not None and len(sniff[0]) < klass._meta_sniff_len:
             sniff = None
-        sniff = klass._sniff_meta_for(filename,
-                                      max(klass._meta_sniff_len, sniff_max),
-                                      sniff)
+        sniff = klass._sniff_meta_for(filename, max(klass._meta_sniff_len, sniff_max), sniff)
         if sniff is None or len(sniff[0]) < klass._meta_sniff_len:
             return False, sniff
         return klass.header_class.may_contain_header(sniff[0]), sniff
@@ -486,7 +478,7 @@ class FileBasedImage(object):
 
 class SerializableImage(FileBasedImage):
     """
-    Abstract image class for (de)serializing images to/from byte strings.
+    Abstract image class for (de)serializing images to/from byte streams/strings.
 
     The class doesn't define any image properties.
 
@@ -499,6 +491,7 @@ class SerializableImage(FileBasedImage):
     classmethods:
 
        * from_bytes(bytestring) - make instance by deserializing a byte string
+       * from_url(url) - make instance by fetching and deserializing a URL
 
     Loading from byte strings should provide round-trip equivalence:
 
@@ -536,38 +529,82 @@ class SerializableImage(FileBasedImage):
     """
 
     @classmethod
-    def from_bytes(klass, bytestring):
-        """ Construct image from a byte string
+    def _filemap_from_iobase(klass, io_obj: io.IOBase) -> FileMap:
+        """For single-file image types, make a file map with the correct key"""
+        if len(klass.files_types) > 1:
+            raise NotImplementedError('(de)serialization is undefined for multi-file images')
+        return klass.make_file_map({klass.files_types[0][0]: io_obj})
+
+    @classmethod
+    def from_stream(klass, io_obj: io.IOBase) -> Self:
+        """Load image from readable IO stream
+
+        Convert to BytesIO to enable seeking, if input stream is not seekable
+
+        Parameters
+        ----------
+        io_obj : IOBase object
+            Readable stream
+        """
+        if not io_obj.seekable():
+            io_obj = io.BytesIO(io_obj.read())
+        return klass.from_file_map(klass._filemap_from_iobase(io_obj))
+
+    def to_stream(self, io_obj: io.IOBase, **kwargs) -> None:
+        r"""Save image to writable IO stream
+
+        Parameters
+        ----------
+        io_obj : IOBase object
+            Writable stream
+        \*\*kwargs : keyword arguments
+            Keyword arguments that may be passed to ``img.to_file_map()``
+        """
+        self.to_file_map(self._filemap_from_iobase(io_obj), **kwargs)
+
+    @classmethod
+    def from_bytes(klass, bytestring: bytes) -> Self:
+        """Construct image from a byte string
 
         Class method
 
         Parameters
         ----------
-        bstring : bytes
+        bytestring : bytes
             Byte string containing the on-disk representation of an image
         """
-        if len(klass.files_types) > 1:
-            raise NotImplementedError("from_bytes is undefined for multi-file images")
-        bio = io.BytesIO(bytestring)
-        file_map = klass.make_file_map({'image': bio, 'header': bio})
-        return klass.from_file_map(file_map)
+        return klass.from_stream(io.BytesIO(bytestring))
 
-    def to_bytes(self):
-        """ Return a ``bytes`` object with the contents of the file that would
+    def to_bytes(self, **kwargs) -> bytes:
+        r"""Return a ``bytes`` object with the contents of the file that would
         be written if the image were saved.
 
         Parameters
         ----------
-        None
+        \*\*kwargs : keyword arguments
+            Keyword arguments that may be passed to ``img.to_file_map()``
 
         Returns
         -------
         bytes
             Serialized image
         """
-        if len(self.__class__.files_types) > 1:
-            raise NotImplementedError("to_bytes() is undefined for multi-file images")
         bio = io.BytesIO()
-        file_map = self.make_file_map({'image': bio, 'header': bio})
-        self.to_file_map(file_map)
+        self.to_stream(bio, **kwargs)
         return bio.getvalue()
+
+    @classmethod
+    def from_url(klass, url: str | request.Request, timeout: float = 5) -> Self:
+        """Retrieve and load an image from a URL
+
+        Class method
+
+        Parameters
+        ----------
+        url : str or urllib.request.Request object
+            URL of file to retrieve
+        timeout : float, optional
+            Time (in seconds) to wait for a response
+        """
+        response = request.urlopen(url, timeout=timeout)
+        return klass.from_stream(response)

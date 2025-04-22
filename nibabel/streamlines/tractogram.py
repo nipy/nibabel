@@ -1,8 +1,10 @@
 import copy
 import numbers
-import numpy as np
+import types
+from collections.abc import Iterable, MutableMapping
 from warnings import warn
-from collections.abc import MutableMapping
+
+import numpy as np
 
 from nibabel.affines import apply_affine
 
@@ -10,17 +12,17 @@ from .array_sequence import ArraySequence
 
 
 def is_data_dict(obj):
-    """ True if `obj` seems to implement the :class:`DataDict` API """
+    """True if `obj` seems to implement the :class:`DataDict` API"""
     return hasattr(obj, 'store')
 
 
 def is_lazy_dict(obj):
-    """ True if `obj` seems to implement the :class:`LazyDict` API """
+    """True if `obj` seems to implement the :class:`LazyDict` API"""
     return is_data_dict(obj) and callable(list(obj.store.values())[0])
 
 
 class SliceableDataDict(MutableMapping):
-    r""" Dictionary for which key access can do slicing on the values.
+    r"""Dictionary for which key access can do slicing on the values.
 
     This container behaves like a standard dictionary but extends key access to
     allow keys for key access to be indices slicing into the contained ndarray
@@ -33,6 +35,7 @@ class SliceableDataDict(MutableMapping):
         Positional and keyword arguments, passed straight through the ``dict``
         constructor.
     """
+
     def __init__(self, *args, **kwargs):
         self.store = dict()
         self.update(dict(*args, **kwargs))
@@ -73,7 +76,7 @@ class SliceableDataDict(MutableMapping):
 
 
 class PerArrayDict(SliceableDataDict):
-    r""" Dictionary for which key access can do slicing on the values.
+    r"""Dictionary for which key access can do slicing on the values.
 
     This container behaves like a standard dictionary but extends key access to
     allow keys for key access to be indices slicing into the contained ndarray
@@ -93,33 +96,47 @@ class PerArrayDict(SliceableDataDict):
         Positional and keyword arguments, passed straight through the ``dict``
         constructor.
     """
+
     def __init__(self, n_rows=0, *args, **kwargs):
         self.n_rows = n_rows
-        super(PerArrayDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def __setitem__(self, key, value):
-        value = np.asarray(list(value))
+        dtype = np.float64
+
+        if isinstance(value, types.GeneratorType):
+            value = list(value)
+
+        if isinstance(value, np.ndarray):
+            dtype = value.dtype
+        elif not all(len(v) == len(value[0]) for v in value[1:]):
+            dtype = object
+
+        value = np.asarray(value, dtype=dtype)
 
         if value.ndim == 1 and value.dtype != object:
             # Reshape without copy
-            value.shape = ((len(value), 1))
+            value.shape = (len(value), 1)
 
-        if value.ndim != 2:
-            raise ValueError("data_per_streamline must be a 2D array.")
+        if value.ndim != 2 and value.dtype != object:
+            raise ValueError('data_per_streamline must be a 2D array.')
+
+        if value.dtype == object and not all(isinstance(v, Iterable) for v in value):
+            raise ValueError('data_per_streamline must be a 2D array')
 
         # We make sure there is the right amount of values
         if 0 < self.n_rows != len(value):
-            msg = f"The number of values ({len(value)}) should match n_elements ({self.n_rows})."
+            msg = f'The number of values ({len(value)}) should match n_elements ({self.n_rows}).'
             raise ValueError(msg)
 
         self.store[key] = value
 
     def _extend_entry(self, key, value):
-        """ Appends the `value` to the entry specified by `key`. """
+        """Appends the `value` to the entry specified by `key`."""
         self[key] = np.concatenate([self[key], value])
 
     def extend(self, other):
-        """ Appends the elements of another :class:`PerArrayDict`.
+        """Appends the elements of another :class:`PerArrayDict`.
 
         That is, for each entry in this dictionary, we append the elements
         coming from the other dictionary at the corresponding entry.
@@ -137,11 +154,12 @@ class PerArrayDict(SliceableDataDict):
         -----
         The keys in both dictionaries must be the same.
         """
-        if (len(self) > 0 and len(other) > 0 and
-                sorted(self.keys()) != sorted(other.keys())):
-            msg = ("Entry mismatched between the two PerArrayDict objects. "
-                   f"This PerArrayDict contains '{sorted(self.keys())}' "
-                   f"whereas the other contains '{sorted(other.keys())}'.")
+        if len(self) > 0 and len(other) > 0 and sorted(self.keys()) != sorted(other.keys()):
+            msg = (
+                'Entry mismatched between the two PerArrayDict objects. '
+                f"This PerArrayDict contains '{sorted(self.keys())}' "
+                f"whereas the other contains '{sorted(other.keys())}'."
+            )
             raise ValueError(msg)
 
         self.n_rows += other.n_rows
@@ -153,7 +171,7 @@ class PerArrayDict(SliceableDataDict):
 
 
 class PerArraySequenceDict(PerArrayDict):
-    """ Dictionary for which key access can do slicing on the values.
+    """Dictionary for which key access can do slicing on the values.
 
     This container behaves like a standard dictionary but extends key access to
     allow keys for key access to be indices slicing into the contained ndarray
@@ -163,29 +181,31 @@ class PerArraySequenceDict(PerArrayDict):
     sequences matches the number of elements given at the instantiation
     of the instance.
     """
+
     def __setitem__(self, key, value):
         value = ArraySequence(value)
 
         # We make sure there is the right amount of data.
         if 0 < self.n_rows != value.total_nb_rows:
-            msg = f"The number of values ({value.total_nb_rows}) should match ({self.n_rows})."
+            msg = f'The number of values ({value.total_nb_rows}) should match ({self.n_rows}).'
             raise ValueError(msg)
 
         self.store[key] = value
 
     def _extend_entry(self, key, value):
-        """ Appends the `value` to the entry specified by `key`. """
+        """Appends the `value` to the entry specified by `key`."""
         self[key].extend(value)
 
 
 class LazyDict(MutableMapping):
-    """ Dictionary of generator functions.
+    """Dictionary of generator functions.
 
     This container behaves like a dictionary but it makes sure its elements are
     callable objects that it assumes are generator functions yielding values.
     When getting the element associated with a given key, the element (i.e. a
     generator function) is first called before being returned.
     """
+
     def __init__(self, *args, **kwargs):
         self.store = dict()
         # Use the 'update' method to set the keys.
@@ -204,9 +224,11 @@ class LazyDict(MutableMapping):
 
     def __setitem__(self, key, value):
         if not callable(value):
-            msg = ("Values in a `LazyDict` must be generator functions."
-                   " These are functions which, when called, return an"
-                   " instantiated generator.")
+            msg = (
+                'Values in a `LazyDict` must be generator functions.'
+                ' These are functions which, when called, return an'
+                ' instantiated generator.'
+            )
             raise TypeError(msg)
         self.store[key] = value
 
@@ -220,8 +242,8 @@ class LazyDict(MutableMapping):
         return len(self.store)
 
 
-class TractogramItem(object):
-    """ Class containing information about one streamline.
+class TractogramItem:
+    """Class containing information about one streamline.
 
     :class:`TractogramItem` objects have three public attributes: `streamline`,
     `data_for_streamline`, and `data_for_points`.
@@ -241,6 +263,7 @@ class TractogramItem(object):
         (Nt, Mk), where ``Nt`` is the number of points of this streamline and
         ``Mk`` is the dimension of the data associated with key ``k``.
     """
+
     def __init__(self, streamline, data_for_streamline, data_for_points):
         self.streamline = np.asarray(streamline)
         self.data_for_streamline = data_for_streamline
@@ -253,8 +276,8 @@ class TractogramItem(object):
         return len(self.streamline)
 
 
-class Tractogram(object):
-    """ Container for streamlines and their data information.
+class Tractogram:
+    """Container for streamlines and their data information.
 
     Streamlines of a tractogram can be in any coordinate system of your
     choice as long as you provide the correct `affine_to_rasmm` matrix, at
@@ -292,10 +315,10 @@ class Tractogram(object):
     .. [#] http://nipy.org/nibabel/coordinate_systems.html#naming-reference-spaces
     .. [#] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
     """
-    def __init__(self, streamlines=None,
-                 data_per_streamline=None,
-                 data_per_point=None,
-                 affine_to_rasmm=None):
+
+    def __init__(
+        self, streamlines=None, data_per_streamline=None, data_per_point=None, affine_to_rasmm=None
+    ):
         """
         Parameters
         ----------
@@ -341,7 +364,8 @@ class Tractogram(object):
     @data_per_streamline.setter
     def data_per_streamline(self, value):
         self._data_per_streamline = PerArrayDict(
-            len(self.streamlines), {} if value is None else value)
+            len(self.streamlines), {} if value is None else value
+        )
 
     @property
     def data_per_point(self):
@@ -350,11 +374,12 @@ class Tractogram(object):
     @data_per_point.setter
     def data_per_point(self, value):
         self._data_per_point = PerArraySequenceDict(
-            self.streamlines.total_nb_rows, {} if value is None else value)
+            self.streamlines.total_nb_rows, {} if value is None else value
+        )
 
     @property
     def affine_to_rasmm(self):
-        """ Affine bringing streamlines in this tractogram to RAS+mm. """
+        """Affine bringing streamlines in this tractogram to RAS+mm."""
         return copy.deepcopy(self._affine_to_rasmm)
 
     @affine_to_rasmm.setter
@@ -362,8 +387,10 @@ class Tractogram(object):
         if value is not None:
             value = np.array(value)
             if value.shape != (4, 4):
-                msg = ("Affine matrix has a shape of (4, 4) but a ndarray with "
-                       f"shape {value.shape} was provided instead.")
+                msg = (
+                    'Affine matrix has a shape of (4, 4) but a ndarray with '
+                    f'shape {value.shape} was provided instead.'
+                )
                 raise ValueError(msg)
 
         self._affine_to_rasmm = value
@@ -386,18 +413,19 @@ class Tractogram(object):
         if isinstance(idx, (numbers.Integral, np.integer)):
             return TractogramItem(pts, data_per_streamline, data_per_point)
 
-        return Tractogram(pts, data_per_streamline, data_per_point,
-                          affine_to_rasmm=self.affine_to_rasmm)
+        return Tractogram(
+            pts, data_per_streamline, data_per_point, affine_to_rasmm=self.affine_to_rasmm
+        )
 
     def __len__(self):
         return len(self.streamlines)
 
     def copy(self):
-        """ Returns a copy of this :class:`Tractogram` object. """
+        """Returns a copy of this :class:`Tractogram` object."""
         return copy.deepcopy(self)
 
     def apply_affine(self, affine, lazy=False):
-        """ Applies an affine transformation on the points of each streamline.
+        """Applies an affine transformation on the points of each streamline.
 
         If `lazy` is not specified, this is performed *in-place*.
 
@@ -429,18 +457,21 @@ class Tractogram(object):
         if np.all(affine == np.eye(4)):
             return self  # No transformation.
 
-        for i in range(len(self.streamlines)):
-            self.streamlines[i] = apply_affine(affine, self.streamlines[i])
+        if self.streamlines.is_sliced_view:
+            # Apply affine only on the selected streamlines.
+            for i in range(len(self.streamlines)):
+                self.streamlines[i] = apply_affine(affine, self.streamlines[i])
+        else:
+            self.streamlines._data = apply_affine(affine, self.streamlines._data, inplace=True)
 
         if self.affine_to_rasmm is not None:
             # Update the affine that brings back the streamlines to RASmm.
-            self.affine_to_rasmm = np.dot(self.affine_to_rasmm,
-                                          np.linalg.inv(affine))
+            self.affine_to_rasmm = np.dot(self.affine_to_rasmm, np.linalg.inv(affine))
 
         return self
 
     def to_world(self, lazy=False):
-        """ Brings the streamlines to world space (i.e. RAS+ and mm).
+        """Brings the streamlines to world space (i.e. RAS+ and mm).
 
         If `lazy` is not specified, this is performed *in-place*.
 
@@ -460,14 +491,16 @@ class Tractogram(object):
             :class:`Tractogram` object with updated streamlines.
         """
         if self.affine_to_rasmm is None:
-            msg = ("Streamlines are in a unknown space. This error can be"
-                   " avoided by setting the 'affine_to_rasmm' property.")
+            msg = (
+                'Streamlines are in a unknown space. This error can be'
+                " avoided by setting the 'affine_to_rasmm' property."
+            )
             raise ValueError(msg)
 
         return self.apply_affine(self.affine_to_rasmm, lazy=lazy)
 
     def extend(self, other):
-        """ Appends the data of another :class:`Tractogram`.
+        """Appends the data of another :class:`Tractogram`.
 
         Data that will be appended includes the streamlines and the content
         of both dictionaries `data_per_streamline` and `data_per_point`.
@@ -502,7 +535,7 @@ class Tractogram(object):
 
 
 class LazyTractogram(Tractogram):
-    """ Lazy container for streamlines and their data information.
+    """Lazy container for streamlines and their data information.
 
     This container behaves lazily as it uses generator functions to manage
     streamlines and their data information. This container is thus memory
@@ -553,10 +586,10 @@ class LazyTractogram(Tractogram):
     .. [#] http://nipy.org/nibabel/coordinate_systems.html#naming-reference-spaces
     .. [#] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
     """
-    def __init__(self, streamlines=None,
-                 data_per_streamline=None,
-                 data_per_point=None,
-                 affine_to_rasmm=None):
+
+    def __init__(
+        self, streamlines=None, data_per_streamline=None, data_per_point=None, affine_to_rasmm=None
+    ):
         """
         Parameters
         ----------
@@ -585,17 +618,14 @@ class LazyTractogram(Tractogram):
             refers to the center of the voxel. By default, the streamlines
             are in an unknown space, i.e. affine_to_rasmm is None.
         """
-        super(LazyTractogram, self).__init__(streamlines,
-                                             data_per_streamline,
-                                             data_per_point,
-                                             affine_to_rasmm)
+        super().__init__(streamlines, data_per_streamline, data_per_point, affine_to_rasmm)
         self._nb_streamlines = None
         self._data = None
         self._affine_to_apply = np.eye(4)
 
     @classmethod
     def from_tractogram(cls, tractogram):
-        """ Creates a :class:`LazyTractogram` object from a :class:`Tractogram` object.
+        """Creates a :class:`LazyTractogram` object from a :class:`Tractogram` object.
 
         Parameters
         ----------
@@ -629,7 +659,7 @@ class LazyTractogram(Tractogram):
 
     @classmethod
     def from_data_func(cls, data_func):
-        """ Creates an instance from a generator function.
+        """Creates an instance from a generator function.
 
         The generator function must yield :class:`TractogramItem` objects.
 
@@ -646,7 +676,7 @@ class LazyTractogram(Tractogram):
             New lazy tractogram.
         """
         if not callable(data_func):
-            raise TypeError("`data_func` must be a generator function.")
+            raise TypeError('`data_func` must be a generator function.')
 
         lazy_tractogram = cls()
         lazy_tractogram._data = data_func
@@ -656,8 +686,7 @@ class LazyTractogram(Tractogram):
 
             # Set data_per_streamline using data_func
             def _gen(key):
-                return lambda: (t.data_for_streamline[key]
-                                for t in data_func())
+                return lambda: (t.data_for_streamline[key] for t in data_func())
 
             data_per_streamline_keys = first_item.data_for_streamline.keys()
             for k in data_per_streamline_keys:
@@ -686,6 +715,7 @@ class LazyTractogram(Tractogram):
 
         # Check if we need to apply an affine.
         if not np.allclose(self._affine_to_apply, np.eye(4)):
+
             def _apply_affine():
                 for s in streamlines_gen:
                     yield apply_affine(self._affine_to_apply, s)
@@ -696,9 +726,11 @@ class LazyTractogram(Tractogram):
 
     def _set_streamlines(self, value):
         if value is not None and not callable(value):
-            msg = ("`streamlines` must be a generator function. That is a"
-                   " function which, when called, returns an instantiated"
-                   " generator.")
+            msg = (
+                '`streamlines` must be a generator function. That is a'
+                ' function which, when called, returns an instantiated'
+                ' generator.'
+            )
             raise TypeError(msg)
         self._streamlines = value
 
@@ -764,28 +796,33 @@ class LazyTractogram(Tractogram):
     def __len__(self):
         # Check if we know how many streamlines there are.
         if self._nb_streamlines is None:
-            warn("Number of streamlines will be determined manually by looping"
-                 " through the streamlines. If you know the actual number of"
-                 " streamlines, you might want to set it beforehand via"
-                 " `self.header.nb_streamlines`.", Warning)
+            warn(
+                'Number of streamlines will be determined manually by looping'
+                ' through the streamlines. If you know the actual number of'
+                ' streamlines, you might want to set it beforehand via'
+                ' `self.header.nb_streamlines`.',
+                Warning,
+            )
             # Count the number of streamlines.
             self._nb_streamlines = sum(1 for _ in self.streamlines)
 
         return self._nb_streamlines
 
     def copy(self):
-        """ Returns a copy of this :class:`LazyTractogram` object. """
-        tractogram = LazyTractogram(self._streamlines,
-                                    self._data_per_streamline,
-                                    self._data_per_point,
-                                    self.affine_to_rasmm)
+        """Returns a copy of this :class:`LazyTractogram` object."""
+        tractogram = LazyTractogram(
+            self._streamlines,
+            self._data_per_streamline,
+            self._data_per_point,
+            self.affine_to_rasmm,
+        )
         tractogram._nb_streamlines = self._nb_streamlines
         tractogram._data = self._data
         tractogram._affine_to_apply = self._affine_to_apply.copy()
         return tractogram
 
     def apply_affine(self, affine, lazy=True):
-        """ Applies an affine transformation to the streamlines.
+        """Applies an affine transformation to the streamlines.
 
         The transformation given by the `affine` matrix is applied after any
         other pending transformations to the streamline points.
@@ -805,7 +842,7 @@ class LazyTractogram(Tractogram):
             transformation to be applied on the streamlines.
         """
         if not lazy:
-            msg = "LazyTractogram only supports lazy transformations."
+            msg = 'LazyTractogram only supports lazy transformations.'
             raise ValueError(msg)
 
         tractogram = self.copy()  # New instance.
@@ -815,12 +852,11 @@ class LazyTractogram(Tractogram):
 
         if tractogram.affine_to_rasmm is not None:
             # Update the affine that brings back the streamlines to RASmm.
-            tractogram.affine_to_rasmm = np.dot(self.affine_to_rasmm,
-                                                np.linalg.inv(affine))
+            tractogram.affine_to_rasmm = np.dot(self.affine_to_rasmm, np.linalg.inv(affine))
         return tractogram
 
     def to_world(self, lazy=True):
-        """ Brings the streamlines to world space (i.e. RAS+ and mm).
+        """Brings the streamlines to world space (i.e. RAS+ and mm).
 
         The transformation is applied after any other pending transformations
         to the streamline points.
@@ -838,8 +874,10 @@ class LazyTractogram(Tractogram):
             transformation to be applied on the streamlines.
         """
         if self.affine_to_rasmm is None:
-            msg = ("Streamlines are in a unknown space. This error can be"
-                   " avoided by setting the 'affine_to_rasmm' property.")
+            msg = (
+                'Streamlines are in a unknown space. This error can be'
+                " avoided by setting the 'affine_to_rasmm' property."
+            )
             raise ValueError(msg)
 
         return self.apply_affine(self.affine_to_rasmm, lazy=lazy)

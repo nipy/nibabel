@@ -6,13 +6,12 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Tests recoder class """
+"""Tests recoder class"""
 
 import numpy as np
-
-from ..volumeutils import Recoder, DtypeMapper, native_code, swapped_code
-
 import pytest
+
+from ..volumeutils import DtypeMapper, Recoder, native_code, swapped_code
 
 
 def test_recoder_1():
@@ -23,6 +22,7 @@ def test_recoder_1():
     assert rc.code[2] == 2
     with pytest.raises(KeyError):
         rc.code[3]
+
 
 def test_recoder_2():
     # with explicit name for code
@@ -48,6 +48,7 @@ def test_recoder_3():
         rc.code['three']
     with pytest.raises(AttributeError):
         rc.label
+
 
 def test_recoder_4():
     # with explicit column names
@@ -85,8 +86,7 @@ def test_recoder_6():
 
 def test_custom_dicter():
     # Allow custom dict-like object in constructor
-    class MyDict(object):
-
+    class MyDict:
         def __init__(self):
             self._keys = []
 
@@ -103,6 +103,7 @@ def test_custom_dicter():
 
         def values(self):
             return ['funny', 'list']
+
     # code, label, aliases
     codes = ((1, 'one', '1', 'first'), (2, 'two'))
     rc = Recoder(codes, map_maker=MyDict)
@@ -110,7 +111,7 @@ def test_custom_dicter():
     assert rc.code['one'] == 'spam'
     assert rc.code['first'] == 'spam'
     assert rc.code['bizarre'] == 'eggs'
-    assert rc.value_set() == set(['funny', 'list'])
+    assert rc.value_set() == {'funny', 'list'}
     assert list(rc.keys()) == ['some', 'keys']
 
 
@@ -137,11 +138,11 @@ def test_sugar():
     assert rc[1] == rc.field1[1]
     assert rc['two'] == rc.field1['two']
     # keys gets all keys
-    assert set(rc.keys()) == set((1, 'one', '1', 'first', 2, 'two'))
+    assert set(rc.keys()) == {1, 'one', '1', 'first', 2, 'two'}
     # value_set gets set of values from first column
-    assert rc.value_set() == set((1, 2))
+    assert rc.value_set() == {1, 2}
     # or named column if given
-    assert rc.value_set('label') == set(('one', 'two'))
+    assert rc.value_set('label') == {'one', 'two'}
     # "in" works for values in and outside the set
     assert 'one' in rc
     assert 'three' not in rc

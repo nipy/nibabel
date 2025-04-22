@@ -1,11 +1,28 @@
-""" Class for recording and reporting deprecations
-"""
+"""Class for recording and reporting deprecations"""
+
+from __future__ import annotations
 
 import functools
-import warnings
 import re
+import sys
+import typing as ty
+import warnings
+from textwrap import dedent
+
+if ty.TYPE_CHECKING:
+    T = ty.TypeVar('T')
+    P = ty.ParamSpec('P')
 
 _LEADING_WHITE = re.compile(r'^(\s*)')
+
+
+def _dedent_docstring(docstring):
+    """Compatibility with Python 3.13+.
+
+    xref: https://github.com/python/cpython/issues/81283
+    """
+    return '\n'.join([dedent(line) for line in docstring.split('\n')])
+
 
 TESTSETUP = """
 
@@ -27,26 +44,36 @@ TESTCLEANUP = """
 
 """
 
+if sys.version_info >= (3, 13):
+    TESTSETUP = _dedent_docstring(TESTSETUP)
+    TESTCLEANUP = _dedent_docstring(TESTCLEANUP)
+
 
 class ExpiredDeprecationError(RuntimeError):
-    """ Error for expired deprecation
+    """Error for expired deprecation
 
     Error raised when a called function or method has passed out of its
     deprecation period.
     """
+
     pass
 
 
-def _ensure_cr(text):
-    """ Remove trailing whitespace and add carriage return
+def _ensure_cr(text: str) -> str:
+    """Remove trailing whitespace and add carriage return
 
     Ensures that `text` always ends with a carriage return
     """
     return text.rstrip() + '\n'
 
 
-def _add_dep_doc(old_doc, dep_doc, setup='', cleanup=''):
-    """ Add deprecation message `dep_doc` to docstring in `old_doc`
+def _add_dep_doc(
+    old_doc: str,
+    dep_doc: str,
+    setup: str = '',
+    cleanup: str = '',
+) -> str:
+    """Add deprecation message `dep_doc` to docstring in `old_doc`
 
     Parameters
     ----------
@@ -54,6 +81,10 @@ def _add_dep_doc(old_doc, dep_doc, setup='', cleanup=''):
         Docstring from some object.
     dep_doc : str
         Deprecation warning to add to top of docstring, after initial line.
+    setup : str, optional
+        Doctest setup text
+    cleanup : str, optional
+        Doctest teardown text
 
     Returns
     -------
@@ -75,16 +106,19 @@ def _add_dep_doc(old_doc, dep_doc, setup='', cleanup=''):
     if next_line >= len(old_lines):
         # nothing following first paragraph, just append message
         return old_doc + '\n' + dep_doc
-    indent = _LEADING_WHITE.match(old_lines[next_line]).group()
+    leading_white = _LEADING_WHITE.match(old_lines[next_line])
+    assert leading_white is not None  # Type narrowing, since this always matches
+    indent = leading_white.group()
     setup_lines = [indent + L for L in setup.splitlines()]
     dep_lines = [indent + L for L in [''] + dep_doc.splitlines() + ['']]
     cleanup_lines = [indent + L for L in cleanup.splitlines()]
-    return '\n'.join(new_lines + dep_lines + setup_lines +
-                     old_lines[next_line:] + cleanup_lines + [''])
+    return '\n'.join(
+        new_lines + dep_lines + setup_lines + old_lines[next_line:] + cleanup_lines + ['']
+    )
 
 
-class Deprecator(object):
-    """ Class to make decorator marking function or method as deprecated
+class Deprecator:
+    """Class to make decorator marking function or method as deprecated
 
     The decorated function / method will:
 
@@ -109,16 +143,18 @@ class Deprecator(object):
         given argument of ``until`` in the ``__call__`` method (see below).
     """
 
-    def __init__(self,
-                 version_comparator,
-                 warn_class=DeprecationWarning,
-                 error_class=ExpiredDeprecationError):
+    def __init__(
+        self,
+        version_comparator: ty.Callable[[str], int],
+        warn_class: type[Warning] = DeprecationWarning,
+        error_class: type[Exception] = ExpiredDeprecationError,
+    ) -> None:
         self.version_comparator = version_comparator
         self.warn_class = warn_class
         self.error_class = error_class
 
-    def is_bad_version(self, version_str):
-        """ Return True if `version_str` is too high
+    def is_bad_version(self, version_str: str) -> bool:
+        """Return True if `version_str` is too high
 
         Tests `version_str` with ``self.version_comparator``
 
@@ -135,9 +171,15 @@ class Deprecator(object):
         """
         return self.version_comparator(version_str) == -1
 
-    def __call__(self, message, since='', until='',
-                 warn_class=None, error_class=None):
-        """ Return decorator function function for deprecation warning / error
+    def __call__(
+        self,
+        message: str,
+        since: str = '',
+        until: str = '',
+        warn_class: type[Warning] | None = None,
+        error_class: type[Exception] | None = None,
+    ) -> ty.Callable[[ty.Callable[P, T]], ty.Callable[P, T]]:
+        """Return decorator function function for deprecation warning / error
 
         Parameters
         ----------
@@ -161,29 +203,42 @@ class Deprecator(object):
         deprecator : func
             Function returning a decorator.
         """
-        warn_class = warn_class if warn_class else self.warn_class
-        error_class = error_class if error_class else self.error_class
+        exception = error_class if error_class is not None else self.error_class
+        warning = warn_class if warn_class is not None else self.warn_class
         messages = [message]
         if (since, until) != ('', ''):
             messages.append('')
         if since:
             messages.append('* deprecated from version: ' + since)
         if until:
-            messages.append(f"* {'Raises' if self.is_bad_version(until) else 'Will raise'} "
-                            f"{error_class} as of version: {until}")
+            messages.append(
+                f'* {"Raises" if self.is_bad_version(until) else "Will raise"} '
+                f'{exception} as of version: {until}'
+            )
         message = '\n'.join(messages)
 
-        def deprecator(func):
-
+        def deprecator(func: ty.Callable[P, T]) -> ty.Callable[P, T]:
             @functools.wraps(func)
-            def deprecated_func(*args, **kwargs):
+            def deprecated_func(*args: P.args, **kwargs: P.kwargs) -> T:
                 if until and self.is_bad_version(until):
-                    raise error_class(message)
-                warnings.warn(message, warn_class, stacklevel=2)
+                    raise exception(message)
+                warnings.warn(message, warning, stacklevel=2)
                 return func(*args, **kwargs)
 
-            deprecated_func.__doc__ = _add_dep_doc(deprecated_func.__doc__,
-                                                   message, TESTSETUP, TESTCLEANUP)
+            keep_doc = deprecated_func.__doc__
+            if keep_doc is None:
+                keep_doc = ''
+            setup = TESTSETUP
+            cleanup = TESTCLEANUP
+            # After expiration, remove all but the first paragraph.
+            # The details are no longer relevant, but any code will likely
+            # raise exceptions we don't need.
+            if keep_doc and until and self.is_bad_version(until):
+                lines = '\n'.join(line.rstrip() for line in keep_doc.splitlines())
+                keep_doc = lines.split('\n\n', 1)[0]
+                setup = ''
+                cleanup = ''
+            deprecated_func.__doc__ = _add_dep_doc(keep_doc, message, setup, cleanup)
             return deprecated_func
 
         return deprecator

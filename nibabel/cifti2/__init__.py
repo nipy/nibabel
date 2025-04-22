@@ -17,13 +17,28 @@
    cifti2_axes
 """
 
+from .cifti2 import (
+    CIFTI_BRAIN_STRUCTURES,
+    CIFTI_MODEL_TYPES,
+    Cifti2BrainModel,
+    Cifti2Header,
+    Cifti2HeaderError,
+    Cifti2Image,
+    Cifti2Label,
+    Cifti2LabelTable,
+    Cifti2Matrix,
+    Cifti2MatrixIndicesMap,
+    Cifti2MetaData,
+    Cifti2NamedMap,
+    Cifti2Parcel,
+    Cifti2Surface,
+    Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
+    Cifti2VertexIndices,
+    Cifti2Vertices,
+    Cifti2Volume,
+    Cifti2VoxelIndicesIJK,
+    load,
+    save,
+)
+from .cifti2_axes import Axis, BrainModelAxis, LabelAxis, ParcelsAxis, ScalarAxis, SeriesAxis
 from .parse_cifti2 import Cifti2Extension
-from .cifti2 import (Cifti2MetaData, Cifti2Header, Cifti2Image, Cifti2Label,
-                     Cifti2LabelTable, Cifti2VertexIndices,
-                     Cifti2VoxelIndicesIJK, Cifti2BrainModel, Cifti2Matrix,
-                     Cifti2MatrixIndicesMap, Cifti2NamedMap, Cifti2Parcel,
-                     Cifti2Surface,
-                     Cifti2TransformationMatrixVoxelIndicesIJKtoXYZ,
-                     Cifti2Vertices, Cifti2Volume, CIFTI_BRAIN_STRUCTURES,
-                     Cifti2HeaderError, CIFTI_MODEL_TYPES, load, save)
-from .cifti2_axes import (Axis, BrainModelAxis, ParcelsAxis, SeriesAxis, LabelAxis, ScalarAxis)

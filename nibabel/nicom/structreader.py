@@ -1,12 +1,12 @@
-""" Stream-like reader for packed data """
+"""Stream-like reader for packed data"""
 
 from struct import Struct
 
 _ENDIAN_CODES = '@=<>!'
 
 
-class Unpacker(object):
-    """ Class to unpack values from buffer object
+class Unpacker:
+    """Class to unpack values from buffer object
 
     The buffer object is usually a string. Caches compiled :mod:`struct`
     format strings so that repeated unpacking with the same format
@@ -29,7 +29,7 @@ class Unpacker(object):
     """
 
     def __init__(self, buf, ptr=0, endian=None):
-        """ Initialize unpacker
+        """Initialize unpacker
 
         Parameters
         ----------
@@ -50,7 +50,7 @@ class Unpacker(object):
         self._cache = {}
 
     def unpack(self, fmt):
-        """ Unpack values from contained buffer
+        """Unpack values from contained buffer
 
         Unpacks values from ``self.buf`` and updates ``self.ptr`` to the
         position after the read data.
@@ -89,7 +89,7 @@ class Unpacker(object):
         return values
 
     def read(self, n_bytes=-1):
-        """ Return byte string of length `n_bytes` at current position
+        """Return byte string of length `n_bytes` at current position
 
         Returns sub-string from ``self.buf`` and updates ``self.ptr`` to the
         position after the read data.

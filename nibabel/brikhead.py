@@ -6,8 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""
-Class for reading AFNI BRIK/HEAD datasets
+"""Class for reading AFNI BRIK/HEAD datasets
 
 See https://afni.nimh.nih.gov/pub/dist/doc/program_help/README.attributes.html
 for information on what is required to have a valid BRIK/HEAD dataset.
@@ -28,31 +27,22 @@ am aware) always be >= 1. This permits sub-brick indexing common in AFNI
 programs (e.g., example4d+orig'[0]').
 """
 
-from copy import deepcopy
 import os
 import re
+from copy import deepcopy
 
 import numpy as np
 
 from .arrayproxy import ArrayProxy
 from .fileslice import strided_scalar
-from .spatialimages import (
-    SpatialImage,
-    SpatialHeader,
-    HeaderDataError,
-    ImageDataError
-)
+from .spatialimages import HeaderDataError, ImageDataError, SpatialHeader, SpatialImage
 from .volumeutils import Recoder
 
 # used for doc-tests
 filepath = os.path.dirname(os.path.realpath(__file__))
 datadir = os.path.realpath(os.path.join(filepath, 'tests/data'))
 
-_attr_dic = {
-    'string': str,
-    'integer': int,
-    'float': float
-}
+_attr_dic = {'string': str, 'integer': int, 'float': float}
 
 _endian_dict = {
     'LSB_FIRST': '<',
@@ -66,11 +56,15 @@ _dtype_dict = {
     5: 'D',
 }
 
-space_codes = Recoder((
-    (0, 'unknown', ''),
-    (1, 'scanner', 'ORIG'),
-    (3, 'talairach', 'TLRC'),
-    (4, 'mni', 'MNI')), fields=('code', 'label', 'space'))
+space_codes = Recoder(
+    (
+        (0, 'unknown', ''),
+        (1, 'scanner', 'ORIG'),
+        (3, 'talairach', 'TLRC'),
+        (4, 'mni', 'MNI'),
+    ),
+    fields=('code', 'label', 'space'),
+)
 
 
 class AFNIImageError(ImageDataError):
@@ -114,8 +108,7 @@ def _unpack_var(var):
     TEMPLATE_SPACE ORIG
     """
 
-    err_msg = ('Please check HEAD file to ensure it is AFNI compliant. '
-               f'Offending attribute:\n{var}')
+    err_msg = f'Please check HEAD file to ensure it is AFNI compliant. Offending attribute:\n{var}'
     atype, aname = TYPE_RE.findall(var), NAME_RE.findall(var)
     if len(atype) != 1:
         raise AFNIHeaderError(f'Invalid attribute type entry in HEAD file. {err_msg}')
@@ -127,13 +120,14 @@ def _unpack_var(var):
         try:
             attr = [atype(f) for f in attr.split()]
         except ValueError:
-            raise AFNIHeaderError('Failed to read variable from HEAD file '
-                                  f'due to improper type casting. {err_msg}')
+            raise AFNIHeaderError(
+                f'Failed to read variable from HEAD file due to improper type casting. {err_msg}'
+            )
     else:
         # AFNI string attributes will always start with open single quote and
         # end with a tilde (NUL). These attributes CANNOT contain tildes (so
         # stripping is safe), but can contain single quotes (so we replace)
-        attr = attr.replace('\'', '', 1).rstrip('~')
+        attr = attr.replace("'", '', 1).rstrip('~')
 
     return aname[0], attr[0] if len(attr) == 1 else attr
 
@@ -165,12 +159,12 @@ def _get_datatype(info):
     bt = info['BRICK_TYPES']
     if isinstance(bt, list):
         if np.unique(bt).size > 1:
-            raise AFNIImageError('Can\'t load file with multiple data types.')
+            raise AFNIImageError("Can't load file with multiple data types.")
         bt = bt[0]
     bo = _endian_dict.get(bo, '=')
     bt = _dtype_dict.get(bt, None)
     if bt is None:
-        raise AFNIImageError('Can\'t deduce image data type.')
+        raise AFNIImageError("Can't deduce image data type.")
     return np.dtype(bo + bt)
 
 
@@ -200,15 +194,15 @@ def parse_AFNI_header(fobj):
     """
     # edge case for being fed a filename instead of a file object
     if isinstance(fobj, str):
-        with open(fobj, 'rt') as src:
+        with open(fobj) as src:
             return parse_AFNI_header(src)
     # unpack variables in HEAD file
     head = fobj.read().split('\n\n')
-    return {key: value for key, value in map(_unpack_var, head)}
+    return dict(map(_unpack_var, head))
 
 
 class AFNIArrayProxy(ArrayProxy):
-    """ Proxy object for AFNI image array.
+    """Proxy object for AFNI image array.
 
     Attributes
     ----------
@@ -244,10 +238,7 @@ class AFNIArrayProxy(ArrayProxy):
             effect. The default value (``None``) will result in the value of
             ``nibabel.arrayproxy.KEEP_FILE_OPEN_DEFAULT`` being used.
         """
-        super(AFNIArrayProxy, self).__init__(file_like,
-                                             header,
-                                             mmap=mmap,
-                                             keep_file_open=keep_file_open)
+        super().__init__(file_like, header, mmap=mmap, keep_file_open=keep_file_open)
         self._scaling = header.get_data_scaling()
 
     @property
@@ -299,9 +290,7 @@ class AFNIHeader(SpatialHeader):
         """
         self.info = info
         dt = _get_datatype(self.info)
-        super(AFNIHeader, self).__init__(data_dtype=dt,
-                                         shape=self._calc_data_shape(),
-                                         zooms=self._calc_zooms())
+        super().__init__(data_dtype=dt, shape=self._calc_data_shape(), zooms=self._calc_zooms())
 
     @classmethod
     def from_header(klass, header=None):
@@ -337,7 +326,7 @@ class AFNIHeader(SpatialHeader):
         j, k.
         """
         dset_rank = self.info['DATASET_RANK']
-        shape = tuple(self.info['DATASET_DIMENSIONS'][:dset_rank[0]])
+        shape = tuple(self.info['DATASET_DIMENSIONS'][: dset_rank[0]])
         n_vols = dset_rank[1]
         return shape + (n_vols,)
 
@@ -362,7 +351,7 @@ class AFNIHeader(SpatialHeader):
         origin", and second giving "Time step (TR)".
         """
         xyz_step = tuple(np.abs(self.info['DELTA']))
-        t_step = self.info.get('TAXIS_FLOATS', (0, 0,))
+        t_step = self.info.get('TAXIS_FLOATS', (0, 0))
         if len(t_step) > 0:
             t_step = (t_step[1],)
         return xyz_step + t_step
@@ -402,8 +391,7 @@ class AFNIHeader(SpatialHeader):
         # AFNI default is RAI- == LPS+ == DICOM order.  We need to flip RA sign
         # to align with nibabel RAS+ system
         affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
-        affine = np.row_stack((affine * [[-1], [-1], [1]],
-                               [0, 0, 0, 1]))
+        affine = np.vstack((affine * [[-1], [-1], [1]], [0, 0, 0, 1]))
         return affine
 
     def get_data_scaling(self):
@@ -488,6 +476,7 @@ class AFNIImage(SpatialImage):
     """
 
     header_class = AFNIHeader
+    header: AFNIHeader
     valid_exts = ('.brik', '.head')
     files_types = (('image', '.brik'), ('header', '.head'))
     _compressed_suffixes = ('.gz', '.bz2', '.Z', '.zst')
@@ -526,10 +515,8 @@ class AFNIImage(SpatialImage):
             hdr = klass.header_class.from_fileobj(hdr_fobj)
         imgf = file_map['image'].fileobj
         imgf = file_map['image'].filename if imgf is None else imgf
-        data = klass.ImageArrayProxy(imgf, hdr.copy(), mmap=mmap,
-                                     keep_file_open=keep_file_open)
-        return klass(data, hdr.get_affine(), header=hdr, extra=None,
-                     file_map=file_map)
+        data = klass.ImageArrayProxy(imgf, hdr.copy(), mmap=mmap, keep_file_open=keep_file_open)
+        return klass(data, hdr.get_affine(), header=hdr, extra=None, file_map=file_map)
 
     @classmethod
     def filespec_to_file_map(klass, filespec):
@@ -562,13 +549,13 @@ class AFNIImage(SpatialImage):
             If `filespec` is not recognizable as being a filename for this
             image type.
         """
-        file_map = super(AFNIImage, klass).filespec_to_file_map(filespec)
+        file_map = super().filespec_to_file_map(filespec)
         # check for AFNI-specific BRIK/HEAD compression idiosyncrasies
         for key, fholder in file_map.items():
             fname = fholder.filename
             if key == 'header' and not os.path.exists(fname):
                 for ext in klass._compressed_suffixes:
-                    fname = fname[:-len(ext)] if fname.endswith(ext) else fname
+                    fname = fname.removesuffix(ext)
             elif key == 'image' and not os.path.exists(fname):
                 for ext in klass._compressed_suffixes:
                     if os.path.exists(fname + ext):
@@ -578,4 +565,4 @@ class AFNIImage(SpatialImage):
         return file_map
 
 
-load = AFNIImage.load
+load = AFNIImage.from_filename

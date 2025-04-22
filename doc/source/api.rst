@@ -34,7 +34,6 @@ File Formats
    ecat
    parrec
    streamlines
-   trackvis
 
 Image Utilities
 ===============

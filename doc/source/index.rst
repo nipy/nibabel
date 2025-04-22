@@ -7,6 +7,10 @@
   #
   ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 
+=======
+NiBabel
+=======
+
 .. include:: _long_description.inc
 
 Documentation
@@ -51,6 +55,7 @@ contributed code and discussion (in rough order of appearance):
 * JB Poline
 * Basile Pinsard
 * `Satrajit Ghosh`_
+* Eric Larson
 * `Nolan Nichols`_
 * Ly Nguyen
 * Philippe Gervais
@@ -114,6 +119,20 @@ contributed code and discussion (in rough order of appearance):
 * Markéta Calábková
 * Carl Gauthier
 * Julian Klug
+* Lea Waller
+* Tomáš Hrnčiar
+* Andrew Van
+* Jérôme Dockès
+* Jacob Roberts
+* Horea Christian
+* Fabian Perez
+* Mathieu Scheltienne
+* Reinder Vos de Wael
+* Peter Suter
+* Blake Dewey
+* Guillaume Becq
+* Joshua Newton
+* Sandro from the Fedora Project
 
 License reprise
 ===============

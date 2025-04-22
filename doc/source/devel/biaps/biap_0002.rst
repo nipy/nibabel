@@ -104,8 +104,8 @@ sliced array, as in:
 
 .. code:: python
 
-    class SomeImage(object):
-        class Slicer(object):
+    class SomeImage:
+        class Slicer:
             def __init__(self, parent):
                 self.parent = parent
             def __getitem__(self, slicedef):

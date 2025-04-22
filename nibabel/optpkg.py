@@ -1,20 +1,35 @@
-""" Routines to support optional packages """
-from distutils.version import LooseVersion
+"""Routines to support optional packages"""
+
+from __future__ import annotations
+
+import typing as ty
+
+from packaging.version import Version
+
 from .tripwire import TripWire
 
+if ty.TYPE_CHECKING:
+    from types import ModuleType
 
-def _check_pkg_version(pkg, min_version):
-    # Default version checking function
-    if isinstance(min_version, str):
-        min_version = LooseVersion(min_version)
-    try:
-        return min_version <= pkg.__version__
-    except AttributeError:
+
+def _check_pkg_version(min_version: str | Version) -> ty.Callable[[ModuleType], bool]:
+    min_ver = Version(min_version) if isinstance(min_version, str) else min_version
+
+    def check(pkg: ModuleType) -> bool:
+        pkg_ver = getattr(pkg, '__version__', None)
+        if isinstance(pkg_ver, str):
+            return min_ver <= Version(pkg_ver)
         return False
 
+    return check
 
-def optional_package(name, trip_msg=None, min_version=None):
-    """ Return package-like thing and module setup for package `name`
+
+def optional_package(
+    name: str,
+    trip_msg: str | None = None,
+    min_version: str | Version | ty.Callable[[ModuleType], bool] | None = None,
+) -> tuple[ModuleType | TripWire, bool, ty.Callable[[], None]]:
+    """Return package-like thing and module setup for package `name`
 
     Parameters
     ----------
@@ -24,9 +39,9 @@ def optional_package(name, trip_msg=None, min_version=None):
         message to give when someone tries to use the return package, but we
         could not import it at an acceptable version, and have returned a
         TripWire object instead. Default message if None.
-    min_version : None or str or LooseVersion or callable
+    min_version : None or str or Version or callable
         If None, do not specify a minimum version.  If str, convert to a
-        `distutils.version.LooseVersion`.  If str or LooseVersion` compare to
+        ``packaging.version.Version``.  If str or ``Version`` compare to
         version of package `name` with ``min_version <= pkg.__version__``.   If
         callable, accepts imported ``pkg`` as argument, and returns value of
         callable is True for acceptable package versions, False otherwise.
@@ -80,7 +95,7 @@ def optional_package(name, trip_msg=None, min_version=None):
     elif min_version is None:
         check_version = lambda pkg: True
     else:
-        check_version = lambda pkg: _check_pkg_version(pkg, min_version)
+        check_version = _check_pkg_version(min_version)
     # fromlist=[''] results in submodule being returned, rather than the top
     # level module.  See help(__import__)
     fromlist = [''] if '.' in name else []
@@ -103,12 +118,14 @@ def optional_package(name, trip_msg=None, min_version=None):
             else:
                 trip_msg = f'These functions need {name} version >= {min_version}'
     if trip_msg is None:
-        trip_msg = (f'We need package {name} for these functions, '
-                    f'but ``import {name}`` raised {exc}')
-    pkg = TripWire(trip_msg)
+        trip_msg = (
+            f'We need package {name} for these functions, but ``import {name}`` raised {exc}'
+        )
+    trip = TripWire(trip_msg)
 
-    def setup_module():
+    def setup_module() -> None:
         import unittest
+
         raise unittest.SkipTest(f'No {name} for these tests')
 
-    return pkg, False, setup_module
+    return trip, False, setup_module

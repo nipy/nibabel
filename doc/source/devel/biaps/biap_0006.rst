@@ -193,8 +193,8 @@ In NIfTI:
 
 We saw above that the MGH format refers to a volume (in our sense) as a
 *frame*.  ECAT has the same usage - a frame is a 3D volume. The fmristat
-software uses frame in the same sense |--| e.g. `line 32 of example.m
-<https://github.com/matthew-brett/fmristat/blob/master/fmristat/example.m#L32>`_.
+software uses frame in the same sense, e.g., `line 32 of example.m
+<https://github.com/matthew-brett/fmristat/blob/64ad8bf/fmristat/example.m#L32>`_.
 
 Unfortunately DICOM appears to use "frame" to mean a 2D slice.  For example,
 here is the definition of a "multi-frame image"::
@@ -202,7 +202,7 @@ here is the definition of a "multi-frame image"::
     3.8.9 Multi-frame image:
         Image that contains multiple two-dimensional pixel planes.
 
-From `PS 3.3 of the 2011 DICOM standrd
+From `PS 3.3 of the 2011 DICOM standard
 <http://medical.nema.org/Dicom/2011/11_03pu.pdf>`_.
 
 **********************************

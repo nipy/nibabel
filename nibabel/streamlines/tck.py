@@ -1,4 +1,4 @@
-""" Read / write access to TCK streamlines format.
+"""Read / write access to TCK streamlines format.
 
 TCK format is defined at
 http://mrtrix.readthedocs.io/en/latest/getting_started/image_data.html?highlight=format#tracks-file-format-tck
@@ -6,25 +6,23 @@ http://mrtrix.readthedocs.io/en/latest/getting_started/image_data.html?highlight
 
 import os
 import warnings
+from contextlib import suppress
 
 import numpy as np
-from numpy.compat.py3k import asbytes, asstr
 
 from nibabel.openers import Opener
 
 from .array_sequence import ArraySequence
-from .tractogram_file import TractogramFile
-from .tractogram_file import HeaderWarning, DataWarning
-from .tractogram_file import HeaderError, DataError
-from .tractogram import TractogramItem, Tractogram, LazyTractogram
 from .header import Field
+from .tractogram import LazyTractogram, Tractogram, TractogramItem
+from .tractogram_file import DataError, DataWarning, HeaderError, HeaderWarning, TractogramFile
 from .utils import peek_next
 
 MEGABYTE = 1024 * 1024
 
 
 class TckFile(TractogramFile):
-    """ Convenience class to encapsulate TCK file format.
+    """Convenience class to encapsulate TCK file format.
 
     Notes
     -----
@@ -43,8 +41,9 @@ class TckFile(TractogramFile):
     .. [#] http://www.nitrc.org/pipermail/mrtrix-discussion/2014-January/000859.html
     .. [#] http://nipy.org/nibabel/coordinate_systems.html#voxel-coordinates-are-in-voxel-space
     """
+
     # Constants
-    MAGIC_NUMBER = "mrtrix tracks"
+    MAGIC_NUMBER = b'mrtrix tracks'
     SUPPORTS_DATA_PER_POINT = False  # Not yet
     SUPPORTS_DATA_PER_STREAMLINE = False  # Not yet
 
@@ -70,11 +69,11 @@ class TckFile(TractogramFile):
         This is in contrast with TRK's internal convention where it would
         have referred to a corner.
         """
-        super(TckFile, self).__init__(tractogram, header)
+        super().__init__(tractogram, header)
 
     @classmethod
     def is_correct_format(cls, fileobj):
-        """ Check if the file is in TCK format.
+        """Check if the file is in TCK format.
 
         Parameters
         ----------
@@ -91,25 +90,25 @@ class TckFile(TractogramFile):
             otherwise returns False.
         """
         with Opener(fileobj) as f:
-            magic_number = asstr(f.fobj.readline())
-            f.seek(-len(magic_number), os.SEEK_CUR)
+            magic_number = f.read(len(cls.MAGIC_NUMBER))
+            f.seek(-len(cls.MAGIC_NUMBER), os.SEEK_CUR)
 
-        return magic_number.strip() == cls.MAGIC_NUMBER
+        return magic_number == cls.MAGIC_NUMBER
 
     @classmethod
     def create_empty_header(cls):
-        """ Return an empty compliant TCK header as dict """
+        """Return an empty compliant TCK header as dict"""
         header = {}
 
         # Default values
         header[Field.MAGIC_NUMBER] = cls.MAGIC_NUMBER
         header[Field.NB_STREAMLINES] = 0
-        header['datatype'] = "Float32LE"
+        header['datatype'] = 'Float32LE'
         return header
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
-        """ Loads streamlines from a filename or file-like object.
+        """Loads streamlines from a filename or file-like object.
 
         Parameters
         ----------
@@ -140,6 +139,7 @@ class TckFile(TractogramFile):
         hdr = cls._read_header(fileobj)
 
         if lazy_load:
+
             def _read():
                 for pts in cls._read(fileobj, hdr):
                     yield TractogramItem(pts, {}, {})
@@ -163,7 +163,7 @@ class TckFile(TractogramFile):
         self._write_header(f, header)
 
     def save(self, fileobj):
-        """ Save tractogram to a filename or file-like object using TCK format.
+        """Save tractogram to a filename or file-like object using TCK format.
 
         Parameters
         ----------
@@ -182,7 +182,7 @@ class TckFile(TractogramFile):
         # Keep counts for correcting incoherent fields or warn.
         nb_streamlines = 0
 
-        with Opener(fileobj, mode="wb") as f:
+        with Opener(fileobj, mode='wb') as f:
             # Keep track of the beginning of the header.
             beginning = f.tell()
 
@@ -210,16 +210,20 @@ class TckFile(TractogramFile):
 
             data_for_streamline = first_item.data_for_streamline
             if len(data_for_streamline) > 0:
-                keys = ", ".join(data_for_streamline.keys())
-                msg = ("TCK format does not support saving additional "
-                       f"data alongside streamlines. Dropping: {keys}")
+                keys = ', '.join(data_for_streamline.keys())
+                msg = (
+                    'TCK format does not support saving additional '
+                    f'data alongside streamlines. Dropping: {keys}'
+                )
                 warnings.warn(msg, DataWarning)
 
             data_for_points = first_item.data_for_points
             if len(data_for_points) > 0:
-                keys = ", ".join(data_for_points.keys())
-                msg = ("TCK format does not support saving additional "
-                       f"data alongside points. Dropping: {keys}")
+                keys = ', '.join(data_for_points.keys())
+                msg = (
+                    'TCK format does not support saving additional '
+                    f'data alongside points. Dropping: {keys}'
+                )
                 warnings.warn(msg, DataWarning)
 
             for t in tractogram:
@@ -230,12 +234,12 @@ class TckFile(TractogramFile):
             header[Field.NB_STREAMLINES] = nb_streamlines
 
             # Add the EOF_DELIMITER.
-            f.write(asbytes(self.EOF_DELIMITER.tobytes()))
+            f.write(self.EOF_DELIMITER.tobytes())
             self._finalize_header(f, header, offset=beginning)
 
     @staticmethod
     def _write_header(fileobj, header):
-        """ Write TCK header to file-like object.
+        """Write TCK header to file-like object.
 
         Parameters
         ----------
@@ -244,52 +248,47 @@ class TckFile(TractogramFile):
             ready to read from the beginning of the TCK header).
         """
         # Fields to exclude
-        exclude = [Field.MAGIC_NUMBER,  # Handled separately.
-                   Field.NB_STREAMLINES,  # Handled separately.
-                   Field.ENDIANNESS,  # Handled separately.
-                   Field.VOXEL_TO_RASMM,  # Streamlines are always in RAS+ mm.
-                   "count", "datatype", "file"]  # Fields being replaced.
+        exclude = [
+            Field.MAGIC_NUMBER,  # Handled separately.
+            Field.NB_STREAMLINES,  # Handled separately.
+            Field.ENDIANNESS,  # Handled separately.
+            Field.VOXEL_TO_RASMM,  # Streamlines are always in RAS+ mm.
+            'count',
+            'datatype',
+            'file',
+        ]  # Fields being replaced.
 
-        lines = []
-        lines.append(asstr(header[Field.MAGIC_NUMBER]))
-        lines.append(f"count: {header[Field.NB_STREAMLINES]:010}")
-        lines.append("datatype: Float32LE")  # Always Float32LE.
-        lines.extend([f"{k}: {v}"
-                      for k, v in header.items()
-                      if k not in exclude and not k.startswith("_")])
-        lines.append("file: . ")  # Manually add this last field.
-        out = "\n".join(lines)
+        lines = [
+            f'count: {header[Field.NB_STREAMLINES]:010}',
+            'datatype: Float32LE',  # Always Float32LE.
+        ]
+        lines.extend(
+            f'{k}: {v}' for k, v in header.items() if k not in exclude and not k.startswith('_')
+        )
+        out = '\n'.join(lines)
 
-        # Check the header is well formatted.
-        if out.count("\n") > len(lines) - 1:  # \n only allowed between lines.
-            msg = f"Key-value pairs cannot contain '\\n':\n{out}"
-            raise HeaderError(msg)
-
-        if out.count(":") > len(lines) - 1:
+        if out.count(':') > len(lines):
             # : only one per line (except the last one which contains END).
             msg = f"Key-value pairs cannot contain ':':\n{out}"
             raise HeaderError(msg)
 
+        out = header[Field.MAGIC_NUMBER] + b'\n' + out.encode('utf-8')
+
+        # Compute data offset considering the offset string representation
+        # headers + "file" header + END + \n's
+        hdr_offset = len(out) + 8 + 3 + 3
+        offset_repr = f'{hdr_offset}'
+
+        # Adding the offset may increase one char to the offset repr
+        hdr_offset += len(f'{hdr_offset + len(offset_repr)}')
+
         # Write header to file.
-        fileobj.write(asbytes(out))
+        fileobj.write(out)
+        fileobj.write(f'\nfile: . {hdr_offset}\nEND\n'.encode())
 
-        hdr_len_no_offset = len(out) + 5
-        # Need to add number of bytes to store offset as decimal string. We
-        # start with estimate without string, then update if the
-        # offset-as-decimal-string got longer after adding length of the
-        # offset string.
-        new_offset = -1
-        old_offset = hdr_len_no_offset
-        while new_offset != old_offset:
-            old_offset = new_offset
-            new_offset = hdr_len_no_offset + len(str(old_offset))
-
-        fileobj.write(asbytes(str(new_offset) + "\n"))
-        fileobj.write(asbytes("END\n"))
-
-    @staticmethod
-    def _read_header(fileobj):
-        """ Reads a TCK header from a file.
+    @classmethod
+    def _read_header(cls, fileobj):
+        """Reads a TCK header from a file.
 
         Parameters
         ----------
@@ -304,34 +303,76 @@ class TckFile(TractogramFile):
         header : dict
             Metadata associated with this tractogram file.
         """
-        # Record start position if this is a file-like object
-        start_position = fileobj.tell() if hasattr(fileobj, 'tell') else None
+
+        # Build header dictionary from the buffer
+        hdr = {}
+        offset_data = 0
 
         with Opener(fileobj) as f:
-            # Read magic number
-            magic_number = f.fobj.readline().strip()
+            # Record start position
+            start_position = f.tell()
 
-            # Read all key-value pairs contained in the header.
-            buf = asstr(f.fobj.readline())
-            while not buf.rstrip().endswith("END"):
-                buf += asstr(f.fobj.readline())
+            # Make sure we are at the beginning of the file
+            f.seek(0, os.SEEK_SET)
+
+            # Read magic number
+            magic_number = f.read(len(cls.MAGIC_NUMBER))
+
+            if magic_number != cls.MAGIC_NUMBER:
+                raise HeaderError(f'Invalid magic number: {magic_number}')
+
+            hdr[Field.MAGIC_NUMBER] = magic_number
+
+            f.seek(1, os.SEEK_CUR)  # Skip \n
+
+            found_end = False
+            key = None
+            tmp_hdr = {}
+
+            # Read all key-value pairs contained in the header, stop at EOF
+            for n_line, line in enumerate(f, 1):
+                line = line.decode('utf-8').strip()
+
+                if not line:  # Skip empty lines
+                    continue
+
+                if line == 'END':  # End of the header
+                    found_end = True
+                    break
+
+                # Set new key if available, otherwise append to last known key
+                with suppress(ValueError):
+                    key, line = line.split(':', 1)
+                    key = key.strip()
+
+                # Apparent continuation line before any keys are found
+                if key is None:
+                    raise HeaderError(f'Invalid header (line {n_line}): {line}')
+
+                tmp_hdr.setdefault(key, []).append(line.strip())
+
+            if not found_end:
+                raise HeaderError('Missing END in the header.')
+
+            hdr.update({key: '\n'.join(val) for key, val in tmp_hdr.items()})
 
             offset_data = f.tell()
 
-        # Build header dictionary from the buffer.
-        hdr = dict(item.split(': ') for item in buf.rstrip().split('\n')[:-1])
-        hdr[Field.MAGIC_NUMBER] = magic_number
+            # Set the file position where it was, in case it was previously open
+            if start_position is not None:
+                f.seek(start_position, os.SEEK_SET)
 
         # Check integrity of TCK header.
         if 'datatype' not in hdr:
-            msg = ("Missing 'datatype' attribute in TCK header."
-                   " Assuming it is Float32LE.")
+            msg = "Missing 'datatype' attribute in TCK header. Assuming it is Float32LE."
             warnings.warn(msg, HeaderWarning)
-            hdr['datatype'] = "Float32LE"
+            hdr['datatype'] = 'Float32LE'
 
         if not hdr['datatype'].startswith('Float32'):
-            msg = ("TCK only supports float32 dtype but 'datatype: "
-                   f"{hdr['datatype']}' was specified in the header.")
+            msg = (
+                f"TCK only supports float32 dtype but 'datatype: {hdr['datatype']}' "
+                'was specified in the header.'
+            )
             raise HeaderError(msg)
 
         if 'file' not in hdr:
@@ -340,8 +381,10 @@ class TckFile(TractogramFile):
             hdr['file'] = f'. {offset_data}'
 
         if hdr['file'].split()[0] != '.':
-            msg = ("TCK only supports single-file - in other words the filename part must be "
-                   f"specified as '.' but '{hdr['file'].split()[0]}' was specified.")
+            msg = (
+                'TCK only supports single-file - in other words the filename part must be '
+                f"specified as '.' but '{hdr['file'].split()[0]}' was specified."
+            )
             raise HeaderError("Missing 'file' attribute in TCK header.")
 
         # Set endianness and _dtype attributes in the header.
@@ -352,15 +395,11 @@ class TckFile(TractogramFile):
         # Keep the file position where the data begin.
         hdr['_offset_data'] = int(hdr['file'].split()[1])
 
-        # Set the file position where it was, if it was previously open.
-        if start_position is not None:
-            fileobj.seek(start_position, os.SEEK_SET)
-
         return hdr
 
     @classmethod
     def _read(cls, fileobj, header, buffer_size=4):
-        """ Return generator that reads TCK data from `fileobj` given `header`
+        """Return generator that reads TCK data from `fileobj` given `header`
 
         Parameters
         ----------
@@ -379,7 +418,7 @@ class TckFile(TractogramFile):
         points : ndarray of shape (n_pts, 3)
             Streamline points
         """
-        dtype = header["_dtype"]
+        dtype = header['_dtype']
         coordinate_size = 3 * dtype.itemsize
         # Make buffer_size an integer and a multiple of coordinate_size.
         buffer_size = int(buffer_size * MEGABYTE)
@@ -389,7 +428,7 @@ class TckFile(TractogramFile):
             start_position = f.tell()
 
             # Set the file position at the beginning of the data.
-            f.seek(header["_offset_data"], os.SEEK_SET)
+            f.seek(header['_offset_data'], os.SEEK_SET)
 
             eof = False
             leftover = np.empty((0, 3), dtype='<f4')
@@ -428,7 +467,7 @@ class TckFile(TractogramFile):
 
             if not (leftover.shape == (1, 3) and np.isinf(leftover).all()):
                 if n_streams == 0:
-                    msg = "Cannot find a streamline delimiter. This file might be corrupted."
+                    msg = 'Cannot find a streamline delimiter. This file might be corrupted.'
                 else:
                     msg = "Expecting end-of-file marker 'inf inf inf'"
                 raise DataError(msg)
@@ -440,7 +479,7 @@ class TckFile(TractogramFile):
             f.seek(start_position, os.SEEK_CUR)
 
     def __str__(self):
-        """ Gets a formatted string of the header of a TCK file.
+        """Gets a formatted string of the header of a TCK file.
 
         Returns
         -------
@@ -449,8 +488,8 @@ class TckFile(TractogramFile):
         """
         hdr = self.header
 
-        info = ""
-        info += f"\nMAGIC NUMBER: {hdr[Field.MAGIC_NUMBER]}"
-        info += "\n"
-        info += "\n".join(f"{k}: {v}" for k, v in hdr.items() if not k.startswith('_'))
+        info = ''
+        info += f'\nMAGIC NUMBER: {hdr[Field.MAGIC_NUMBER]}'
+        info += '\n'
+        info += '\n'.join(f'{k}: {v}' for k, v in hdr.items() if not k.startswith('_'))
         return info

@@ -6,7 +6,7 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" A simple spatial image class
+"""A simple spatial image class
 
 The image class maintains the association between a 3D (or greater)
 array, and an affine transform that maps voxel coordinates to some world space.
@@ -21,9 +21,6 @@ It has attributes:
 methods:
 
    * .get_fdata()
-   * .get_data() (deprecated, use get_fdata() instead)
-   * .get_affine() (deprecated, use affine property instead)
-   * .get_header() (deprecated, use header property instead)
    * .to_filename(fname) - writes data to filename(s) derived from
      ``fname``, where the derivation may differ between formats.
    * to_file_map() - save image to files with which the image is already
@@ -94,6 +91,7 @@ corresponding to the file types that an image needs for storage.  For
 example, the Analyze data format needs an ``image`` and a ``header``
 file type for storage:
 
+   >>> import numpy as np
    >>> import nibabel as nib
    >>> data = np.arange(24, dtype='f4').reshape((2,3,4))
    >>> img = nib.AnalyzeImage(data, np.eye(4))
@@ -130,38 +128,74 @@ work:
     >>> img3 = nib.AnalyzeImage.from_file_map(file_map)
     >>> np.all(img3.get_fdata(dtype=np.float32) == data)
     True
-
 """
+
+from __future__ import annotations
+
+import typing as ty
+from functools import cache
+from typing import Literal
 
 import numpy as np
 
-from .filebasedimages import FileBasedHeader
+from ._typing import TypeVar
+from .casting import sctypes_aliases
 from .dataobj_images import DataobjImage
-from .filebasedimages import ImageFileError  # noqa
+from .filebasedimages import FileBasedHeader, FileBasedImage
+from .fileslice import canonical_slicers
+from .orientations import apply_orientation, inv_ornt_aff
 from .viewers import OrthoSlicer3D
 from .volumeutils import shape_zoom_affine
-from .fileslice import canonical_slicers
-from .deprecated import deprecate_with_version
-from .orientations import apply_orientation, inv_ornt_aff
+
+if ty.TYPE_CHECKING:
+    import io
+    from collections.abc import Sequence
+
+    import numpy.typing as npt
+
+    from ._typing import Self
+    from .arrayproxy import ArrayLike
+    from .fileholders import FileMap
+
+SpatialImgT = TypeVar('SpatialImgT', bound='SpatialImage')
+
+
+class HasDtype(ty.Protocol):
+    def get_data_dtype(self) -> np.dtype: ...
+    def set_data_dtype(self, dtype: npt.DTypeLike) -> None: ...
+
+
+@ty.runtime_checkable
+class SpatialProtocol(ty.Protocol):
+    def get_data_dtype(self) -> np.dtype: ...
+    def get_data_shape(self) -> tuple[int, ...]: ...
+    def get_zooms(self) -> tuple[float, ...]: ...
 
 
 class HeaderDataError(Exception):
-    """ Class to indicate error in getting or setting header data """
+    """Class to indicate error in getting or setting header data"""
 
 
 class HeaderTypeError(Exception):
-    """ Class to indicate error in parameters into header functions """
+    """Class to indicate error in parameters into header functions"""
 
 
-class SpatialHeader(FileBasedHeader):
-    """ Template class to implement header protocol """
-    default_x_flip = True
-    data_layout = 'F'
+class SpatialHeader(FileBasedHeader, SpatialProtocol):
+    """Template class to implement header protocol"""
 
-    def __init__(self,
-                 data_dtype=np.float32,
-                 shape=(0,),
-                 zooms=None):
+    default_x_flip: bool = True
+    data_layout: Literal['F', 'C'] = 'F'
+
+    _dtype: np.dtype
+    _shape: tuple[int, ...]
+    _zooms: tuple[float, ...]
+
+    def __init__(
+        self,
+        data_dtype: npt.DTypeLike = np.float32,
+        shape: Sequence[int] = (0,),
+        zooms: Sequence[float] | None = None,
+    ):
         self.set_data_dtype(data_dtype)
         self._zooms = ()
         self.set_data_shape(shape)
@@ -169,7 +203,10 @@ class SpatialHeader(FileBasedHeader):
             self.set_zooms(zooms)
 
     @classmethod
-    def from_header(klass, header=None):
+    def from_header(
+        klass,
+        header: SpatialProtocol | FileBasedHeader | ty.Mapping | None = None,
+    ) -> Self:
         if header is None:
             return klass()
         # I can't do isinstance here because it is not necessarily true
@@ -178,80 +215,69 @@ class SpatialHeader(FileBasedHeader):
         # different field names
         if type(header) == klass:
             return header.copy()
-        return klass(header.get_data_dtype(),
-                     header.get_data_shape(),
-                     header.get_zooms())
+        if isinstance(header, SpatialProtocol):
+            return klass(header.get_data_dtype(), header.get_data_shape(), header.get_zooms())
+        return super().from_header(header)
 
-    @classmethod
-    def from_fileobj(klass, fileobj):
-        raise NotImplementedError
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SpatialHeader):
+            return (self.get_data_dtype(), self.get_data_shape(), self.get_zooms()) == (
+                other.get_data_dtype(),
+                other.get_data_shape(),
+                other.get_zooms(),
+            )
+        return NotImplemented
 
-    def write_to(self, fileobj):
-        raise NotImplementedError
-
-    def __eq__(self, other):
-        return ((self.get_data_dtype(),
-                 self.get_data_shape(),
-                 self.get_zooms()) ==
-                (other.get_data_dtype(),
-                 other.get_data_shape(),
-                 other.get_zooms()))
-
-    def __ne__(self, other):
-        return not self == other
-
-    def copy(self):
-        """ Copy object to independent representation
+    def copy(self) -> Self:
+        """Copy object to independent representation
 
         The copy should not be affected by any changes to the original
         object.
         """
         return self.__class__(self._dtype, self._shape, self._zooms)
 
-    def get_data_dtype(self):
+    def get_data_dtype(self) -> np.dtype:
         return self._dtype
 
-    def set_data_dtype(self, dtype):
+    def set_data_dtype(self, dtype: npt.DTypeLike) -> None:
         self._dtype = np.dtype(dtype)
 
-    def get_data_shape(self):
+    def get_data_shape(self) -> tuple[int, ...]:
         return self._shape
 
-    def set_data_shape(self, shape):
+    def set_data_shape(self, shape: Sequence[int]) -> None:
         ndim = len(shape)
         if ndim == 0:
             self._shape = (0,)
             self._zooms = (1.0,)
             return
-        self._shape = tuple([int(s) for s in shape])
+        self._shape = tuple(int(s) for s in shape)
         # set any unset zooms to 1.0
         nzs = min(len(self._zooms), ndim)
         self._zooms = self._zooms[:nzs] + (1.0,) * (ndim - nzs)
 
-    def get_zooms(self):
+    def get_zooms(self) -> tuple[float, ...]:
         return self._zooms
 
-    def set_zooms(self, zooms):
-        zooms = tuple([float(z) for z in zooms])
+    def set_zooms(self, zooms: Sequence[float]) -> None:
+        zooms = tuple(float(z) for z in zooms)
         shape = self.get_data_shape()
         ndim = len(shape)
         if len(zooms) != ndim:
-            raise HeaderDataError('Expecting %d zoom values for ndim %d'
-                                  % (ndim, ndim))
-        if len([z for z in zooms if z < 0]):
+            raise HeaderDataError(f'Expecting {ndim} zoom values for ndim {ndim}')
+        if any(z < 0 for z in zooms):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
 
-    def get_base_affine(self):
+    def get_base_affine(self) -> np.ndarray:
         shape = self.get_data_shape()
         zooms = self.get_zooms()
-        return shape_zoom_affine(shape, zooms,
-                                 self.default_x_flip)
+        return shape_zoom_affine(shape, zooms, self.default_x_flip)
 
     get_best_affine = get_base_affine
 
-    def data_to_fileobj(self, data, fileobj, rescale=True):
-        """ Write array data `data` as binary to `fileobj`
+    def data_to_fileobj(self, data: npt.ArrayLike, fileobj: io.IOBase, rescale: bool = True):
+        """Write array data `data` as binary to `fileobj`
 
         Parameters
         ----------
@@ -267,8 +293,8 @@ class SpatialHeader(FileBasedHeader):
         dtype = self.get_data_dtype()
         fileobj.write(data.astype(dtype).tobytes(order=self.data_layout))
 
-    def data_from_fileobj(self, fileobj):
-        """ Read binary image data from `fileobj` """
+    def data_from_fileobj(self, fileobj: io.IOBase) -> np.ndarray:
+        """Read binary image data from `fileobj`"""
         dtype = self.get_data_dtype()
         shape = self.get_data_shape()
         data_size = int(np.prod(shape) * dtype.itemsize)
@@ -276,8 +302,43 @@ class SpatialHeader(FileBasedHeader):
         return np.ndarray(shape, dtype, data_bytes, order=self.data_layout)
 
 
-def supported_np_types(obj):
-    """ Numpy data types that instance `obj` supports
+@cache
+def _supported_np_types(klass: type[HasDtype]) -> set[type[np.generic]]:
+    """Numpy data types that instances of ``klass`` support
+
+    Parameters
+    ----------
+    klass : class
+        Class implementing `get_data_dtype` and `set_data_dtype` methods.  The object
+        should raise ``HeaderDataError`` for setting unsupported dtypes. The
+        object will likely be a header or a :class:`SpatialImage`
+
+    Returns
+    -------
+    np_types : set
+        set of numpy types that ``klass`` instances support
+    """
+    try:
+        obj = klass()
+    except TypeError as e:
+        if hasattr(klass, 'header_class'):
+            obj = klass.header_class()
+        else:
+            raise e
+    supported = set()
+    for np_type in sctypes_aliases:
+        try:
+            obj.set_data_dtype(np_type)
+        except HeaderDataError:
+            continue
+        # Did set work?
+        if np.dtype(obj.get_data_dtype()) == np.dtype(np_type):
+            supported.add(np_type)
+    return supported
+
+
+def supported_np_types(obj: HasDtype) -> set[type[np.generic]]:
+    """Numpy data types that instance `obj` supports
 
     Parameters
     ----------
@@ -291,51 +352,32 @@ def supported_np_types(obj):
     np_types : set
         set of numpy types that `obj` supports
     """
-    dt = obj.get_data_dtype()
-    supported = []
-    for name, np_types in np.sctypes.items():
-        for np_type in np_types:
-            try:
-                obj.set_data_dtype(np_type)
-            except HeaderDataError:
-                continue
-            # Did set work?
-            if np.dtype(obj.get_data_dtype()) == np.dtype(np_type):
-                supported.append(np_type)
-    # Reset original header dtype
-    obj.set_data_dtype(dt)
-    return set(supported)
-
-
-class Header(SpatialHeader):
-    """Alias for SpatialHeader; kept for backwards compatibility."""
-
-    @deprecate_with_version('Header class is deprecated.\n'
-                            'Please use SpatialHeader instead.'
-                            'instead.',
-                            '2.1', '4.0')
-    def __init__(self, *args, **kwargs):
-        super(Header, self).__init__(*args, **kwargs)
+    return _supported_np_types(obj.__class__)
 
 
 class ImageDataError(Exception):
     pass
 
 
-class SpatialFirstSlicer(object):
-    """ Slicing interface that returns a new image with an updated affine
+class SpatialFirstSlicer(ty.Generic[SpatialImgT]):
+    """Slicing interface that returns a new image with an updated affine
 
     Checks that an image's first three axes are spatial
     """
-    def __init__(self, img):
+
+    img: SpatialImgT
+
+    def __init__(self, img: SpatialImgT):
         # Local import to avoid circular import on module load
         from .imageclasses import spatial_axes_first
+
         if not spatial_axes_first(img):
-            raise ValueError("Cannot predict position of spatial axes for "
-                             "Image type " + img.__class__.__name__)
+            raise ValueError(
+                'Cannot predict position of spatial axes for image type {img.__class__.__name__}'
+            )
         self.img = img
 
-    def __getitem__(self, slicer):
+    def __getitem__(self, slicer: object) -> SpatialImgT:
         try:
             slicer = self.check_slicing(slicer)
         except ValueError as err:
@@ -343,13 +385,17 @@ class SpatialFirstSlicer(object):
 
         dataobj = self.img.dataobj[slicer]
         if any(dim == 0 for dim in dataobj.shape):
-            raise IndexError("Empty slice requested")
+            raise IndexError('Empty slice requested')
 
         affine = self.slice_affine(slicer)
         return self.img.__class__(dataobj.copy(), affine, self.img.header)
 
-    def check_slicing(self, slicer, return_spatial=False):
-        """ Canonicalize slicers and check for scalar indices in spatial dims
+    def check_slicing(
+        self,
+        slicer: object,
+        return_spatial: bool = False,
+    ) -> tuple[slice | int | None, ...]:
+        """Canonicalize slicers and check for scalar indices in spatial dims
 
         Parameters
         ----------
@@ -365,21 +411,22 @@ class SpatialFirstSlicer(object):
             Validated slicer object that will slice image's `dataobj`
             without collapsing spatial dimensions
         """
-        slicer = canonical_slicers(slicer, self.img.shape)
+        canonical = canonical_slicers(slicer, self.img.shape)
         # We can get away with this because we've checked the image's
         # first three axes are spatial.
         # More general slicers will need to be smarter, here.
-        spatial_slices = slicer[:3]
+        spatial_slices = canonical[:3]
         for subslicer in spatial_slices:
             if subslicer is None:
-                raise IndexError("New axis not permitted in spatial dimensions")
+                raise IndexError('New axis not permitted in spatial dimensions')
             elif isinstance(subslicer, int):
-                raise IndexError("Scalar indices disallowed in spatial dimensions; "
-                                 "Use `[x]` or `x:x+1`.")
-        return spatial_slices if return_spatial else slicer
+                raise IndexError(
+                    'Scalar indices disallowed in spatial dimensions; Use `[x]` or `x:x+1`.'
+                )
+        return spatial_slices if return_spatial else canonical
 
-    def slice_affine(self, slicer):
-        """ Retrieve affine for current image, if sliced by a given index
+    def slice_affine(self, slicer: object) -> np.ndarray:
+        """Retrieve affine for current image, if sliced by a given index
 
         Applies scaling if down-sampling is applied, and adjusts the intercept
         to account for any cropping.
@@ -407,7 +454,7 @@ class SpatialFirstSlicer(object):
         for i, subslicer in enumerate(slicer):
             if isinstance(subslicer, slice):
                 if subslicer.step == 0:
-                    raise ValueError("slice step cannot be 0")
+                    raise ValueError('slice step cannot be 0')
                 transform[i, i] = subslicer.step if subslicer.step is not None else 1
                 transform[i, 3] = subslicer.start or 0
             # If slicer is None, nothing to do
@@ -416,13 +463,23 @@ class SpatialFirstSlicer(object):
 
 
 class SpatialImage(DataobjImage):
-    """ Template class for volumetric (3D/4D) images """
-    header_class = SpatialHeader
-    ImageSlicer = SpatialFirstSlicer
+    """Template class for volumetric (3D/4D) images"""
 
-    def __init__(self, dataobj, affine, header=None,
-                 extra=None, file_map=None):
-        """ Initialize image
+    header_class: type[SpatialHeader] = SpatialHeader
+    ImageSlicer: type[SpatialFirstSlicer] = SpatialFirstSlicer
+
+    _header: SpatialHeader
+    header: SpatialHeader
+
+    def __init__(
+        self,
+        dataobj: ArrayLike,
+        affine: np.ndarray | None,
+        header: FileBasedHeader | ty.Mapping | None = None,
+        extra: ty.Mapping | None = None,
+        file_map: FileMap | None = None,
+    ):
+        """Initialize image
 
         The image is a combination of (array-like, affine matrix, header), with
         optional metadata in `extra`, and filename / file-like objects
@@ -447,8 +504,7 @@ class SpatialImage(DataobjImage):
         file_map : mapping, optional
            mapping giving file information for this image format
         """
-        super(SpatialImage, self).__init__(dataobj, header=header, extra=extra,
-                                           file_map=file_map)
+        super().__init__(dataobj, header=header, extra=extra, file_map=file_map)
         if affine is not None:
             # Check that affine is array-like 4,4.  Maybe this is too strict at
             # this abstract level, but so far I think all image formats we know
@@ -472,8 +528,8 @@ class SpatialImage(DataobjImage):
     def affine(self):
         return self._affine
 
-    def update_header(self):
-        """ Harmonize header with image data and affine
+    def update_header(self) -> None:
+        """Harmonize header with image data and affine
 
         >>> data = np.zeros((2,3,4))
         >>> affine = np.diag([1.0,2.0,3.0,1.0])
@@ -501,8 +557,9 @@ class SpatialImage(DataobjImage):
             return
         self._affine2header()
 
-    def _affine2header(self):
-        """ Unconditionally set affine into the header """
+    def _affine2header(self) -> None:
+        """Unconditionally set affine into the header"""
+        assert self._affine is not None
         RZS = self._affine[:3, :3]
         vox = np.sqrt(np.sum(RZS * RZS, axis=0))
         hdr = self._header
@@ -511,34 +568,27 @@ class SpatialImage(DataobjImage):
         zooms[:n_to_set] = vox[:n_to_set]
         hdr.set_zooms(zooms)
 
-    def __str__(self):
+    def __str__(self) -> str:
         shape = self.shape
         affine = self.affine
-        return '\n'.join((str(self.__class__),
-                          f'data shape {shape}',
-                          'affine: ',
-                          str(affine),
-                          'metadata:',
-                          str(self._header)))
+        return f"""
+{self.__class__}
+data shape {shape}
+affine:
+{affine}
+metadata:
+{self._header}
+"""
 
-    def get_data_dtype(self):
+    def get_data_dtype(self) -> np.dtype:
         return self._header.get_data_dtype()
 
-    def set_data_dtype(self, dtype):
+    def set_data_dtype(self, dtype: npt.DTypeLike) -> None:
         self._header.set_data_dtype(dtype)
 
-    @deprecate_with_version('get_affine method is deprecated.\n'
-                            'Please use the ``img.affine`` property '
-                            'instead.',
-                            '2.1', '4.0')
-    def get_affine(self):
-        """ Get affine from image
-        """
-        return self.affine
-
     @classmethod
-    def from_image(klass, img):
-        """ Class method to create new instance of own class from `img`
+    def from_image(klass, img: SpatialImage | FileBasedImage) -> Self:
+        """Class method to create new instance of own class from `img`
 
         Parameters
         ----------
@@ -551,14 +601,18 @@ class SpatialImage(DataobjImage):
         cimg : ``spatialimage`` instance
            Image, of our own class
         """
-        return klass(img.dataobj,
-                     img.affine,
-                     klass.header_class.from_header(img.header),
-                     extra=img.extra.copy())
+        if isinstance(img, SpatialImage):
+            return klass(
+                img.dataobj,
+                img.affine,
+                klass.header_class.from_header(img.header),
+                extra=img.extra.copy(),
+            )
+        return super().from_image(img)
 
     @property
-    def slicer(self):
-        """ Slicer object that returns cropped and subsampled images
+    def slicer(self) -> SpatialFirstSlicer[Self]:
+        """Slicer object that returns cropped and subsampled images
 
         The image is resliced in the current orientation; no rotation or
         resampling is performed, and no attempt is made to filter the image
@@ -576,19 +630,20 @@ class SpatialImage(DataobjImage):
         """
         return self.ImageSlicer(self)
 
-    def __getitem__(self, idx):
-        """ No slicing or dictionary interface for images
+    def __getitem__(self, idx: object) -> None:
+        """No slicing or dictionary interface for images
 
         Use the slicer attribute to perform cropping and subsampling at your
         own risk.
         """
         raise TypeError(
-            "Cannot slice image objects; consider using `img.slicer[slice]` "
-            "to generate a sliced image (see documentation for caveats) or "
-            "slicing image array data with `img.dataobj[slice]` or "
-            "`img.get_fdata()[slice]`")
+            'Cannot slice image objects; consider using `img.slicer[slice]` '
+            'to generate a sliced image (see documentation for caveats) or '
+            'slicing image array data with `img.dataobj[slice]` or '
+            '`img.get_fdata()[slice]`'
+        )
 
-    def orthoview(self):
+    def orthoview(self) -> OrthoSlicer3D:
         """Plot the image using OrthoSlicer3D
 
         Returns
@@ -602,10 +657,9 @@ class SpatialImage(DataobjImage):
         consider using viewer.show() (equivalently plt.show()) to show
         the figure.
         """
-        return OrthoSlicer3D(self.dataobj, self.affine,
-                             title=self.get_filename())
+        return OrthoSlicer3D(self.dataobj, self.affine, title=self.get_filename())
 
-    def as_reoriented(self, ornt):
+    def as_reoriented(self, ornt: Sequence[Sequence[int]]) -> Self:
         """Apply an orientation change and return a new image
 
         If ornt is identity transform, return the original image, unchanged

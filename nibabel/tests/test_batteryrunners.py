@@ -6,16 +6,15 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Tests for BatteryRunner and Report objects
-"""
-
-from io import StringIO
+"""Tests for BatteryRunner and Report objects"""
 
 import logging
+from io import StringIO
+
+import pytest
 
 from ..batteryrunners import BatteryRunner, Report
 
-import pytest
 
 # define some trivial functions as checks
 def chk1(obj, fix=False):

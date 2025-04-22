@@ -4,7 +4,7 @@ import nibabel
 
 
 def get_affine_from_reference(ref):
-    """ Returns the affine defining the reference space.
+    """Returns the affine defining the reference space.
 
     Parameters
     ----------
@@ -24,7 +24,7 @@ def get_affine_from_reference(ref):
 
     if hasattr(ref, 'shape'):
         if ref.shape != (4, 4):
-            msg = "`ref` needs to be a numpy array with shape (4, 4)!"
+            msg = '`ref` needs to be a numpy array with shape (4, 4)!'
             raise ValueError(msg)
 
         return ref
@@ -34,7 +34,7 @@ def get_affine_from_reference(ref):
 
 
 def peek_next(iterable):
-    """ Peek next element of iterable.
+    """Peek next element of iterable.
 
     Parameters
     ----------

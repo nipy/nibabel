@@ -6,82 +6,110 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Context manager openers for various fileobject types
-"""
+"""Context manager openers for various fileobject types"""
 
-from bz2 import BZ2File
+from __future__ import annotations
+
 import gzip
-import warnings
+import io
+import typing as ty
+from bz2 import BZ2File
 from os.path import splitext
-from distutils.version import StrictVersion
 
-from nibabel.optpkg import optional_package
+from ._compression import HAVE_INDEXED_GZIP, IndexedGzipFile, pyzstd
 
-# is indexed_gzip present and modern?
-try:
-    import indexed_gzip as igzip
-    version = igzip.__version__
+if ty.TYPE_CHECKING:
+    from types import TracebackType
 
-    HAVE_INDEXED_GZIP = True
+    from _typeshed import WriteableBuffer
 
-    # < 0.7 - no good
-    if StrictVersion(version) < StrictVersion('0.7.0'):
-        warnings.warn(f'indexed_gzip is present, but too old (>= 0.7.0 required): {version})')
-        HAVE_INDEXED_GZIP = False
-    # >= 0.8 SafeIndexedGzipFile renamed to IndexedGzipFile
-    elif StrictVersion(version) < StrictVersion('0.8.0'):
-        IndexedGzipFile = igzip.SafeIndexedGzipFile
-    else:
-        IndexedGzipFile = igzip.IndexedGzipFile
-    del igzip, version
+    from ._typing import Self
 
-except ImportError:
-    # nibabel.openers.IndexedGzipFile is imported by nibabel.volumeutils
-    # to detect compressed file types, so we give a fallback value here.
-    IndexedGzipFile = gzip.GzipFile
-    HAVE_INDEXED_GZIP = False
+    ModeRT = ty.Literal['r', 'rt']
+    ModeRB = ty.Literal['rb']
+    ModeWT = ty.Literal['w', 'wt']
+    ModeWB = ty.Literal['wb']
+    ModeR = ty.Union[ModeRT, ModeRB]
+    ModeW = ty.Union[ModeWT, ModeWB]
+    Mode = ty.Union[ModeR, ModeW]
+
+    OpenerDef = tuple[ty.Callable[..., io.IOBase], tuple[str, ...]]
+
+
+@ty.runtime_checkable
+class Fileish(ty.Protocol):
+    def read(self, size: int = -1, /) -> bytes: ...
+    def write(self, b: bytes, /) -> int | None: ...
 
 
 class DeterministicGzipFile(gzip.GzipFile):
-    """ Deterministic variant of GzipFile
+    """Deterministic variant of GzipFile
 
     This writer does not add filename information to the header, and defaults
     to a modification time (``mtime``) of 0 seconds.
     """
-    def __init__(self, filename=None, mode=None, compresslevel=9, fileobj=None, mtime=0):
-        # These two guards are copied from
+
+    def __init__(
+        self,
+        filename: str | None = None,
+        mode: Mode | None = None,
+        compresslevel: int = 9,
+        fileobj: io.FileIO | None = None,
+        mtime: int = 0,
+    ):
+        if mode is None:
+            mode = 'rb'
+        modestr: str = mode
+
+        # These two guards are adapted from
         # https://github.com/python/cpython/blob/6ab65c6/Lib/gzip.py#L171-L174
-        if mode and 'b' not in mode:
-            mode += 'b'
+        if 'b' not in modestr:
+            modestr = f'{mode}b'
         if fileobj is None:
-            fileobj = self.myfileobj = open(filename, mode or 'rb')
-        return super().__init__(filename="", mode=mode, compresslevel=compresslevel,
-                                fileobj=fileobj, mtime=mtime)
+            if filename is None:
+                raise TypeError('Must define either fileobj or filename')
+            # Cast because GzipFile.myfileobj has type io.FileIO while open returns ty.IO
+            fileobj = self.myfileobj = ty.cast('io.FileIO', open(filename, modestr))
+        super().__init__(
+            filename='',
+            mode=modestr,
+            compresslevel=compresslevel,
+            fileobj=fileobj,
+            mtime=mtime,
+        )
 
 
-def _gzip_open(filename, mode='rb', compresslevel=9, mtime=0, keep_open=False):
+def _gzip_open(
+    filename: str,
+    mode: Mode = 'rb',
+    compresslevel: int = 9,
+    mtime: int = 0,
+    keep_open: bool = False,
+) -> gzip.GzipFile:
+    if not HAVE_INDEXED_GZIP or mode != 'rb':
+        gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
 
     # use indexed_gzip if possible for faster read access.  If keep_open ==
     # True, we tell IndexedGzipFile to keep the file handle open. Otherwise
     # the IndexedGzipFile will close/open the file on each read.
-    if HAVE_INDEXED_GZIP and mode == 'rb':
-        gzip_file = IndexedGzipFile(filename, drop_handles=not keep_open)
-
-    # Fall-back to built-in GzipFile
     else:
-        gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
+        gzip_file = IndexedGzipFile(filename, drop_handles=not keep_open)
 
     return gzip_file
 
 
-def _zstd_open(filename, mode="r", *, level_or_option=None, zstd_dict=None):
-    pyzstd = optional_package("pyzstd")[0]
-    return pyzstd.ZstdFile(filename, mode,
-                           level_or_option=level_or_option, zstd_dict=zstd_dict)
+def _zstd_open(
+    filename: str,
+    mode: Mode = 'r',
+    *,
+    level_or_option: int | dict | None = None,
+    zstd_dict: pyzstd.ZstdDict | None = None,
+) -> pyzstd.ZstdFile:
+    return pyzstd.ZstdFile(filename, mode, level_or_option=level_or_option, zstd_dict=zstd_dict)
 
 
-class Opener(object):
-    r""" Class to accept, maybe open, and context-manage file-likes / filenames
+class Opener:
+    r"""Class to accept, maybe open, and context-manage file-likes / filenames
 
     Provides context manager to close files that the constructor opened for
     you.
@@ -101,36 +129,40 @@ class Opener(object):
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
     """
+
     gz_def = (_gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
     zstd_def = (_zstd_open, ('mode', 'level_or_option', 'zstd_dict'))
-    compress_ext_map = {
+    compress_ext_map: dict[str | None, OpenerDef] = {
         '.gz': gz_def,
         '.bz2': bz2_def,
         '.zst': zstd_def,
-        None: (open, ('mode', 'buffering'))  # default
+        None: (open, ('mode', 'buffering')),  # default
     }
     #: default compression level when writing gz and bz2 files
     default_compresslevel = 1
     #: default option for zst files
     default_zst_compresslevel = 3
-    default_level_or_option = {"rb": None, "r": None,
-                               "wb": default_zst_compresslevel,
-                               "w": default_zst_compresslevel}
+    default_level_or_option = {
+        'rb': None,
+        'r': None,
+        'wb': default_zst_compresslevel,
+        'w': default_zst_compresslevel,
+    }
     #: whether to ignore case looking for compression extensions
-    compress_ext_icase = True
+    compress_ext_icase: bool = True
 
-    def __init__(self, fileish, *args, compression=None, **kwargs):
-        if self._is_fileobj(fileish):
+    fobj: io.IOBase
+
+    def __init__(self, fileish: str | io.IOBase, *args, compression: str | None, **kwargs):
+        if isinstance(fileish, (io.IOBase, Fileish)):
             self.fobj = fileish
             self.me_opened = False
-            self._name = None
+            self._name = getattr(fileish, 'name', None)
             return
         opener, arg_names = self._get_opener_argnames(fileish, compression)
         # Get full arguments to check for mode and compresslevel
-        full_kwargs = kwargs.copy()
-        n_args = len(args)
-        full_kwargs.update(dict(zip(arg_names[:n_args], args)))
+        full_kwargs = {**kwargs, **dict(zip(arg_names, args))}
         # Set default mode
         if 'mode' not in full_kwargs:
             mode = 'rb'
@@ -152,7 +184,7 @@ class Opener(object):
         self._name = fileish
         self.me_opened = True
 
-    def _get_opener_argnames(self, fileish, compression):
+    def _get_opener_argnames(self, fileish: str, compression: str | None) -> OpenerDef:
         if compression is not None:
             if compression[0] != '.':
                 compression = f'.{compression}'
@@ -169,18 +201,13 @@ class Opener(object):
             return self.compress_ext_map[ext]
         return self.compress_ext_map[None]
 
-    def _is_fileobj(self, obj):
-        """ Is `obj` a file-like object?
-        """
-        return hasattr(obj, 'read') and hasattr(obj, 'write')
-
     @property
-    def closed(self):
+    def closed(self) -> bool:
         return self.fobj.closed
 
     @property
-    def name(self):
-        """ Return ``self.fobj.name`` or self._name if not present
+    def name(self) -> str | None:
+        """Return ``self.fobj.name`` or self._name if not present
 
         self._name will be None if object was created with a fileobj, otherwise
         it will be the filename.
@@ -188,48 +215,58 @@ class Opener(object):
         return self._name
 
     @property
-    def mode(self):
-        return self.fobj.mode
+    def mode(self) -> str:
+        # Check and raise our own error for type narrowing purposes
+        if hasattr(self.fobj, 'mode'):
+            return self.fobj.mode
+        raise AttributeError(f'{self.fobj.__class__.__name__} has no attribute "mode"')
 
-    def fileno(self):
+    def fileno(self) -> int:
         return self.fobj.fileno()
 
-    def read(self, *args, **kwargs):
-        return self.fobj.read(*args, **kwargs)
+    def read(self, size: int = -1, /) -> bytes:
+        return self.fobj.read(size)
 
-    def readinto(self, *args, **kwargs):
-        return self.fobj.readinto(*args, **kwargs)
+    def readinto(self, buffer: WriteableBuffer, /) -> int | None:
+        # Check and raise our own error for type narrowing purposes
+        if hasattr(self.fobj, 'readinto'):
+            return self.fobj.readinto(buffer)
+        raise AttributeError(f'{self.fobj.__class__.__name__} has no attribute "readinto"')
 
-    def write(self, *args, **kwargs):
-        return self.fobj.write(*args, **kwargs)
+    def write(self, b: bytes, /) -> int | None:
+        return self.fobj.write(b)
 
-    def seek(self, *args, **kwargs):
-        return self.fobj.seek(*args, **kwargs)
+    def seek(self, pos: int, whence: int = 0, /) -> int:
+        return self.fobj.seek(pos, whence)
 
-    def tell(self, *args, **kwargs):
-        return self.fobj.tell(*args, **kwargs)
+    def tell(self, /) -> int:
+        return self.fobj.tell()
 
-    def close(self, *args, **kwargs):
-        return self.fobj.close(*args, **kwargs)
+    def close(self, /) -> None:
+        return self.fobj.close()
 
-    def __iter__(self):
+    def __iter__(self) -> ty.Iterator[bytes]:
         return iter(self.fobj)
 
-    def close_if_mine(self):
-        """ Close ``self.fobj`` iff we opened it in the constructor
-        """
+    def close_if_mine(self) -> None:
+        """Close ``self.fobj`` iff we opened it in the constructor"""
         if self.me_opened:
             self.close()
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         self.close_if_mine()
 
 
 class ImageOpener(Opener):
-    """ Opener-type class to collect extra compressed extensions
+    """Opener-type class to collect extra compressed extensions
 
     A trivial sub-class of opener to which image classes can add extra
     extensions with custom openers, such as compressed openers.
@@ -246,5 +283,6 @@ class ImageOpener(Opener):
     that `function` accepts. These arguments must be any (unordered) subset of
     `mode`, `compresslevel`, and `buffering`.
     """
+
     # Add new extensions to this dictionary
     compress_ext_map = Opener.compress_ext_map.copy()

@@ -8,6 +8,9 @@
   <li><a href="legal.html">License</a> |&nbsp;</li>
 {% endblock %}
 
+{% block sidebar1 %}{{ sidebar() }}{% endblock %}
+{% block sidebar2 %}{% endblock %}
+
 {% block extrahead %}
   <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
 {% endblock %}
@@ -30,6 +33,3 @@
 {% endblock %}
 
 {% block relbar2 %}{% endblock %}
-
-{% block sidebar1 %}{{ sidebar() }}{% endblock %}
-{% block sidebar2 %}{% endblock %}

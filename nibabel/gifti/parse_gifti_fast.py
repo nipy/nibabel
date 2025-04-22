@@ -8,27 +8,30 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 
 import base64
+import os.path as op
 import sys
 import warnings
 import zlib
-import os.path as op
 from io import StringIO
 from xml.parsers.expat import ExpatError
 
 import numpy as np
 
-from .gifti import (GiftiMetaData, GiftiImage, GiftiLabel,
-                    GiftiLabelTable, GiftiNVPairs, GiftiDataArray,
-                    GiftiCoordSystem)
-from .util import (array_index_order_codes, gifti_encoding_codes,
-                   gifti_endian_codes)
-from ..nifti1 import data_type_codes, xform_codes, intent_codes
+from ..nifti1 import data_type_codes, intent_codes, xform_codes
 from ..xmlutils import XmlParser
-from ..deprecated import deprecate_with_version
+from .gifti import (
+    GiftiCoordSystem,
+    GiftiDataArray,
+    GiftiImage,
+    GiftiLabel,
+    GiftiLabelTable,
+    GiftiMetaData,
+)
+from .util import array_index_order_codes, gifti_encoding_codes, gifti_endian_codes
 
 
 class GiftiParseError(ExpatError):
-    """ Gifti-specific parsing error """
+    """Gifti-specific parsing error"""
 
 
 def read_data_block(darray, fname, data, mmap):
@@ -61,29 +64,33 @@ def read_data_block(darray, fname, data, mmap):
     ``numpy.ndarray`` or ``numpy.memmap`` containing the parsed data
     """
     if mmap not in (True, False, 'c', 'r', 'r+'):
-        raise ValueError("mmap value should be one of True, False, 'c', "
-                         "'r', 'r+'")
+        raise ValueError("mmap value should be one of True, False, 'c', 'r', 'r+'")
     if mmap is True:
         mmap = 'c'
     enclabel = gifti_encoding_codes.label[darray.encoding]
-    dtype = data_type_codes.type[darray.datatype]
 
+    if enclabel not in ('ASCII', 'B64BIN', 'B64GZ', 'External'):
+        raise GiftiParseError(f'Unknown encoding {darray.encoding}')
+
+    # Encode the endianness in the dtype
+    byteorder = gifti_endian_codes.byteorder[darray.endian]
+    dtype = data_type_codes.dtype[darray.datatype].newbyteorder(byteorder)
+
+    shape = tuple(darray.dims)
+    order = array_index_order_codes.npcode[darray.ind_ord]
+
+    # GIFTI_ENCODING_ASCII
     if enclabel == 'ASCII':
-        # GIFTI_ENCODING_ASCII
-        c = StringIO(data)
-        da = np.loadtxt(c, dtype=dtype)
-        return da  # independent of the endianness
-    elif enclabel not in ('B64BIN', 'B64GZ', 'External'):
-        return 0
+        return np.loadtxt(StringIO(data), dtype=dtype, ndmin=1).reshape(shape, order=order)
 
-    # GIFTI_ENCODING_EXTBIN
     # We assume that the external data file is raw uncompressed binary, with
     # the data type/endianness/ordering specified by the other DataArray
     # attributes
     if enclabel == 'External':
         if fname is None:
-            raise GiftiParseError('ExternalFileBinary is not supported '
-                                  'when loading from in-memory XML')
+            raise GiftiParseError(
+                'ExternalFileBinary is not supported when loading from in-memory XML'
+            )
         ext_fname = op.join(op.dirname(fname), darray.ext_fname)
         if not op.exists(ext_fname):
             raise GiftiParseError('Cannot locate external file ' + ext_fname)
@@ -91,24 +98,26 @@ def read_data_block(darray, fname, data, mmap):
         newarr = None
         if mmap:
             try:
-                newarr = np.memmap(ext_fname,
-                                   dtype=dtype,
-                                   mode=mmap,
-                                   offset=darray.ext_offset,
-                                   shape=tuple(darray.dims))
+                return np.memmap(
+                    ext_fname,
+                    dtype=dtype,
+                    mode=mmap,
+                    offset=darray.ext_offset,
+                    shape=shape,
+                    order=order,
+                )
             # If the memmap fails, we ignore the error and load the data into
             # memory below
             except (AttributeError, TypeError, ValueError):
                 pass
         # mmap=False or np.memmap failed
         if newarr is None:
-            # We can replace this with a call to np.fromfile in numpy>=1.17,
-            # as an "offset" parameter was added in that version.
-            with open(ext_fname, 'rb') as f:
-                f.seek(darray.ext_offset)
-                nbytes = np.prod(darray.dims) * dtype().itemsize
-                buff = f.read(nbytes)
-                newarr = np.frombuffer(buff, dtype=dtype)
+            return np.fromfile(
+                ext_fname,
+                dtype=dtype,
+                count=np.prod(darray.dims),
+                offset=darray.ext_offset,
+            ).reshape(shape, order=order)
 
     # Numpy arrays created from bytes objects are read-only.
     # Neither b64decode nor decompress will return bytearrays, and there
@@ -116,28 +125,14 @@ def read_data_block(darray, fname, data, mmap):
     # there is not a simple way to avoid making copies.
     # If this becomes a problem, we should write a decoding interface with
     # a tunable chunk size.
+    dec = base64.b64decode(data.encode('ascii'))
+    if enclabel == 'B64BIN':
+        buff = bytearray(dec)
     else:
-        dec = base64.b64decode(data.encode('ascii'))
-        if enclabel == 'B64BIN':
-            # GIFTI_ENCODING_B64BIN
-            buff = bytearray(dec)
-        else:
-            # GIFTI_ENCODING_B64GZ
-            buff = bytearray(zlib.decompress(dec))
-        del dec
-        newarr = np.frombuffer(buff, dtype=dtype)
-
-    sh = tuple(darray.dims)
-    if len(newarr.shape) != len(sh):
-        newarr = newarr.reshape(
-            sh, order=array_index_order_codes.npcode[darray.ind_ord])
-
-    # check if we need to byteswap
-    required_byteorder = gifti_endian_codes.byteorder[darray.endian]
-    if (required_byteorder in ('big', 'little') and
-            required_byteorder != sys.byteorder):
-        newarr = newarr.byteswap()
-    return newarr
+        # GIFTI_ENCODING_B64GZ
+        buff = bytearray(zlib.decompress(dec))
+    del dec
+    return np.frombuffer(buff, dtype=dtype).reshape(shape, order=order)
 
 
 def _str2int(in_str):
@@ -146,12 +141,8 @@ def _str2int(in_str):
 
 
 class GiftiImageParser(XmlParser):
-
-    def __init__(self, encoding=None, buffer_size=35000000, verbose=0,
-                 mmap=True):
-        super(GiftiImageParser, self).__init__(encoding=encoding,
-                                               buffer_size=buffer_size,
-                                               verbose=verbose)
+    def __init__(self, encoding=None, buffer_size=35000000, verbose=0, mmap=True):
+        super().__init__(encoding=encoding, buffer_size=buffer_size, verbose=verbose)
         # output
         self.img = None
 
@@ -202,7 +193,7 @@ class GiftiImageParser(XmlParser):
                 self.meta_da = GiftiMetaData()
 
         elif name == 'MD':
-            self.nvpair = GiftiNVPairs()
+            self.nvpair = ['', '']
             self.fsm_state.append('MD')
 
         elif name == 'Name':
@@ -221,45 +212,44 @@ class GiftiImageParser(XmlParser):
 
         elif name == 'Label':
             self.label = GiftiLabel()
-            if "Index" in attrs:
-                self.label.key = int(attrs["Index"])
-            if "Key" in attrs:
-                self.label.key = int(attrs["Key"])
-            if "Red" in attrs:
-                self.label.red = float(attrs["Red"])
-            if "Green" in attrs:
-                self.label.green = float(attrs["Green"])
-            if "Blue" in attrs:
-                self.label.blue = float(attrs["Blue"])
-            if "Alpha" in attrs:
-                self.label.alpha = float(attrs["Alpha"])
+            if 'Index' in attrs:
+                self.label.key = int(attrs['Index'])
+            if 'Key' in attrs:
+                self.label.key = int(attrs['Key'])
+            if 'Red' in attrs:
+                self.label.red = float(attrs['Red'])
+            if 'Green' in attrs:
+                self.label.green = float(attrs['Green'])
+            if 'Blue' in attrs:
+                self.label.blue = float(attrs['Blue'])
+            if 'Alpha' in attrs:
+                self.label.alpha = float(attrs['Alpha'])
             self.write_to = 'Label'
 
         elif name == 'DataArray':
             self.da = GiftiDataArray()
-            if "Intent" in attrs:
-                self.da.intent = intent_codes.code[attrs["Intent"]]
-            if "DataType" in attrs:
-                self.da.datatype = data_type_codes.code[attrs["DataType"]]
-            if "ArrayIndexingOrder" in attrs:
-                self.da.ind_ord = array_index_order_codes.code[
-                    attrs["ArrayIndexingOrder"]]
-            num_dim = int(attrs.get("Dimensionality", 0))
+            if 'Intent' in attrs:
+                self.da.intent = intent_codes.code[attrs['Intent']]
+            if 'DataType' in attrs:
+                self.da.datatype = data_type_codes.code[attrs['DataType']]
+            if 'ArrayIndexingOrder' in attrs:
+                self.da.ind_ord = array_index_order_codes.code[attrs['ArrayIndexingOrder']]
+            num_dim = int(attrs.get('Dimensionality', 0))
             for i in range(num_dim):
-                di = f"Dim{i}"
+                di = f'Dim{i}'
                 if di in attrs:
                     self.da.dims.append(int(attrs[di]))
             # dimensionality has to correspond to the number of DimX given
             # TODO (bcipolli): don't assert; raise parse warning, and recover.
             assert len(self.da.dims) == num_dim
-            if "Encoding" in attrs:
-                self.da.encoding = gifti_encoding_codes.code[attrs["Encoding"]]
-            if "Endian" in attrs:
-                self.da.endian = gifti_endian_codes.code[attrs["Endian"]]
-            if "ExternalFileName" in attrs:
-                self.da.ext_fname = attrs["ExternalFileName"]
-            if "ExternalFileOffset" in attrs:
-                self.da.ext_offset = _str2int(attrs["ExternalFileOffset"])
+            if 'Encoding' in attrs:
+                self.da.encoding = gifti_encoding_codes.code[attrs['Encoding']]
+            if 'Endian' in attrs:
+                self.da.endian = gifti_endian_codes.code[attrs['Endian']]
+            if 'ExternalFileName' in attrs:
+                self.da.ext_fname = attrs['ExternalFileName']
+            if 'ExternalFileOffset' in attrs:
+                self.da.ext_offset = _str2int(attrs['ExternalFileOffset'])
             self.img.darrays.append(self.da)
             self.fsm_state.append('DataArray')
 
@@ -293,9 +283,10 @@ class GiftiImageParser(XmlParser):
 
         if name == 'GIFTI':
             if hasattr(self, 'expected_numDA') and self.expected_numDA != self.img.numDA:
-                warnings.warn("Actual # of data arrays does not match "
-                              "# expected: %d != %d." % (self.expected_numDA,
-                                                         self.img.numDA))
+                warnings.warn(
+                    'Actual # of data arrays does not match # expected: '
+                    f'{self.expected_numDA} != {self.img.numDA}.'
+                )
             # remove last element of the list
             self.fsm_state.pop()
             # assert len(self.fsm_state) == 0
@@ -313,10 +304,11 @@ class GiftiImageParser(XmlParser):
 
         elif name == 'MD':
             self.fsm_state.pop()
+            key, val = self.nvpair
             if self.meta_global is not None and self.meta_da is None:
-                self.meta_global.data.append(self.nvpair)
+                self.meta_global[key] = val
             elif self.meta_da is not None and self.meta_global is None:
-                self.meta_da.data.append(self.nvpair)
+                self.meta_da[key] = val
             # remove reference
             self.nvpair = None
 
@@ -333,8 +325,7 @@ class GiftiImageParser(XmlParser):
             self.fsm_state.pop()
             self.coordsys = None
 
-        elif name in ['DataSpace', 'TransformedSpace', 'MatrixData',
-                      'Name', 'Value', 'Data']:
+        elif name in ('DataSpace', 'TransformedSpace', 'MatrixData', 'Name', 'Value', 'Data'):
             self.write_to = None
 
         elif name == 'Label':
@@ -343,7 +334,7 @@ class GiftiImageParser(XmlParser):
             self.write_to = None
 
     def CharacterDataHandler(self, data):
-        """ Collect character data chunks pending collation
+        """Collect character data chunks pending collation
 
         The parser breaks the data up into chunks of size depending on the
         buffer_size of the parser.  A large bit of character data, with
@@ -356,7 +347,7 @@ class GiftiImageParser(XmlParser):
         self._char_blocks.append(data)
 
     def flush_chardata(self):
-        """ Collate and process collected character data"""
+        """Collate and process collected character data"""
         # Nothing to do for empty elements, except for Data elements which
         # are within a DataArray with an external file
         if self.write_to != 'Data' and self._char_blocks is None:
@@ -374,11 +365,11 @@ class GiftiImageParser(XmlParser):
         # Process data
         if self.write_to == 'Name':
             data = data.strip()
-            self.nvpair.name = data
+            self.nvpair[0] = data
 
         elif self.write_to == 'Value':
             data = data.strip()
-            self.nvpair.value = data
+            self.nvpair[1] = data
 
         elif self.write_to == 'DataSpace':
             data = data.strip()
@@ -395,8 +386,7 @@ class GiftiImageParser(XmlParser):
             c.close()
 
         elif self.write_to == 'Data':
-            self.da.data = read_data_block(self.da, self.fname, data,
-                                           self.mmap)
+            self.da.data = read_data_block(self.da, self.fname, data, self.mmap)
             # update the endianness according to the
             # current machine setting
             self.endian = gifti_endian_codes.code[sys.byteorder]
@@ -408,23 +398,3 @@ class GiftiImageParser(XmlParser):
     def pending_data(self):
         """True if there is character data pending for processing"""
         return self._char_blocks is not None
-
-
-class Outputter(GiftiImageParser):
-
-    @deprecate_with_version('Outputter class deprecated. '
-                            "Use GiftiImageParser instead.",
-                            '2.1', '4.0')
-    def __init__(self):
-        super(Outputter, self).__init__()
-
-    def initialize(self):
-        """ Initialize outputter"""
-        self.__init__()
-
-
-@deprecate_with_version('parse_gifti_file deprecated. '
-                        "Use GiftiImageParser.parse() instead.",
-                        '2.1', '4.0')
-def parse_gifti_file(fname=None, fptr=None, buffer_size=None):
-    GiftiImageParser(buffer_size=buffer_size).parse(fname=fname, fptr=fptr)

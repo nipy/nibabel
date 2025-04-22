@@ -9,33 +9,35 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 # Copyright (C) 2011 Christian Haselgrove
 
-import sys
-import os
-import stat
 import errno
-import time
 import locale
 import logging
+import os
+import stat
+import sys
+import time
 
 
-class dummy_fuse(object):
+class dummy_fuse:
     """Dummy fuse "module" so that nose does not blow during doctests"""
+
     Fuse = object
 
 
 try:
-    import fuse
+    import fuse  # type: ignore[import]
+
     uid = os.getuid()
     gid = os.getgid()
 except ImportError:
     fuse = dummy_fuse
 
+from optparse import Option, OptionParser
+
 import nibabel as nib
 import nibabel.dft as dft
 
-from optparse import OptionParser, Option
-
-encoding = locale.getdefaultlocale()[1]
+encoding = locale.getlocale()[1]
 
 fuse.fuse_python_api = (0, 2)
 
@@ -43,28 +45,23 @@ logger = logging.getLogger('nibabel.dft')
 
 
 class FileHandle:
-
     def __init__(self, fno):
         self.fno = fno
         self.keep_cache = False
         self.direct_io = False
-        return
 
     def __str__(self):
-        return 'FileHandle(%d)' % self.fno
+        return f'FileHandle({self.fno})'
 
 
 class DICOMFS(fuse.Fuse):
-
     def __init__(self, *args, **kwargs):
         if fuse is dummy_fuse:
-            raise RuntimeError(
-                "fuse module is not available, install it to use DICOMFS")
+            raise RuntimeError('fuse module is not available, install it to use DICOMFS')
         self.followlinks = kwargs.pop('followlinks', False)
         self.dicom_path = kwargs.pop('dicom_path', None)
         fuse.Fuse.__init__(self, *args, **kwargs)
         self.fhs = {}
-        return
 
     def get_paths(self):
         paths = {}
@@ -88,14 +85,16 @@ class DICOMFS(fuse.Fuse):
                 series_info += f'UID: {series.uid}\n'
                 series_info += f'number: {series.number}\n'
                 series_info += f'description: {series.description}\n'
-                series_info += 'rows: %d\n' % series.rows
-                series_info += 'columns: %d\n' % series.columns
-                series_info += 'bits allocated: %d\n' % series.bits_allocated
-                series_info += 'bits stored: %d\n' % series.bits_stored
-                series_info += 'storage instances: %d\n' % len(series.storage_instances)
-                d[series.number] = {'INFO': series_info.encode('ascii', 'replace'),
-                                    f'{series.number}.nii': (series.nifti_size, series.as_nifti),
-                                    f'{series.number}.png': (series.png_size, series.as_png)}
+                series_info += f'rows: {series.rows}\n'
+                series_info += f'columns: {series.columns}\n'
+                series_info += f'bits allocated: {series.bits_allocated}\n'
+                series_info += f'bits stored: {series.bits_stored}\n'
+                series_info += f'storage instances: {len(series.storage_instances)}\n'
+                d[series.number] = {
+                    'INFO': series_info.encode('ascii', 'replace'),
+                    f'{series.number}.nii': (series.nifti_size, series.as_nifti),
+                    f'{series.number}.png': (series.png_size, series.as_png),
+                }
             pd[study_datetime] = d
         return paths
 
@@ -105,7 +104,7 @@ class DICOMFS(fuse.Fuse):
             logger.debug('return root')
             return wd
         for part in path.lstrip('/').split('/'):
-            logger.debug(f"path:{path} part:{part}")
+            logger.debug(f'path:{path} part:{part}')
             if part not in wd:
                 return None
             wd = wd[part]
@@ -119,8 +118,7 @@ class DICOMFS(fuse.Fuse):
             return -errno.ENOENT
         logger.debug(f'matched {matched_path}')
         fnames = [k.encode('ascii', 'replace') for k in matched_path.keys()]
-        fnames.append('.')
-        fnames.append('..')
+        fnames.extend(('.', '..'))
         return [fuse.Direntry(f) for f in fnames]
 
     def getattr(self, path):
@@ -183,34 +181,47 @@ class DICOMFS(fuse.Fuse):
         logger.debug(size)
         logger.debug(offset)
         logger.debug(fh)
-        return self.fhs[fh.fno][offset:offset + size]
+        return self.fhs[fh.fno][offset : offset + size]
 
     def release(self, path, flags, fh):
         logger.debug('release')
         logger.debug(path)
         logger.debug(fh)
         del self.fhs[fh.fno]
-        return
 
 
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage="{} [OPTIONS] <DIRECTORY CONTAINING DICOMSs> <mount point>".format(
-            os.path.basename(sys.argv[0])),
-        version="%prog " + nib.__version__)
+        usage=f'{os.path.basename(sys.argv[0])} [OPTIONS] <DIRECTORY CONTAINING DICOMSs> <mount point>',
+        version='%prog ' + nib.__version__,
+    )
 
-    p.add_options([
-        Option("-v", "--verbose", action="count",
-               dest="verbose", default=0,
-               help="make noise.  Could be specified multiple times"),
-    ])
+    p.add_options(
+        [
+            Option(
+                '-v',
+                '--verbose',
+                action='count',
+                dest='verbose',
+                default=0,
+                help='make noise.  Could be specified multiple times',
+            ),
+        ]
+    )
 
-    p.add_options([
-        Option("-L", "--follow-links", action="store_true",
-               dest="followlinks", default=False,
-               help="Follow symbolic links in DICOM directory"),
-    ])
+    p.add_options(
+        [
+            Option(
+                '-L',
+                '--follow-links',
+                action='store_true',
+                dest='followlinks',
+                default=False,
+                help='Follow symbolic links in DICOM directory',
+            ),
+        ]
+    )
     return p
 
 
@@ -220,16 +231,14 @@ def main(args=None):
 
     if opts.verbose:
         logger.addHandler(logging.StreamHandler(sys.stdout))
-        logger.setLevel(opts.verbose > 1 and logging.DEBUG or logging.INFO)
+        logger.setLevel(logging.DEBUG if opts.verbose > 1 else logging.INFO)
 
     if len(files) != 2:
-        sys.stderr.write(f"Please provide two arguments:\n{parser.usage}\n")
+        sys.stderr.write(f'Please provide two arguments:\n{parser.usage}\n')
         sys.exit(1)
 
     fs = DICOMFS(
-        dash_s_do='setsingle',
-        followlinks=opts.followlinks,
-        dicom_path=files[0].decode(encoding)
+        dash_s_do='setsingle', followlinks=opts.followlinks, dicom_path=files[0].decode(encoding)
     )
     fs.parse(['-f', '-s', files[1]])
     try:

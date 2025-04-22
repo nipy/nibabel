@@ -17,7 +17,6 @@ which has a similar API.
 
 """
 
-
 # TODO:
 # * properly implement ``_FillValue``.
 # * fix character variables.
@@ -35,21 +34,20 @@ which has a similar API.
 __all__ = ['netcdf_file', 'netcdf_variable']
 
 
-import sys
 import warnings
 import weakref
 from operator import mul
-from collections import OrderedDict
+from platform import python_implementation
 
 import mmap as mm
 
 import numpy as np
-from numpy.compat import asbytes, asstr
 from numpy import frombuffer, dtype, empty, array, asarray
 from numpy import little_endian as LITTLE_ENDIAN
 from functools import reduce
 
-IS_PYPY = ('__pypy__' in sys.modules)
+
+IS_PYPY = python_implementation() == 'PyPy'
 
 ABSENT = b'\x00\x00\x00\x00\x00\x00\x00\x00'
 ZERO = b'\x00\x00\x00\x00'
@@ -97,7 +95,7 @@ REVERSE = {('b', 1): NC_BYTE,
            ('S', 1): NC_CHAR}
 
 
-class netcdf_file(object):
+class netcdf_file:
     """
     A file object for NetCDF data.
 
@@ -141,7 +139,7 @@ class netcdf_file(object):
     NetCDF files are a self-describing binary data format. The file contains
     metadata that describes the dimensions and variables in the file. More
     details about NetCDF files can be found `here
-    <https://www.unidata.ucar.edu/software/netcdf/docs/user_guide.html>`__. There
+    <https://www.unidata.ucar.edu/software/netcdf/guide_toc.html>`__. There
     are three main sections to a NetCDF data structure:
 
     1. Dimensions
@@ -180,22 +178,13 @@ class netcdf_file(object):
     --------
     To create a NetCDF file:
 
-    Make a temporary file for testing:
-
-        >>> import os
-        >>> from tempfile import mkdtemp
-        >>> tmp_pth = mkdtemp()
-        >>> fname = os.path.join(tmp_pth, 'test.nc')
-
-    Then:
-
-        >>> f = netcdf_file(fname, 'w')
-        >>> f.history = 'Created for a test'
-        >>> f.createDimension('time', 10)
-        >>> time = f.createVariable('time', 'i', ('time',))
-        >>> time[:] = np.arange(10)
-        >>> time.units = 'days since 2008-01-01'
-        >>> f.close()
+    >>> f = netcdf_file('simple.nc', 'w')
+    >>> f.history = 'Created for a test'
+    >>> f.createDimension('time', 10)
+    >>> time = f.createVariable('time', 'i', ('time',))
+    >>> time[:] = np.arange(10)
+    >>> time.units = 'days since 2008-01-01'
+    >>> f.close()
 
     Note the assignment of ``arange(10)`` to ``time[:]``.  Exposing the slice
     of the time variable allows for the data to be set in the object, rather
@@ -203,44 +192,36 @@ class netcdf_file(object):
 
     To read the NetCDF file we just created:
 
-        >>> f = netcdf_file(fname, 'r')
-        >>> f.history == b'Created for a test'
-        True
-        >>> time = f.variables['time']
-        >>> time.units == b'days since 2008-01-01'
-        True
-        >>> time.shape == (10,)
-        True
-        >>> time[-1]
-        9
+    >>> f = netcdf_file('simple.nc', 'r')
+    >>> print(f.history)
+    b'Created for a test'
+    >>> time = f.variables['time']
+    >>> print(time.units)
+    b'days since 2008-01-01'
+    >>> print(time.shape)
+    (10,)
+    >>> print(time[-1])
+    9
 
     NetCDF files, when opened read-only, return arrays that refer
     directly to memory-mapped data on disk:
 
-        >>> data = time[:]
-        >>> data.base.base  # doctest: +ELLIPSIS
-        <mmap.mmap ...>
+    >>> data = time[:]
 
     If the data is to be processed after the file is closed, it needs
     to be copied to main memory:
 
-        >>> data = time[:].copy()
-        >>> del time  # References to mmap'd objects can delay full closure
-        >>> f.close()
-        >>> data.mean()
-        4.5
+    >>> data = time[:].copy()
+    >>> f.close()
+    >>> data.mean()
+    4.5
 
     A NetCDF file can also be used as context manager:
 
-        >>> with netcdf_file(fname, 'r') as f:
-        ...     print(f.variables['time'].shape == (10,))
-        True
+    >>> with netcdf_file('simple.nc', 'r') as f:
+    ...     print(f.history)
+    b'Created for a test'
 
-    Delete our temporary directory and file:
-
-        >>> del f # needed for windows unlink
-        >>> os.unlink(fname)
-        >>> os.rmdir(tmp_pth)
     """
     def __init__(self, filename, mode='r', mmap=None, version=1,
                  maskandscale=False):
@@ -274,8 +255,8 @@ class netcdf_file(object):
         self.version_byte = version
         self.maskandscale = maskandscale
 
-        self.dimensions = OrderedDict()
-        self.variables = OrderedDict()
+        self.dimensions = {}
+        self.variables = {}
 
         self._dims = []
         self._recs = 0
@@ -287,7 +268,7 @@ class netcdf_file(object):
             self._mm = mm.mmap(self.fp.fileno(), 0, access=mm.ACCESS_READ)
             self._mm_buf = np.frombuffer(self._mm, dtype=np.int8)
 
-        self._attributes = OrderedDict()
+        self._attributes = {}
 
         if mode in 'ra':
             self._read()
@@ -307,7 +288,7 @@ class netcdf_file(object):
             try:
                 self.flush()
             finally:
-                self.variables = OrderedDict()
+                self.variables = {}
                 if self._mm_buf is not None:
                     ref = weakref.ref(self._mm_buf)
                     self._mm_buf = None
@@ -339,7 +320,7 @@ class netcdf_file(object):
         Adds a dimension to the Dimension section of the NetCDF data structure.
 
         Note that this function merely adds a new dimension that the variables can
-        reference.  The values for the dimension, if desired, should be added as
+        reference. The values for the dimension, if desired, should be added as
         a variable using `createVariable`, referring to this dimension.
 
         Parameters
@@ -392,7 +373,7 @@ class netcdf_file(object):
 
         """
         shape = tuple([self.dimensions[dim] for dim in dimensions])
-        shape_ = tuple([dim or 0 for dim in shape])  # replace None with 0 for numpy
+        shape_ = tuple([dim or 0 for dim in shape])  # replace None with 0 for NumPy
 
         type = dtype(type)
         typecode, size = type.char, type.itemsize
@@ -499,7 +480,7 @@ class netcdf_file(object):
         self._write_att_array(var._attributes)
 
         nc_type = REVERSE[var.typecode(), var.itemsize()]
-        self.fp.write(asbytes(nc_type))
+        self.fp.write(nc_type)
 
         if not var.isrec:
             vsize = var.data.size * var.data.itemsize
@@ -570,12 +551,9 @@ class netcdf_file(object):
         if hasattr(values, 'dtype'):
             nc_type = REVERSE[values.dtype.char, values.dtype.itemsize]
         else:
-            types = [
-                    (int, NC_INT),
-                    (float, NC_FLOAT),
-                    (str, NC_CHAR)
-                    ]
-            # bytes index into scalars in py3k.  Check for "string" types
+            types = [(int, NC_INT), (float, NC_FLOAT), (str, NC_CHAR)]
+
+            # bytes index into scalars in py3k. Check for "string" types
             if isinstance(values, (str, bytes)):
                 sample = values
             else:
@@ -590,12 +568,12 @@ class netcdf_file(object):
 
         typecode, size = TYPEMAP[nc_type]
         dtype_ = '>%s' % typecode
-        # asarray() dies with bytes and '>c' in py3k.  Change to 'S'
+        # asarray() dies with bytes and '>c' in py3k. Change to 'S'
         dtype_ = 'S' if dtype_ == '>c' else dtype_
 
         values = asarray(values, dtype=dtype_)
 
-        self.fp.write(asbytes(nc_type))
+        self.fp.write(nc_type)
 
         if values.dtype.char == 'S':
             nelems = values.itemsize
@@ -634,7 +612,7 @@ class netcdf_file(object):
         count = self._unpack_int()
 
         for dim in range(count):
-            name = asstr(self._unpack_string())
+            name = self._unpack_string().decode('latin1')
             length = self._unpack_int() or None  # None for record dimension
             self.dimensions[name] = length
             self._dims.append(name)  # preserve order
@@ -649,9 +627,9 @@ class netcdf_file(object):
             raise ValueError("Unexpected header.")
         count = self._unpack_int()
 
-        attributes = OrderedDict()
+        attributes = {}
         for attr in range(count):
-            name = asstr(self._unpack_string())
+            name = self._unpack_string().decode('latin1')
             attributes[name] = self._read_att_values()
         return attributes
 
@@ -667,7 +645,7 @@ class netcdf_file(object):
         for var in range(count):
             (name, dimensions, shape, attributes,
              typecode, size, dtype_, begin_, vsize) = self._read_var()
-            # https://www.unidata.ucar.edu/software/netcdf/docs/user_guide.html
+            # https://www.unidata.ucar.edu/software/netcdf/guide_toc.html
             # Note that vsize is the product of the dimension lengths
             # (omitting the record dimension) and the number of bytes
             # per value (determined from the type), increased to the
@@ -742,7 +720,7 @@ class netcdf_file(object):
                 self.variables[var].__dict__['data'] = rec_array[var]
 
     def _read_var(self):
-        name = asstr(self._unpack_string())
+        name = self._unpack_string().decode('latin1')
         dimensions = []
         shape = []
         dims = self._unpack_int()
@@ -807,7 +785,7 @@ class netcdf_file(object):
     def _pack_string(self, s):
         count = len(s)
         self._pack_int(count)
-        self.fp.write(asbytes(s))
+        self.fp.write(s.encode('latin1'))
         self.fp.write(b'\x00' * (-count % 4))  # pad
 
     def _unpack_string(self):
@@ -817,7 +795,7 @@ class netcdf_file(object):
         return s
 
 
-class netcdf_variable(object):
+class netcdf_variable:
     """
     A data object for netcdf files.
 
@@ -845,13 +823,13 @@ class netcdf_variable(object):
     size : int
         Desired element size for the data array.
     shape : sequence of ints
-        The shape of the array.  This should match the lengths of the
+        The shape of the array. This should match the lengths of the
         variable's dimensions.
     dimensions : sequence of strings
-        The names of the dimensions used by the variable.  Must be in the
+        The names of the dimensions used by the variable. Must be in the
         same order of the dimension lengths given by `shape`.
     attributes : dict, optional
-        Attribute values (any type) keyed by string names.  These attributes
+        Attribute values (any type) keyed by string names. These attributes
         become attributes for the netcdf_variable object.
     maskandscale : bool, optional
         Whether to automatically scale and/or mask data based on attributes.
@@ -880,7 +858,7 @@ class netcdf_variable(object):
         self.dimensions = dimensions
         self.maskandscale = maskandscale
 
-        self._attributes = attributes or OrderedDict()
+        self._attributes = attributes or {}
         for k, v in self._attributes.items():
             self.__dict__[k] = v
 
@@ -893,6 +871,7 @@ class netcdf_variable(object):
             pass
         self.__dict__[attr] = value
 
+    @property
     def isrec(self):
         """Returns whether the variable has a record dimension or not.
 
@@ -903,8 +882,8 @@ class netcdf_variable(object):
 
         """
         return bool(self.data.shape) and not self._shape[0]
-    isrec = property(isrec)
 
+    @property
     def shape(self):
         """Returns the shape tuple of the data variable.
 
@@ -912,7 +891,6 @@ class netcdf_variable(object):
         same manner of other numpy arrays.
         """
         return self.data.shape
-    shape = property(shape)
 
     def getValue(self):
         """
@@ -949,7 +927,7 @@ class netcdf_variable(object):
             # memory-mapped array causes a seg. fault.
             # See NumPy ticket #1622, and SciPy ticket #1202.
             # This check for `writeable` can be removed when the oldest version
-            # of numpy still supported by scipy contains the fix for #1622.
+            # of NumPy still supported by scipy contains the fix for #1622.
             raise RuntimeError("variable is not writeable")
 
         self.data.itemset(value)
@@ -961,7 +939,7 @@ class netcdf_variable(object):
         Returns
         -------
         typecode : char
-            The character typecode of the variable (eg, 'i' for int).
+            The character typecode of the variable (e.g., 'i' for int).
 
         """
         return self._typecode
@@ -973,7 +951,7 @@ class netcdf_variable(object):
         Returns
         -------
         itemsize : int
-            The element size of the variable (eg, 8 for float64).
+            The element size of the variable (e.g., 8 for float64).
 
         """
         return self._size

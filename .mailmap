@@ -1,74 +1,88 @@
 # Prevent git from showing duplicate names with commands like "git shortlog"
 # See the manpage of git-shortlog for details.
 # The syntax is:
-# Name that should be used <email that should be used> Bad name <bad email>
 #
-# You can skip Bad name if it is the same as the one that should be used, and is unique.
+# Good Name <good email> [[Bad Name] <bad email>]
+#
+# If multiple names are mapped to the good email, a line without any bad
+# emails will consolidate these names.
+# Likewise, any name mapped to a bad email will be converted to the good name.
+#
+# A contributor with three emails and inconsistent names could be mapped like this:
+#
+# Good Name <email1>
+# Good Name <email1> <email2>
+# Good Name <email1> <email3>
+#
+# If a contributor uses an email that is not unique to them, you will need their
+# name.
+#
+# Good Name <good email>
+# Good Name <good email> Good Name <ambiguous email>
 #
 # This file is up-to-date if the command git log --format="%aN <%aE>" | sort -u
 # gives no duplicates.
-Alexandre Gramfort <alexandre.gramfort@inria.fr> Alexandre Gramfort <alexandre.gramfort@m4x.org>
+Alexandre Gramfort <alexandre.gramfort@inria.fr> <alexandre.gramfort@m4x.org>
 Anibal Sólon <anibalsolon@gmail.com>
-Ariel Rokem <arokem@gmail.com> arokem <arokem@gmail.com>
-B. Nolan Nichols <nolan.nichols@gmail.com> Nolan Nichols <nolan.nichols@gmail.com>
-Basile Pinsard <basile.pinsard@gmail.com> bpinsard <basile.pinsard@gmail.com>
-Basile Pinsard <basile.pinsard@gmail.com> bpinsard <bpinsard@imed.jussieu.fr>
-Ben Cipollini <ben.cipollini@gmail.com> Ben Cipollini <bcipolli@ucsd.edu>
+Ariel Rokem <arokem@gmail.com>
+B. Nolan Nichols <nolan.nichols@gmail.com>
+Basile Pinsard <basile.pinsard@gmail.com>
+Basile Pinsard <basile.pinsard@gmail.com> <bpinsard@imed.jussieu.fr>
+Ben Cipollini <ben.cipollini@gmail.com> <bcipolli@ucsd.edu>
 Benjamin C Darwin <bcdarwin@gmail.com>
-Bertrand Thirion <bertrand.thirion@inria.fr> bthirion <bertrand.thirion@inria.fr>
+Bertrand Thirion <bertrand.thirion@inria.fr>
 Cameron Riddell <cameronriddell1@gmail.com> <31414128+CRiddler@users.noreply.github.com>
-Christian Haselgrove <christian.haselgrove@umassmed.edu> Christian Haselgrove <Christian.Haselgrove@umassmed.edu>
-Christopher J. Markiewicz <markiewicz@stanford.edu> Chris Johnson <effigies@bu.edu>
-Christopher J. Markiewicz <markiewicz@stanford.edu> Chris Markiewicz <effigies@gmail.com>
-Christopher J. Markiewicz <markiewicz@stanford.edu> Chris Markiewicz <markiewicz@stanford.edu>
-Christopher J. Markiewicz <markiewicz@stanford.edu> Christopher J. Markiewicz <effigies@bu.edu>
-Christopher J. Markiewicz <markiewicz@stanford.edu> Christopher J. Markiewicz <effigies@gmail.com>
-Cindee Madison <cindee@berkeley.edu> CindeeM <cindee@berkeley.edu>
-Cindee Madison <cindee@berkeley.edu> cindeem <cindee@berkeley.edu>
-Demian Wassermann <demian@bwh.harvard.edu> Demian Wassermann <demian.wassermann@inria.fr>
-Dimitri Papadopoulos Orfanos <dimitri.papadopoulos@cea.fr> Dimitri Papadopoulos <DimitriPapadopoulos@users.noreply.github.com>
-Eric Larson <larson.eric.d@gmail.com> Eric89GXL <larson.eric.d@gmail.com>
-Eric Larson <larson.eric.d@gmail.com> larsoner <larson.eric.d@gmail.com>
-Fernando Pérez-García <fepegar@gmail.com> Fernando <fepegar@gmail.com>
-Félix C. Morency <felix.morency@gmail.com> Felix C. Morency <felix.c.morency@usherbrooke.ca>
-Félix C. Morency <felix.morency@gmail.com> Félix C. Morency <felix.c.morency@usherbrooke.ca>
-Gael Varoquaux <gael.varoquaux@normalesup.org> GaelVaroquaux <gael.varoquaux@normalesup.org>
-Gregory R. Lee <grlee77@gmail.com> Gregory R. Lee <gregory.lee@cchmc.org>
-Ian Nimmo-Smith <iannimmosmith@gmail.com> Ian Nimmo-Smith <ian.nimmo-smith@mrc-cbu.cam.ac.uk>
-Jaakko Leppäkangas <jaeilepp@student.jyu.fi> jaeilepp <jaeilepp@student.jyu.fi>
-Jakub Kaczmarzyk <jakub.kaczmarzyk@gmail.com>
+Christian Haselgrove <christian.haselgrove@umassmed.edu> <Christian.Haselgrove@umassmed.edu>
+Christopher J. Markiewicz <markiewicz@stanford.edu>
+Christopher J. Markiewicz <markiewicz@stanford.edu> <effigies@gmail.com>
+Christopher J. Markiewicz <markiewicz@stanford.edu> <effigies@bu.edu>
+Cindee Madison <cindee@berkeley.edu>
+Demian Wassermann <demian@bwh.harvard.edu> <demian.wassermann@inria.fr>
+Dimitri Papadopoulos Orfanos <dimitri.papadopoulos@cea.fr> <DimitriPapadopoulos@users.noreply.github.com>
+Dimitri Papadopoulos Orfanos <dimitri.papadopoulos@cea.fr> <3234522+DimitriPapadopoulos@users.noreply.github.com>
+Eric Larson <larson.eric.d@gmail.com>
+Fabian Perez <Factral@users.noreply.github.com>
+Fernando Pérez-García <fepegar@gmail.com>
+Félix C. Morency <felix.morency@gmail.com> <felix.c.morency@usherbrooke.ca>
+Gael Varoquaux <gael.varoquaux@normalesup.org>
+Gregory R. Lee <grlee77@gmail.com> <gregory.lee@cchmc.org>
+Ian Nimmo-Smith <iannimmosmith@gmail.com> <ian.nimmo-smith@mrc-cbu.cam.ac.uk>
+Jaakko Leppäkangas <jaeilepp@student.jyu.fi>
+Jacob Roberts <jacobdr@gmail.com> <jacob.roberts@o8t.com>
 Jakub Kaczmarzyk <jakub.kaczmarzyk@gmail.com> <jakubk@mit.edu>
-Jasper J.F. van den Bosch <japsai@gmail.com> Jasper <japsai@gmail.com>
-Jean-Baptiste Poline <jbpoline@gmail.com> jbpoline <jbpoline@gmail.com>
-Jon Haitz Legarreta <jon.haitz.legarreta@gmail.com> Jon Haitz Legarreta Gorroño <jon.haitz.legarreta@gmail.com>
-Jonathan Daniel <jonathand655@gmail.com>
+Jasper J.F. van den Bosch <japsai@gmail.com>
+Jean-Baptiste Poline <jbpoline@gmail.com>
+Jérôme Dockès <jerome@dockes.org>
+Jon Haitz Legarreta <jon.haitz.legarreta@gmail.com>
 Jonathan Daniel <jonathand655@gmail.com> <36337649+jond01@users.noreply.github.com>
-Kesshi Jordan <Kesshi.Jordan@ucsf.edu> kesshijordan <Kesshi.Jordan@ucsf.edu>
-Kevin S. Hahn <kevinshahn@gmail.com> Kevin S. Hahn <kshahn@stanford.edu>
-Konstantinos Raktivan <constracti@gmail.com> constracti <constracti@gmail.com>
-Krish Subramaniam <krish.subramaniam@gmail.com> Krish Subramaniam <krish@monster.nmr.mgh.harvard.edu>
+Kesshi Jordan <Kesshi.Jordan@ucsf.edu>
+Kevin S. Hahn <kevinshahn@gmail.com> <kshahn@stanford.edu>
+Konstantinos Raktivan <constracti@gmail.com>
+Krish Subramaniam <krish.subramaniam@gmail.com> <krish@monster.nmr.mgh.harvard.edu>
 Krzysztof J. Gorgolewski <krzysztof.gorgolewski@gmail.com>
 Krzysztof J. Gorgolewski <krzysztof.gorgolewski@gmail.com> <chrisgo@google.com>
-Marc-Alexandre Côté <marc.cote.19@gmail.com> Marc-Alexandre Cote <marc.cote.19@gmail.com>
+Marc-Alexandre Côté <marc.cote.19@gmail.com>
 Mathias Goncalves <mathiasg@mit.edu>
 Mathias Goncalves <mathiasg@mit.edu> <mathiasg@stanford.edu>
-Matthew Cieslak <mattcieslak@gmail.com> Matt Cieslak <mattcieslak@gmail.com>
+Mathieu Scheltienne <mathieu.scheltienne@fcbg.ch> <mathieu.scheltienne@gmail.com>
+Matthew Cieslak <mattcieslak@gmail.com>
 Michael Hanke <michael.hanke@gmail.com> <mhanke-guest@82381867-18eb-0310-98a2-9474e637aba2>
 Michael Hanke <michael.hanke@gmail.com> <michaelhanke@mvpa1.dartmouth.edu>
-Michiel Cottaar <MichielCottaar@protonmail.com>
 Michiel Cottaar <MichielCottaar@protonmail.com> <MichielCottaar@protonmail.ch>
 Michiel Cottaar <MichielCottaar@protonmail.com> <MichielCottaar@gmail.com>
-Ly Nguyen <nguyen60@seattleu.edu> lxn2 <lxn2@uw.edu>
-Oliver P. Hinds <ohinds@gmail.com> ohinds <ohinds@gmail.com>
+Ly Nguyen <nguyen60@seattleu.edu> <lxn2@uw.edu>
+Oliver P. Hinds <ohinds@gmail.com>
 Or Duek <orduek@gmail.com>
 Oscar Esteban <code@oscaresteban.es>
-Paul McCarthy <pauldmccarthy@gmail.com> Paul McCarthy <pauld.mccarthy@gmail.com>
+Paul McCarthy <pauldmccarthy@gmail.com> <pauld.mccarthy@gmail.com>
+Paul McCarthy <pauldmccarthy@gmail.com> <manifest-rules@git.fmrib.ox.ac.uk>
+Reinder Vos de Wael <reinder.vosdewael@gmail.com> <reinder.vosdewael@childmind.org>
 Roberto Guidotti <robbenson18@gmail.com>
 Roberto Guidotti <robbenson18@gmail.com> <guidotr1@cs-087.org.aalto.fi>
-Satrajit Ghosh <satra@mit.edu> Satrajit Ghosh <satrajit.ghosh@gmail.com>
-Serge Koudoro <skab12@gmail.com> skoudoro <skab12@gmail.com>
+Satrajit Ghosh <satra@mit.edu> <satrajit.ghosh@gmail.com>
+Serge Koudoro <skab12@gmail.com>
 Stephan Gerhard <git@unidesign.ch> Stephan Gerhard <git@github.com>
-Thomas Roos <thomasroos@live.nl> Roosted7 <thomasroos@live.nl>
-Venkateswara Reddy Reddam <R3DDY97@users.noreply.github.com> R3DDY97 <R3DDY97@users.noreply.github.com>
+Thomas Roos <thomasroos@live.nl>
+Venkateswara Reddy Reddam <R3DDY97@users.noreply.github.com>
+Yaroslav O. Halchenko <debian@onerussian.com>
 Yaroslav O. Halchenko <debian@onerussian.com> <yoh-guest@82381867-18eb-0310-98a2-9474e637aba2>
-Yaroslav O. Halchenko <debian@onerussian.com> Yaroslav Halchenko <debian@onerussian.com>

@@ -4,16 +4,22 @@
 from itertools import product
 
 import numpy as np
-
-from ..eulerangles import euler2mat
-from ..affines import (AffineError, apply_affine, append_diag, to_matvec,
-                       from_matvec, dot_reduce, voxel_sizes, obliquity, rescale_affine)
-from ..orientations import aff2axcodes
-
-
 import pytest
-from numpy.testing import assert_array_equal, assert_almost_equal, \
-    assert_array_almost_equal
+from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_array_equal
+
+from ..affines import (
+    AffineError,
+    append_diag,
+    apply_affine,
+    dot_reduce,
+    from_matvec,
+    obliquity,
+    rescale_affine,
+    to_matvec,
+    voxel_sizes,
+)
+from ..eulerangles import euler2mat
+from ..orientations import aff2axcodes
 
 
 def validated_apply_affine(T, xyz):
@@ -33,11 +39,9 @@ def test_apply_affine():
     rng = np.random.RandomState(20110903)
     aff = np.diag([2, 3, 4, 1])
     pts = rng.uniform(size=(4, 3))
-    assert_array_equal(apply_affine(aff, pts),
-                       pts * [[2, 3, 4]])
+    assert_array_equal(apply_affine(aff, pts), pts * [[2, 3, 4]])
     aff[:3, 3] = [10, 11, 12]
-    assert_array_equal(apply_affine(aff, pts),
-                       pts * [[2, 3, 4]] + [[10, 11, 12]])
+    assert_array_equal(apply_affine(aff, pts), pts * [[2, 3, 4]] + [[10, 11, 12]])
     aff[:3, :] = rng.normal(size=(3, 4))
     exp_res = np.concatenate((pts.T, np.ones((1, 4))), axis=0)
     exp_res = np.dot(aff, exp_res)[:3, :].T
@@ -55,6 +59,12 @@ def test_apply_affine():
     pts = pts.reshape((2, 2, 3))
     exp_res = exp_res.reshape((2, 2, 3))
     assert_array_equal(apply_affine(aff, pts), exp_res)
+
+    # Check inplace modification.
+    res = apply_affine(aff, pts, inplace=True)
+    assert_array_equal(res, exp_res)
+    assert np.shares_memory(res, pts)
+
     # That ND also works
     for N in range(2, 6):
         aff = np.eye(N)
@@ -97,35 +107,53 @@ def test_matrix_vector():
 
 def test_append_diag():
     # Routine for appending diagonal elements
-    assert_array_equal(append_diag(np.diag([2, 3, 1]), [1]),
-                       np.diag([2, 3, 1, 1]))
-    assert_array_equal(append_diag(np.diag([2, 3, 1]), [1, 1]),
-                       np.diag([2, 3, 1, 1, 1]))
-    aff = np.array([[2, 0, 0],
-                    [0, 3, 0],
-                    [0, 0, 1],
-                    [0, 0, 1]])
-    assert_array_equal(append_diag(aff, [5], [9]),
-                       [[2, 0, 0, 0],
-                        [0, 3, 0, 0],
-                        [0, 0, 0, 1],
-                        [0, 0, 5, 9],
-                        [0, 0, 0, 1]])
-    assert_array_equal(append_diag(aff, [5, 6], [9, 10]),
-                       [[2, 0, 0, 0, 0],
-                        [0, 3, 0, 0, 0],
-                        [0, 0, 0, 0, 1],
-                        [0, 0, 5, 0, 9],
-                        [0, 0, 0, 6, 10],
-                        [0, 0, 0, 0, 1]])
-    aff = np.array([[2, 0, 0, 0],
-                    [0, 3, 0, 0],
-                    [0, 0, 0, 1]])
-    assert_array_equal(append_diag(aff, [5], [9]),
-                       [[2, 0, 0, 0, 0],
-                        [0, 3, 0, 0, 0],
-                        [0, 0, 0, 5, 9],
-                        [0, 0, 0, 0, 1]])
+    assert_array_equal(append_diag(np.diag([2, 3, 1]), [1]), np.diag([2, 3, 1, 1]))
+    assert_array_equal(append_diag(np.diag([2, 3, 1]), [1, 1]), np.diag([2, 3, 1, 1, 1]))
+    aff = np.array(
+        [
+            [2, 0, 0],
+            [0, 3, 0],
+            [0, 0, 1],
+            [0, 0, 1],
+        ]
+    )
+    assert_array_equal(
+        append_diag(aff, [5], [9]),
+        [
+            [2, 0, 0, 0],
+            [0, 3, 0, 0],
+            [0, 0, 0, 1],
+            [0, 0, 5, 9],
+            [0, 0, 0, 1],
+        ],
+    )
+    assert_array_equal(
+        append_diag(aff, [5, 6], [9, 10]),
+        [
+            [2, 0, 0, 0, 0],
+            [0, 3, 0, 0, 0],
+            [0, 0, 0, 0, 1],
+            [0, 0, 5, 0, 9],
+            [0, 0, 0, 6, 10],
+            [0, 0, 0, 0, 1],
+        ],
+    )
+    aff = np.array(
+        [
+            [2, 0, 0, 0],
+            [0, 3, 0, 0],
+            [0, 0, 0, 1],
+        ]
+    )
+    assert_array_equal(
+        append_diag(aff, [5], [9]),
+        [
+            [2, 0, 0, 0, 0],
+            [0, 3, 0, 0, 0],
+            [0, 0, 0, 5, 9],
+            [0, 0, 0, 0, 1],
+        ],
+    )
     # Length of starts has to match length of steps
     with pytest.raises(AffineError):
         append_diag(aff, [5, 6], [9])
@@ -146,10 +174,8 @@ def test_dot_reduce():
     assert_array_equal(dot_reduce(vec, mat), np.dot(vec, mat))
     assert_array_equal(dot_reduce(mat, vec), np.dot(mat, vec))
     mat2 = np.arange(13, 22).reshape((3, 3))
-    assert_array_equal(dot_reduce(mat2, vec, mat),
-                       np.dot(mat2, np.dot(vec, mat)))
-    assert_array_equal(dot_reduce(mat, vec, mat2, ),
-                       np.dot(mat, np.dot(vec, mat2)))
+    assert_array_equal(dot_reduce(mat2, vec, mat), mat2 @ (vec @ mat))
+    assert_array_equal(dot_reduce(mat, vec, mat2), mat @ (vec @ mat2))
 
 
 def test_voxel_sizes():
@@ -171,8 +197,7 @@ def test_voxel_sizes():
         new_row = np.vstack((np.zeros(n + 1), aff))
         assert_almost_equal(voxel_sizes(new_row), vox_sizes)
         new_col = np.c_[np.zeros(n + 1), aff]
-        assert_almost_equal(voxel_sizes(new_col),
-                            [0] + list(vox_sizes))
+        assert_almost_equal(voxel_sizes(new_col), [0] + list(vox_sizes))
         if n < 3:
             continue
         # Rotations do not change the voxel size
@@ -186,13 +211,13 @@ def test_voxel_sizes():
 def test_obliquity():
     """Check the calculation of inclination of an affine axes."""
     from math import pi
+
     aligned = np.diag([2.0, 2.0, 2.3, 1.0])
     aligned[:-1, -1] = [-10, -10, -7]
     R = from_matvec(euler2mat(x=0.09, y=0.001, z=0.001), [0.0, 0.0, 0.0])
     oblique = R.dot(aligned)
     assert_almost_equal(obliquity(aligned), [0.0, 0.0, 0.0])
-    assert_almost_equal(obliquity(oblique) * 180 / pi,
-                        [0.0810285, 5.1569949, 5.1569376])
+    assert_almost_equal(obliquity(oblique) * 180 / pi, [0.0810285, 5.1569949, 5.1569376])
 
 
 def test_rescale_affine():
@@ -200,10 +225,9 @@ def test_rescale_affine():
     orig_shape = rng.randint(low=20, high=512, size=(3,))
     orig_aff = np.eye(4)
     orig_aff[:3, :] = rng.normal(size=(3, 4))
-    orig_zooms = voxel_sizes(orig_aff)
     orig_axcodes = aff2axcodes(orig_aff)
     orig_centroid = apply_affine(orig_aff, (orig_shape - 1) // 2)
-    
+
     for new_shape in (None, tuple(orig_shape), (256, 256, 256), (64, 64, 40)):
         for new_zooms in ((1, 1, 1), (2, 2, 3), (0.5, 0.5, 0.5)):
             new_aff = rescale_affine(orig_aff, orig_shape, new_zooms, new_shape)

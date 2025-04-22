@@ -6,74 +6,80 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-""" Test for volumeutils module """
+"""Test for volumeutils module"""
 
-import os
-from os.path import exists
-
-from io import BytesIO
-import tempfile
-import warnings
-import functools
-import itertools
-import gzip
 import bz2
+import functools
+import gzip
+import itertools
+import os
+import tempfile
 import threading
 import time
+import warnings
+from io import BytesIO
+from os.path import exists
 
 import numpy as np
-
-from ..tmpdirs import InTemporaryDirectory
-from ..openers import ImageOpener
-from ..volumeutils import (array_from_file,
-                           _is_compressed_fobj,
-                           array_to_file,
-                           allopen,  # for backwards compatibility
-                           fname_ext_ul_case,
-                           write_zeros,
-                           seek_tell,
-                           apply_read_scaling,
-                           working_type,
-                           best_write_scale_ftype,
-                           better_float_of,
-                           int_scinter_ftype,
-                           make_dt_codes,
-                           native_code,
-                           shape_zoom_affine,
-                           rec2dict,
-                           _dt_min_max,
-                           _write_data,
-                           _ftype4scaled_finite,
-                           )
-from ..openers import Opener, BZ2File
-from ..casting import (floor_log2, type_info, OK_FLOATS, shared_range)
-
-from ..deprecator import ExpiredDeprecationError
-from ..optpkg import optional_package
-
-from numpy.testing import (assert_array_almost_equal,
-                           assert_array_equal)
 import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
+from packaging.version import Version
 
-from nibabel.testing import nullcontext, assert_dt_equal, assert_allclose_safely, suppress_warnings
+from nibabel.testing import (
+    assert_allclose_safely,
+    assert_dt_equal,
+    error_warnings,
+    suppress_warnings,
+)
 
-pyzstd, HAVE_ZSTD, _ = optional_package("pyzstd")
+from ..casting import OK_FLOATS, floor_log2, sctypes, shared_range, type_info
+from ..openers import BZ2File, ImageOpener, Opener
+from ..optpkg import optional_package
+from ..tmpdirs import InTemporaryDirectory
+from ..volumeutils import (
+    _dt_min_max,
+    _ftype4scaled_finite,
+    _is_compressed_fobj,
+    _write_data,
+    apply_read_scaling,
+    array_from_file,
+    array_to_file,
+    best_write_scale_ftype,
+    better_float_of,
+    fname_ext_ul_case,
+    int_scinter_ftype,
+    make_dt_codes,
+    native_code,
+    rec2dict,
+    seek_tell,
+    shape_zoom_affine,
+    working_type,
+    write_zeros,
+)
 
-#: convenience variables for numpy types
-FLOAT_TYPES = np.sctypes['float']
-COMPLEX_TYPES = np.sctypes['complex']
+pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
+
+# convenience variables for numpy types
+FLOAT_TYPES = sctypes['float']
+COMPLEX_TYPES = sctypes['complex']
 CFLOAT_TYPES = FLOAT_TYPES + COMPLEX_TYPES
-INT_TYPES = np.sctypes['int']
-IUINT_TYPES = INT_TYPES + np.sctypes['uint']
+INT_TYPES = sctypes['int']
+IUINT_TYPES = INT_TYPES + sctypes['uint']
 NUMERIC_TYPES = CFLOAT_TYPES + IUINT_TYPES
+
+FP_RUNTIME_WARN = Version(np.__version__) >= Version('1.24.0.dev0+239')
+NP_2 = Version(np.__version__) >= Version('2.0.0.dev0')
+
+try:
+    from numpy.exceptions import ComplexWarning
+except ModuleNotFoundError:  # NumPy < 1.25
+    from numpy import ComplexWarning
 
 
 def test__is_compressed_fobj():
     # _is_compressed helper function
     with InTemporaryDirectory():
-        file_openers = [('', open, False),
-                        ('.gz', gzip.open, True),
-                        ('.bz2', BZ2File, True)]
+        file_openers = [('', open, False), ('.gz', gzip.open, True), ('.bz2', BZ2File, True)]
         if HAVE_ZSTD:
             file_openers += [('.zst', pyzstd.ZstdFile, True)]
         for ext, opener, compressed in file_openers:
@@ -100,9 +106,7 @@ def test_fobj_string_assumptions():
         openers = [open, gzip.open, BZ2File]
         if HAVE_ZSTD:
             openers += [pyzstd.ZstdFile]
-        for n, opener in itertools.product(
-                (256, 1024, 2560, 25600),
-                openers):
+        for n, opener in itertools.product((256, 1024, 2560, 25600), openers):
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
             fobj_w = opener(fname, 'wb')
@@ -161,16 +165,14 @@ def test_array_from_file():
     arr = array_from_file((0,), np.dtype('f8'), BytesIO())
     assert len(arr) == 0
     # Check error from small file
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         array_from_file(shape, dtype, BytesIO())
     # check on real file
     fd, fname = tempfile.mkstemp()
     with InTemporaryDirectory():
         open(fname, 'wb').write(b'1')
         in_buf = open(fname, 'rb')
-        # For windows this will raise a WindowsError from mmap, Unices
-        # appear to raise an IOError
-        with pytest.raises(Exception):
+        with pytest.raises(OSError):
             array_from_file(shape, dtype, in_buf)
         del in_buf
 
@@ -218,18 +220,14 @@ def test_array_from_file_mmap():
 
 
 def buf_chk(in_arr, out_buf, in_buf, offset):
-    """ Write contents of in_arr into fileobj, read back, check same """
+    """Write contents of in_arr into fileobj, read back, check same"""
     instr = b' ' * offset + in_arr.tobytes(order='F')
     out_buf.write(instr)
     out_buf.flush()
     if in_buf is None:  # we're using in_buf from out_buf
         out_buf.seek(0)
         in_buf = out_buf
-    arr = array_from_file(
-        in_arr.shape,
-        in_arr.dtype,
-        in_buf,
-        offset)
+    arr = array_from_file(in_arr.shape, in_arr.dtype, in_buf, offset)
     return np.allclose(in_arr, arr)
 
 
@@ -242,8 +240,7 @@ def test_array_from_file_openers():
         extensions = ['', '.gz', '.bz2']
         if HAVE_ZSTD:
             extensions += ['.zst']
-        for ext, offset in itertools.product(extensions,
-                                             (0, 5, 10)):
+        for ext, offset in itertools.product(extensions, (0, 5, 10)):
             fname = 'test.bin' + ext
             with Opener(fname, 'wb') as out_buf:
                 if offset != 0:  # avoid https://bugs.python.org/issue16828
@@ -267,10 +264,8 @@ def test_array_from_file_reread():
         if HAVE_ZSTD:
             openers += [pyzstd.ZstdFile]
         for shape, opener, dtt, order in itertools.product(
-                ((64,), (64, 65), (64, 65, 66)),
-                openers,
-                (np.int16, np.float32),
-                ('F', 'C')):
+            ((64,), (64, 65), (64, 65, 66)), openers, (np.int16, np.float32), ('F', 'C')
+        ):
             n_els = np.prod(shape)
             in_arr = np.arange(n_els, dtype=dtt).reshape(shape)
             is_bio = hasattr(opener, 'getvalue')
@@ -308,8 +303,7 @@ def test_array_to_file():
             ndt = dt.newbyteorder(code)
             for allow_intercept in (True, False):
                 scale, intercept, mn, mx = _calculate_scale(arr, ndt, allow_intercept)
-                data_back = write_return(arr, str_io, ndt,
-                                         0, intercept, scale)
+                data_back = write_return(arr, str_io, ndt, 0, intercept, scale)
                 assert_array_almost_equal(arr, data_back)
     # Test array-like
     str_io = BytesIO()
@@ -340,8 +334,9 @@ def test_a2f_upscale():
     inter = info['min']
     str_io = BytesIO()
     # We need to provide mn, mx for function to be able to calculate upcasting
-    array_to_file(arr, str_io, np.uint8, intercept=inter, divslope=slope,
-                  mn=info['min'], mx=info['max'])
+    array_to_file(
+        arr, str_io, np.uint8, intercept=inter, divslope=slope, mn=info['min'], mx=info['max']
+    )
     raw = array_from_file(arr.shape, np.uint8, str_io)
     back = apply_read_scaling(raw, slope, inter)
     top = back - arr
@@ -412,7 +407,7 @@ def test_a2f_nan2zero():
     # How weird?  Look at arr.astype(np.int64)
     with np.errstate(invalid='ignore'):
         data_back = write_return(arr, str_io, np.int64, nan2zero=False)
-    assert_array_equal(data_back, arr.astype(np.int64))
+        assert_array_equal(data_back, arr.astype(np.int64))
 
 
 def test_a2f_nan2zero_scaling():
@@ -429,13 +424,11 @@ def test_a2f_nan2zero_scaling():
     # Array values including zero before scaling but not after
     bio = BytesIO()
     for in_dt, out_dt, zero_in, inter in itertools.product(
-            FLOAT_TYPES,
-            IUINT_TYPES,
-            (True, False),
-            (0, -100)):
+        FLOAT_TYPES, IUINT_TYPES, (True, False), (0, -100)
+    ):
         in_info = np.finfo(in_dt)
         out_info = np.iinfo(out_dt)
-        mx = min(in_info.max, out_info.max * 2., 2**32) + inter
+        mx = min(in_info.max, out_info.max * 2.0, 2**32) + inter
         mn = 0 if zero_in or inter else 100
         vals = [np.nan] + [mn, mx]
         nan_arr = np.array(vals, dtype=in_dt)
@@ -499,15 +492,21 @@ def test_a2f_big_scalers():
     # We need nan2zero=False because we can't represent 0 in the input, given
     # the scaling and the output range.
     with suppress_warnings():  # overflow
-        array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120),
-                      nan2zero=False)
+        array_to_file(arr, str_io, np.int8, intercept=np.float32(2**120), nan2zero=False)
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, -128, 127])
     # Scales also if mx, mn specified? Same notes and complaints as for the test
     # above.
     str_io.seek(0)
-    array_to_file(arr, str_io, np.int8, mn=info['min'], mx=info['max'],
-                  intercept=np.float32(2**120), nan2zero=False)
+    array_to_file(
+        arr,
+        str_io,
+        np.int8,
+        mn=info['min'],
+        mx=info['max'],
+        intercept=np.float32(2**120),
+        nan2zero=False,
+    )
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, -128, 127])
     # And if slope causes overflow?
@@ -518,8 +517,7 @@ def test_a2f_big_scalers():
     assert_array_equal(data_back, [-128, 0, 127])
     # with mn, mx specified?
     str_io.seek(0)
-    array_to_file(arr, str_io, np.int8, mn=info['min'], mx=info['max'],
-                  divslope=np.float32(0.5))
+    array_to_file(arr, str_io, np.int8, mn=info['min'], mx=info['max'], divslope=np.float32(0.5))
     data_back = array_from_file(arr.shape, np.int8, str_io)
     assert_array_equal(data_back, [-128, 0, 127])
 
@@ -529,13 +527,13 @@ def test_a2f_int_scaling():
     arr = np.array([0, 1, 128, 255], dtype=np.uint8)
     fobj = BytesIO()
     back_arr = write_return(arr, fobj, np.uint8, intercept=1)
-    assert_array_equal(back_arr, np.clip(arr - 1., 0, 255))
+    assert_array_equal(back_arr, np.clip(arr - 1.0, 0, 255))
     back_arr = write_return(arr, fobj, np.uint8, divslope=2)
-    assert_array_equal(back_arr, np.round(np.clip(arr / 2., 0, 255)))
+    assert_array_equal(back_arr, np.round(np.clip(arr / 2.0, 0, 255)))
     back_arr = write_return(arr, fobj, np.uint8, intercept=1, divslope=2)
-    assert_array_equal(back_arr, np.round(np.clip((arr - 1.) / 2., 0, 255)))
+    assert_array_equal(back_arr, np.round(np.clip((arr - 1.0) / 2.0, 0, 255)))
     back_arr = write_return(arr, fobj, np.int16, intercept=1, divslope=2)
-    assert_array_equal(back_arr, np.round((arr - 1.) / 2.))
+    assert_array_equal(back_arr, np.round((arr - 1.0) / 2.0))
 
 
 def test_a2f_scaled_unscaled():
@@ -543,44 +541,43 @@ def test_a2f_scaled_unscaled():
     # without scaling
     fobj = BytesIO()
     for in_dtype, out_dtype, intercept, divslope in itertools.product(
-            NUMERIC_TYPES,
-            NUMERIC_TYPES,
-            (0, 0.5, -1, 1),
-            (1, 0.5, 2)):
+        NUMERIC_TYPES, NUMERIC_TYPES, (0, 0.5, -1, 1), (1, 0.5, 2)
+    ):
         mn_in, mx_in = _dt_min_max(in_dtype)
-        nan_val = np.nan if in_dtype in CFLOAT_TYPES else 10
-        arr = np.array([mn_in, -1, 0, 1, mx_in, nan_val], dtype=in_dtype)
+        vals = [mn_in, 0, 1, mx_in]
+        if np.dtype(in_dtype).kind != 'u':
+            vals.append(-1)
+        if in_dtype in CFLOAT_TYPES:
+            vals.append(np.nan)
+        arr = np.array(vals, dtype=in_dtype)
         mn_out, mx_out = _dt_min_max(out_dtype)
         # 0 when scaled to output will also be the output value for NaN
         nan_fill = -intercept / divslope
         if out_dtype in IUINT_TYPES:
             nan_fill = np.round(nan_fill)
         # nan2zero will check whether 0 in scaled to a valid value in output
-        if (in_dtype in CFLOAT_TYPES and not mn_out <= nan_fill <= mx_out):
+        if in_dtype in CFLOAT_TYPES and not mn_out <= nan_fill <= mx_out:
             with pytest.raises(ValueError):
-                array_to_file(arr,
-                              fobj,
-                              out_dtype=out_dtype,
-                              divslope=divslope,
-                              intercept=intercept)
+                array_to_file(
+                    arr, fobj, out_dtype=out_dtype, divslope=divslope, intercept=intercept
+                )
             continue
         with suppress_warnings():
-            back_arr = write_return(arr, fobj,
-                                    out_dtype=out_dtype,
-                                    divslope=divslope,
-                                    intercept=intercept)
+            back_arr = write_return(
+                arr, fobj, out_dtype=out_dtype, divslope=divslope, intercept=intercept
+            )
             exp_back = arr.copy()
-            if (in_dtype in IUINT_TYPES and
-                    out_dtype in IUINT_TYPES and
-                    (intercept, divslope) == (0, 1)):
+            if (
+                in_dtype in IUINT_TYPES
+                and out_dtype in IUINT_TYPES
+                and (intercept, divslope) == (0, 1)
+            ):
                 # Direct iu to iu casting.
                 # Need to clip if ranges not the same.
                 # Use smaller of input, output range to avoid np.clip upcasting
                 # the array because of large clip limits.
                 if (mn_in, mx_in) != (mn_out, mx_out):
-                    exp_back = np.clip(exp_back,
-                                       max(mn_in, mn_out),
-                                       min(mx_in, mx_out))
+                    exp_back = np.clip(exp_back, max(mn_in, mn_out), min(mx_in, mx_out))
             else:  # Need to deal with nans, casting to float, clipping
                 if in_dtype in CFLOAT_TYPES and out_dtype in IUINT_TYPES:
                     exp_back[np.isnan(exp_back)] = 0
@@ -590,8 +587,7 @@ def test_a2f_scaled_unscaled():
                     exp_back -= intercept
                 if divslope != 1:
                     exp_back /= divslope
-                if (exp_back.dtype.type in CFLOAT_TYPES and
-                        out_dtype in IUINT_TYPES):
+                if exp_back.dtype.type in CFLOAT_TYPES and out_dtype in IUINT_TYPES:
                     exp_back = np.round(exp_back).astype(float)
                     exp_back = np.clip(exp_back, *shared_range(float, out_dtype))
             exp_back = exp_back.astype(out_dtype)
@@ -611,40 +607,32 @@ def test_a2f_nanpos():
 
 def test_a2f_bad_scaling():
     # Test that pathological scalers raise an error
-    NUMERICAL_TYPES = sum([np.sctypes[key] for key in ['int',
-                                                       'uint',
-                                                       'float',
-                                                       'complex']],
-                          [])
+    NUMERICAL_TYPES = sum((sctypes[key] for key in ['int', 'uint', 'float', 'complex']), [])
     for in_type, out_type, slope, inter in itertools.product(
-            NUMERICAL_TYPES,
-            NUMERICAL_TYPES,
-            (None, 1, 0, np.nan, -np.inf, np.inf),
-            (0, np.nan, -np.inf, np.inf)):
+        NUMERICAL_TYPES,
+        NUMERICAL_TYPES,
+        (None, 1, 0, np.nan, -np.inf, np.inf),
+        (0, np.nan, -np.inf, np.inf),
+    ):
         arr = np.ones((2,), dtype=in_type)
         fobj = BytesIO()
-        cm = nullcontext()
-        if (np.issubdtype(in_type, np.complexfloating) and
-                not np.issubdtype(out_type, np.complexfloating)):
-            cm = pytest.warns(np.ComplexWarning)
+        cm = error_warnings()
+        if np.issubdtype(in_type, np.complexfloating) and not np.issubdtype(
+            out_type, np.complexfloating
+        ):
+            cm = pytest.warns(ComplexWarning)
         if (slope, inter) == (1, 0):
             with cm:
-                assert_array_equal(arr,
-                                   write_return(arr, fobj, out_type,
-                                                intercept=inter,
-                                                divslope=slope))
+                assert_array_equal(
+                    arr, write_return(arr, fobj, out_type, intercept=inter, divslope=slope)
+                )
         elif (slope, inter) == (None, 0):
-            assert_array_equal(0,
-                               write_return(arr, fobj, out_type,
-                                            intercept=inter,
-                                            divslope=slope))
+            assert_array_equal(
+                0, write_return(arr, fobj, out_type, intercept=inter, divslope=slope)
+            )
         else:
             with pytest.raises(ValueError):
-                array_to_file(arr,
-                              fobj,
-                              np.int8,
-                              intercept=inter,
-                              divslope=slope)
+                array_to_file(arr, fobj, np.int8, intercept=inter, divslope=slope)
 
 
 def test_a2f_nan2zero_range():
@@ -664,25 +652,27 @@ def test_a2f_nan2zero_range():
         # Pushing zero outside the output data range does not generate error
         back_arr = write_return(arr_no_nan, fobj, np.int8, intercept=129, nan2zero=True)
         assert_array_equal([-128, -128, -128, -127], back_arr)
-        back_arr = write_return(arr_no_nan, fobj, np.int8,
-                                intercept=257.1, divslope=2, nan2zero=True)
+        back_arr = write_return(
+            arr_no_nan, fobj, np.int8, intercept=257.1, divslope=2, nan2zero=True
+        )
         assert_array_equal([-128, -128, -128, -128], back_arr)
     for dt in CFLOAT_TYPES:
         arr = np.array([-1, 0, 1, np.nan], dtype=dt)
         # Error occurs for arrays without nans too
         arr_no_nan = np.array([-1, 0, 1, 2], dtype=dt)
-        warn_type = np.ComplexWarning if np.issubdtype(dt, np.complexfloating) else None
+        complex_warn = (ComplexWarning,) if np.issubdtype(dt, np.complexfloating) else ()
+        # Casting nan to int will produce a RuntimeWarning in numpy 1.24
+        nan_warn = (RuntimeWarning,) if FP_RUNTIME_WARN else ()
+        c_and_n_warn = complex_warn + nan_warn
         # No errors from explicit thresholding
         # mn thresholding excluding zero
-        with pytest.warns(warn_type):
-            assert_array_equal([1, 1, 1, 0],
-                               write_return(arr, fobj, np.int8, mn=1))
+        with pytest.warns(complex_warn) if complex_warn else error_warnings():
+            assert_array_equal([1, 1, 1, 0], write_return(arr, fobj, np.int8, mn=1))
         # mx thresholding excluding zero
-        with pytest.warns(warn_type):
-            assert_array_equal([-1, -1, -1, 0],
-                               write_return(arr, fobj, np.int8, mx=-1))
+        with pytest.warns(complex_warn) if complex_warn else error_warnings():
+            assert_array_equal([-1, -1, -1, 0], write_return(arr, fobj, np.int8, mx=-1))
         # Errors from datatype threshold after scaling
-        with pytest.warns(warn_type):
+        with pytest.warns(complex_warn) if complex_warn else error_warnings():
             back_arr = write_return(arr, fobj, np.int8, intercept=128)
         assert_array_equal([-128, -128, -127, -128], back_arr)
         with pytest.raises(ValueError):
@@ -690,13 +680,13 @@ def test_a2f_nan2zero_range():
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=129)
         # OK with nan2zero false, but we get whatever nan casts to
-        with pytest.warns(warn_type):
+        with pytest.warns(c_and_n_warn) if c_and_n_warn else error_warnings():
             nan_cast = np.array(np.nan, dtype=dt).astype(np.int8)
-        with pytest.warns(warn_type):
+        with pytest.warns(c_and_n_warn) if c_and_n_warn else error_warnings():
             back_arr = write_return(arr, fobj, np.int8, intercept=129, nan2zero=False)
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
         # divslope
-        with pytest.warns(warn_type):
+        with pytest.warns(complex_warn) if complex_warn else error_warnings():
             back_arr = write_return(arr, fobj, np.int8, intercept=256, divslope=2)
         assert_array_equal([-128, -128, -128, -128], back_arr)
         with pytest.raises(ValueError):
@@ -704,9 +694,10 @@ def test_a2f_nan2zero_range():
         with pytest.raises(ValueError):
             write_return(arr_no_nan, fobj, np.int8, intercept=257.1, divslope=2)
         # OK with nan2zero false
-        with pytest.warns(warn_type):
-            back_arr = write_return(arr, fobj, np.int8,
-                                    intercept=257.1, divslope=2, nan2zero=False)
+        with pytest.warns(c_and_n_warn) if c_and_n_warn else error_warnings():
+            back_arr = write_return(
+                arr, fobj, np.int8, intercept=257.1, divslope=2, nan2zero=False
+            )
         assert_array_equal([-128, -128, -128, nan_cast], back_arr)
 
 
@@ -752,9 +743,14 @@ def test_apply_scaling():
     f32_arr = np.zeros((1,), dtype=f32)
     i16_arr = np.zeros((1,), dtype=np.int16)
     # Check float upcast (not the normal numpy scalar rule)
+    # This is the normal rule - no upcast from Python scalar
+    assert (f32_arr * 1.0).dtype == np.float32
+    assert (f32_arr + 1.0).dtype == np.float32
     # This is the normal rule - no upcast from scalar
-    assert (f32_arr * f64(1)).dtype == np.float32
-    assert (f32_arr + f64(1)).dtype == np.float32
+    # before NumPy 2.0, after 2.0, it upcasts
+    want_dtype = np.float64 if NP_2 else np.float32
+    assert (f32_arr * f64(1)).dtype == want_dtype
+    assert (f32_arr + f64(1)).dtype == want_dtype
     # The function does upcast though
     ret = apply_read_scaling(np.float32(0), np.float64(2))
     assert ret.dtype == np.float64
@@ -766,7 +762,7 @@ def test_apply_scaling():
     assert (i16_arr * big).dtype == np.float32
     # An equivalent case is a little hard to find for the intercept
     nmant_32 = type_info(np.float32)['nmant']
-    big_delta = np.float32(2**(floor_log2(big) - nmant_32))
+    big_delta = np.float32(2 ** (floor_log2(big) - nmant_32))
     assert (i16_arr * big_delta + big).dtype == np.float32
     # Upcasting does occur with this routine
     assert apply_read_scaling(i16_arr, big).dtype == np.float64
@@ -780,10 +776,8 @@ def test_apply_scaling():
     assert apply_read_scaling(np.int8(0), f32(-1e38), f32(0.0)).dtype == np.float64
     # Non-zero intercept still generates floats
     assert_dt_equal(apply_read_scaling(i16_arr, 1.0, 1.0).dtype, float)
-    assert_dt_equal(apply_read_scaling(
-        np.zeros((1,), dtype=np.int32), 1.0, 1.0).dtype, float)
-    assert_dt_equal(apply_read_scaling(
-        np.zeros((1,), dtype=np.int64), 1.0, 1.0).dtype, float)
+    assert_dt_equal(apply_read_scaling(np.zeros((1,), dtype=np.int32), 1.0, 1.0).dtype, float)
+    assert_dt_equal(apply_read_scaling(np.zeros((1,), dtype=np.int64), 1.0, 1.0).dtype, float)
 
 
 def test_apply_read_scaling_ints():
@@ -796,7 +790,7 @@ def test_apply_read_scaling_ints():
 
 def test_apply_read_scaling_nones():
     # Check that we can pass None as slope and inter to apply read scaling
-    arr=np.arange(10, dtype=np.int16)
+    arr = np.arange(10, dtype=np.int16)
     assert_array_equal(apply_read_scaling(arr, None, None), arr)
     assert_array_equal(apply_read_scaling(arr, 2, None), arr * 2)
     assert_array_equal(apply_read_scaling(arr, None, 1), arr + 1)
@@ -816,6 +810,7 @@ def test_working_type():
     # need this because of the very confusing np.int32 != np.intp (on 32 bit).
     def wt(*args, **kwargs):
         return np.dtype(working_type(*args, **kwargs)).str
+
     d1 = np.atleast_1d
     for in_type in NUMERIC_TYPES:
         in_ts = np.dtype(in_type).str
@@ -848,11 +843,12 @@ def test_better_float():
     # Better float function
     def check_against(f1, f2):
         return f1 if FLOAT_TYPES.index(f1) >= FLOAT_TYPES.index(f2) else f2
+
     for first in FLOAT_TYPES:
-        for other in IUINT_TYPES + np.sctypes['complex']:
+        for other in IUINT_TYPES + sctypes['complex']:
             assert better_float_of(first, other) == first
             assert better_float_of(other, first) == first
-            for other2 in IUINT_TYPES + np.sctypes['complex']:
+            for other2 in IUINT_TYPES + sctypes['complex']:
                 assert better_float_of(other, other2) == np.float32
                 assert better_float_of(other, other2, np.float64) == np.float64
         for second in FLOAT_TYPES:
@@ -881,7 +877,7 @@ def test_best_write_scale_ftype():
         L_info = type_info(lower_t)
         t_max = L_info['max']
         nmant = L_info['nmant']  # number of significand digits
-        big_delta = lower_t(2**(floor_log2(t_max) - nmant))  # delta below max
+        big_delta = lower_t(2 ** (floor_log2(t_max) - nmant))  # delta below max
         # Even large values that don't overflow don't change output
         arr = np.array([0, t_max], dtype=lower_t)
         assert best_write_scale_ftype(arr, 1, 0) == lower_t
@@ -940,9 +936,7 @@ def test_seek_tell():
                 # zeros in their wake.  BZ2Files can't seek when writing,
                 # unless we enable the write0 flag to seek_tell
                 # ZstdFiles also does not support seek forward on write
-                if (not write0 and
-                    (in_file == 'test.bz2' or
-                     in_file == 'test.zst')):  # Can't seek write in bz2, zst
+                if not write0 and in_file in ('test.bz2', 'test.zst'):
                     # write the zeros by hand for the read test below
                     fobj.write(b'\x00' * diff)
                 else:
@@ -976,7 +970,7 @@ def test_seek_tell():
                 assert fobj.tell() == 10
                 seek_tell(fobj, 10)
                 assert fobj.tell() == 10
-                with pytest.raises(IOError):
+                with pytest.raises(OSError):
                     seek_tell(fobj, 5)
             # Make sure read seeks don't affect file
             with ImageOpener(in_file, 'rb') as fobj:
@@ -994,12 +988,12 @@ def test_seek_tell_logic():
     assert bio.tell() == 10
 
     class BabyBio(BytesIO):
-
         def seek(self, *args):
-            raise IOError()
+            raise OSError
+
     bio = BabyBio()
     # Fresh fileobj, position 0, can't seek - error
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         bio.seek(10)
     # Put fileobj in correct position by writing
     ZEROB = b'\x00'
@@ -1008,7 +1002,7 @@ def test_seek_tell_logic():
     assert bio.tell() == 10
     assert bio.getvalue() == ZEROB * 10
     # Try write zeros to get to new position
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         bio.seek(20)
     seek_tell(bio, 20, write0=True)
     assert bio.getvalue() == ZEROB * 20
@@ -1017,11 +1011,11 @@ def test_seek_tell_logic():
 def test_fname_ext_ul_case():
     # Get filename ignoring the case of the filename extension
     with InTemporaryDirectory():
-        with open('afile.TXT', 'wt') as fobj:
+        with open('afile.TXT', 'w') as fobj:
             fobj.write('Interesting information')
         # OSX usually has case-insensitive file systems; Windows also
         os_cares_case = not exists('afile.txt')
-        with open('bfile.txt', 'wt') as fobj:
+        with open('bfile.txt', 'w') as fobj:
             fobj.write('More interesting information')
         # If there is no file, the case doesn't change
         assert fname_ext_ul_case('nofile.txt') == 'nofile.txt'
@@ -1039,80 +1033,38 @@ def test_fname_ext_ul_case():
         assert fname_ext_ul_case('afile.TxT') == 'afile.TxT'
 
 
-def test_allopen():
-    # This import into volumeutils is for compatibility.  The code is the
-    # ``openers`` module.
-    with pytest.deprecated_call() as w:
-        # Test default mode is 'rb'
-        fobj = allopen(__file__)
-        # Check we got the deprecation warning
-        assert len(w) == 1
-        assert fobj.mode == 'rb'
-        # That we can set it
-        fobj = allopen(__file__, 'r')
-        assert fobj.mode == 'r'
-        # with keyword arguments
-        fobj = allopen(__file__, mode='r')
-        assert fobj.mode == 'r'
-        # fileobj returns fileobj
-        msg = b'tiddle pom'
-        sobj = BytesIO(msg)
-        fobj = allopen(sobj)
-        assert fobj.read() == msg
-        # mode is gently ignored
-        fobj = allopen(sobj, mode='r')
-
-
-def test_allopen_compresslevel():
-    # We can set the default compression level with the module global
-    # Get some data to compress
-    with open(__file__, 'rb') as fobj:
-        my_self = fobj.read()
-    # Prepare loop
-    fname = 'test.gz'
-    sizes = {}
-    # Stash module global
-    from .. import volumeutils as vu
-    original_compress_level = vu.default_compresslevel
-    assert original_compress_level == 1
-    try:
-        with InTemporaryDirectory():
-            for compresslevel in ('default', 1, 9):
-                if compresslevel != 'default':
-                    vu.default_compresslevel = compresslevel
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    with allopen(fname, 'wb') as fobj:
-                        fobj.write(my_self)
-                with open(fname, 'rb') as fobj:
-                    my_selves_smaller = fobj.read()
-                sizes[compresslevel] = len(my_selves_smaller)
-            assert sizes['default'] == sizes[1]
-            assert sizes[1] > sizes[9]
-    finally:
-        vu.default_compresslevel = original_compress_level
-
-
 def test_shape_zoom_affine():
     shape = (3, 5, 7)
     zooms = (3, 2, 1)
     res = shape_zoom_affine(shape, zooms)
-    exp = np.array([[-3., 0., 0., 3.],
-                    [0., 2., 0., -4.],
-                    [0., 0., 1., -3.],
-                    [0., 0., 0., 1.]])
+    exp = np.array(
+        [
+            [-3.0, 0.0, 0.0, 3.0],
+            [0.0, 2.0, 0.0, -4.0],
+            [0.0, 0.0, 1.0, -3.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
+    )
     assert_array_almost_equal(res, exp)
     res = shape_zoom_affine((3, 5), (3, 2))
-    exp = np.array([[-3., 0., 0., 3.],
-                    [0., 2., 0., -4.],
-                    [0., 0., 1., -0.],
-                    [0., 0., 0., 1.]])
+    exp = np.array(
+        [
+            [-3.0, 0.0, 0.0, 3.0],
+            [0.0, 2.0, 0.0, -4.0],
+            [0.0, 0.0, 1.0, -0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
+    )
     assert_array_almost_equal(res, exp)
     res = shape_zoom_affine(shape, zooms, False)
-    exp = np.array([[3., 0., 0., -3.],
-                    [0., 2., 0., -4.],
-                    [0., 0., 1., -3.],
-                    [0., 0., 0., 1.]])
+    exp = np.array(
+        [
+            [3.0, 0.0, 0.0, -3.0],
+            [0.0, 2.0, 0.0, -4.0],
+            [0.0, 0.0, 1.0, -3.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]
+    )
     assert_array_almost_equal(res, exp)
 
 
@@ -1133,7 +1085,7 @@ def test_dtypes():
     dt_defs = ((16, 'float32', np.float32),)
     dtr = make_dt_codes(dt_defs)
     # check we have the fields we were expecting
-    assert dtr.value_set() == set((16,))
+    assert dtr.value_set() == {16}
     assert dtr.fields == ('code', 'label', 'type', 'dtype', 'sw_dtype')
     # These of course should pass regardless of dtype
     assert dtr[np.float32] == 16
@@ -1148,13 +1100,11 @@ def test_dtypes():
     dt_defs = ((16, 'float32', np.float32, 'ASTRING'),)
     dtr = make_dt_codes(dt_defs)
     assert dtr[np.dtype('f4').newbyteorder('S')] == 16
-    assert dtr.value_set() == set((16,))
-    assert dtr.fields == ('code', 'label', 'type', 'niistring', 'dtype',
-                          'sw_dtype')
+    assert dtr.value_set() == {16}
+    assert dtr.fields == ('code', 'label', 'type', 'niistring', 'dtype', 'sw_dtype')
     assert dtr.niistring[16] == 'ASTRING'
     # And that unequal elements raises error
-    dt_defs = ((16, 'float32', np.float32, 'ASTRING'),
-               (16, 'float32', np.float32))
+    dt_defs = ((16, 'float32', np.float32, 'ASTRING'), (16, 'float32', np.float32))
     with pytest.raises(ValueError):
         make_dt_codes(dt_defs)
     # And that 2 or 5 elements raises error
@@ -1170,16 +1120,18 @@ def test__write_data():
     # Test private utility function for writing data
     itp = itertools.product
 
-    def assert_rt(data,
-                  shape,
-                  out_dtype,
-                  order='F',
-                  in_cast=None,
-                  pre_clips=None,
-                  inter=0.,
-                  slope=1.,
-                  post_clips=None,
-                  nan_fill=None):
+    def assert_rt(
+        data,
+        shape,
+        out_dtype,
+        order='F',
+        in_cast=None,
+        pre_clips=None,
+        inter=0.0,
+        slope=1.0,
+        post_clips=None,
+        nan_fill=None,
+    ):
         sio = BytesIO()
         to_write = data.reshape(shape)
         # to check that we didn't modify in-place
@@ -1187,11 +1139,11 @@ def test__write_data():
         nan_positions = np.isnan(to_write)
         have_nans = np.any(nan_positions)
         if have_nans and nan_fill is None and not out_dtype.type == 'f':
-            raise ValueError("Cannot handle this case")
-        _write_data(to_write, sio, out_dtype, order, in_cast, pre_clips, inter,
-                    slope, post_clips, nan_fill)
-        arr = np.ndarray(shape, out_dtype, buffer=sio.getvalue(),
-                         order=order)
+            raise ValueError('Cannot handle this case')
+        _write_data(
+            to_write, sio, out_dtype, order, in_cast, pre_clips, inter, slope, post_clips, nan_fill
+        )
+        arr = np.ndarray(shape, out_dtype, buffer=sio.getvalue(), order=order)
         expected = to_write.copy()
         if have_nans and not nan_fill is None:
             expected[nan_positions] = nan_fill * slope + inter
@@ -1200,37 +1152,56 @@ def test__write_data():
 
     # check shape writing
     for shape, order in itp(
-            ((24,), (24, 1), (24, 1, 1), (1, 24), (1, 1, 24), (2, 3, 4),
-             (6, 1, 4), (1, 6, 4), (6, 4, 1)),
-            'FC'):
+        (
+            (24,),
+            (24, 1),
+            (24, 1, 1),
+            (1, 24),
+            (1, 1, 24),
+            (2, 3, 4),
+            (6, 1, 4),
+            (1, 6, 4),
+            (6, 4, 1),
+        ),
+        'FC',
+    ):
         assert_rt(np.arange(24), shape, np.int16, order=order)
 
     # check defense against modifying data in-place
     for in_cast, pre_clips, inter, slope, post_clips, nan_fill in itp(
-            (None, np.float32),
-            (None, (-1, 25)),
-            (0., 1.),
-            (1., 0.5),
-            (None, (-2, 49)),
-            (None, 1)):
-        data = np.arange(24).astype(np.float32)
-        assert_rt(data, shape, np.int16,
-                  in_cast=in_cast,
-                  pre_clips=pre_clips,
-                  inter=inter,
-                  slope=slope,
-                  post_clips=post_clips,
-                  nan_fill=nan_fill)
+        (None, np.float32),
+        (None, (-1, 25)),
+        (0.0, 1.0),
+        (1.0, 0.5),
+        (None, (-2, 49)),
+        (None, 1),
+    ):
+        data = np.arange(24, dtype=np.float32)
+        assert_rt(
+            data,
+            shape,
+            np.int16,
+            in_cast=in_cast,
+            pre_clips=pre_clips,
+            inter=inter,
+            slope=slope,
+            post_clips=post_clips,
+            nan_fill=nan_fill,
+        )
         # Check defense against in-place modification with nans present
         if not nan_fill is None:
             data[1] = np.nan
-            assert_rt(data, shape, np.int16,
-                      in_cast=in_cast,
-                      pre_clips=pre_clips,
-                      inter=inter,
-                      slope=slope,
-                      post_clips=post_clips,
-                      nan_fill=nan_fill)
+            assert_rt(
+                data,
+                shape,
+                np.int16,
+                in_cast=in_cast,
+                pre_clips=pre_clips,
+                inter=inter,
+                slope=slope,
+                post_clips=post_clips,
+                nan_fill=nan_fill,
+            )
 
 
 def test_array_from_file_overflow():
@@ -1238,18 +1209,20 @@ def test_array_from_file_overflow():
     shape = (1500,) * 6
 
     class NoStringIO:  # Null file-like for forcing error
-
         def seek(self, n_bytes):
             pass
 
         def read(self, n_bytes):
             return b''
+
     try:
         array_from_file(shape, np.int8, NoStringIO())
-    except IOError as err:
+    except OSError as err:
         message = str(err)
-    assert message == ("Expected 11390625000000000000 bytes, got 0 "
-                       "bytes from object\n - could the file be damaged?")
+    assert message == (
+        'Expected 11390625000000000000 bytes, got 0 bytes from object\n'
+        ' - could the file be damaged?'
+    )
 
 
 def test__ftype4scaled_finite_warningfilters():
@@ -1302,7 +1275,7 @@ def test__ftype4scaled_finite_warningfilters():
 
 
 def _calculate_scale(data, out_dtype, allow_intercept):
-    """ Calculate scaling and optional intercept for data
+    """Calculate scaling and optional intercept for data
 
     Copy of the deprecated volumeutils.calculate_scale, to preserve tests
 
@@ -1332,7 +1305,8 @@ def _calculate_scale(data, out_dtype, allow_intercept):
     out_dtype = np.dtype(out_dtype)
     if np.can_cast(in_dtype, out_dtype):
         return 1.0, 0.0, None, None
-    from ..arraywriters import make_array_writer, WriterError, get_slope_inter
+    from ..arraywriters import WriterError, get_slope_inter, make_array_writer
+
     try:
         writer = make_array_writer(data, out_dtype, True, allow_intercept)
     except WriterError as e:

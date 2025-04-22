@@ -6,7 +6,7 @@
 
 os: linux
 arch: arm64
-dist: xenial
+dist: focal
 language: python
 cache: pip
 
@@ -17,14 +17,14 @@ env:
         - DEPENDS="REQUIREMENTS"
         - OPTIONAL_DEPENDS="DEFAULT_OPT_DEPENDS"
         - EXTRA_PIP_FLAGS=""
-        - INSTALL_TYPE="setup"
+        - INSTALL_TYPE="pip"
         - CHECK_TYPE="test"
 
 python:
-    - 3.6
     - 3.7
     - 3.8
     - 3.9
+    - "3.10"
 
 # Set up virtual environment, build package, build from depends
 before_install:
@@ -35,7 +35,6 @@ before_install:
 # command to install dependencies
 install:
     - tools/ci/install.sh
-    - if [ "$CHECK_TYPE" == "skiptests" ]; then exit 0; fi
 
 # command to run tests, e.g. python setup.py test
 script:
