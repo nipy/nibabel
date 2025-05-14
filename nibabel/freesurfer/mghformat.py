@@ -62,6 +62,7 @@ _dtdefs = (  # code, conversion function, dtype, bytes per voxel
     (4, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype('i2'), np.dtype('>i2')),
     (1, 'int32', '>i4', '4', 'MRI_INT', np.int32, np.dtype('i4'), np.dtype('>i4')),
     (3, 'float', '>f4', '4', 'MRI_FLOAT', np.float32, np.dtype('f4'), np.dtype('>f4')),
+    (10, 'int16', '>i2', '2', 'MRI_SHORT', np.int16, np.dtype('i2'), np.dtype('>i2')),
 )
 
 # make full code alias bank, including dtype column
