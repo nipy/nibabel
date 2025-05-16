@@ -172,11 +172,11 @@ def test_set_zooms():
 
 def bad_dtype_mgh():
     """This function raises an MGHError exception because
-    uint16 is not a valid MGH datatype.
+    float64 is not a valid MGH datatype.
     """
     # try to write an unsigned short and make sure it
     # raises MGHError
-    v = np.ones((7, 13, 3, 22), np.uint16)
+    v = np.ones((7, 13, 3, 22), np.float64)
     # form a MGHImage object using data
     # and the default affine matrix (Note the "None")
     MGHImage(v, None)
