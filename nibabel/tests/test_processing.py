@@ -9,6 +9,7 @@
 """Testing processing module"""
 
 import logging
+import warnings
 from os.path import dirname
 from os.path import join as pjoin
 
@@ -169,7 +170,8 @@ def test_resample_from_to(caplog):
     exp_out[1:, :, :] = data[1, :, :]
     assert_almost_equal(out.dataobj, exp_out)
     out = resample_from_to(img, trans_p_25_img)
-    with pytest.warns(UserWarning):  # Suppress scipy warning
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', UserWarning)
         exp_out = spnd.affine_transform(data, [1, 1, 1], [-0.25, 0, 0], order=3)
     assert_almost_equal(out.dataobj, exp_out)
     # Test cval
@@ -275,7 +277,8 @@ def test_resample_to_output(caplog):
     assert_array_equal(out_img.dataobj, np.flipud(data))
     # Subsample voxels
     out_img = resample_to_output(Nifti1Image(data, np.diag([4, 5, 6, 1])))
-    with pytest.warns(UserWarning):  # Suppress scipy warning
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', UserWarning)
         exp_out = spnd.affine_transform(data, [1 / 4, 1 / 5, 1 / 6], output_shape=(5, 11, 19))
     assert_array_equal(out_img.dataobj, exp_out)
     # Unsubsample with voxel sizes
