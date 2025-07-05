@@ -16,6 +16,7 @@ import warnings
 from functools import reduce
 from operator import getitem, mul
 from os.path import exists, splitext
+from typing import Any
 
 import numpy as np
 
@@ -1365,7 +1366,7 @@ def shape_zoom_affine(
     return aff
 
 
-def rec2dict(rec: np.ndarray) -> dict[str, np.generic | np.ndarray]:
+def rec2dict(rec: np.ndarray) -> dict[str, Any]:
     """Convert recarray to dictionary
 
     Also converts scalar values to scalars
@@ -1387,7 +1388,9 @@ def rec2dict(rec: np.ndarray) -> dict[str, np.generic | np.ndarray]:
     >>> d == {'x': 0, 's': b''}
     True
     """
-    dct = {}
+    dct: dict[str, Any] = {}
+    if rec.dtype.fields is None:
+        return dct
     for key in rec.dtype.fields:
         val = rec[key]
         try:
