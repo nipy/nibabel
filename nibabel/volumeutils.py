@@ -830,8 +830,7 @@ def write_zeros(fileobj: io.IOBase, count: int, block_size: int = 8194) -> None:
     nblocks = int(count // block_size)
     rem = count % block_size
     blk = b'\x00' * block_size
-    for bno in range(nblocks):
-        fileobj.write(blk)
+    fileobj.write(blk * nblocks)
     fileobj.write(b'\x00' * rem)
 
 

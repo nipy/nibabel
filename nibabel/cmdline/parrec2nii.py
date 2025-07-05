@@ -358,8 +358,7 @@ def proc_file(infile, opts):
             )
             with open(basefilename + '.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
-                for val in bvals:
-                    fid.write(f'{val} ')
+                fid.write(' '.join(str(val) for val in bvals) + ' ')
                 fid.write('\n')
         else:
             verbose('Writing .bvals and .bvecs files')
@@ -369,13 +368,11 @@ def proc_file(infile, opts):
             bvecs = apply_affine(bv_reorient, bvecs)
             with open(basefilename + '.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
-                for val in bvals:
-                    fid.write(f'{val} ')
+                fid.write(' '.join(str(val) for val in bvals) + ' ')
                 fid.write('\n')
             with open(basefilename + '.bvecs', 'w') as fid:
                 for row in bvecs.T:
-                    for val in row:
-                        fid.write(f'{val} ')
+                    fid.write(' '.join(str(val) for val in row) + ' ')
                     fid.write('\n')
 
     # export data labels varying along the 4th dimensions if requested
