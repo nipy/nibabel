@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling>=1.27", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -8,7 +8,7 @@ description = "Access a multitude of neuroimaging data formats"
 authors = [{ name = "NiBabel developers", email = "neuroimaging@python.org" }]
 maintainers = [{ name = "Christopher Markiewicz" }]
 readme = "README.rst"
-license = { text = "MIT License" }
+license = "MIT"
 requires-python = ">=3.9"
 dependencies = [
   "numpy >=1.23",
@@ -20,7 +20,6 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.9",
