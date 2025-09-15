@@ -913,4 +913,4 @@ def test_alternative_header_field_names():
     # PAR/REC files output using R11 have a capital D in "Max. number of
     # Diffusion values" in the General Information section. This tests that
     # the key is read correctly regardless of case.
-    assert HDR_INFO['max. number of diffusion values'] == 1
+    assert HDR_INFO['max_diffusion_values'] == 1
