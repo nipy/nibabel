@@ -202,11 +202,29 @@ jobs:
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v6
       - name: Set up Python ${{ matrix.python-version }}
+        if: "!endsWith(matrix.python-version, 't')"
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
           allow-prereleases: true
+      - name: Set up Python ${{ matrix.python-version }}
+        if: endsWith(matrix.python-version, 't')
+        run: |
+          echo "UV_PYTHON=${IMPL}-${VERSION}-${OS%-*}-${ARCH}-${LIBC}" >> $GITHUB_ENV
+          source $GITHUB_ENV
+          uv python install $UV_PYTHON
+        env:
+          IMPL: cpython
+          VERSION: ${{ matrix.python-version }}
+          # uv expects linux|macos|windows, we can drop the -* but need to rename ubuntu
+          OS: ${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os }}
+          # uv expects x86, x86_64, aarch64 (among others)
+          ARCH: ${{ matrix.architecture == 'x64' && 'x86_64' ||
+                    matrix.architecture == 'arm64' && 'aarch64' ||
+                    matrix.architecture }}
+          # windows and macos have no options, gnu is the only option for the archs
+          LIBC: ${{ matrix.os == 'ubuntu-latest' && 'gnu' || 'none' }}
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
