@@ -70,9 +70,9 @@ doc = [
   "tomli; python_version < '3.11'",
 ]
 test = [
-  "pytest >=6",
-  "pytest-doctestplus >=1",
-  "pytest-cov >=2.11",
+  "pytest >=8",
+  "pytest-doctestplus >=1.4",
+  "pytest-cov >=6",
   "pytest-httpserver >=1.0.7",
   "pytest-xdist >=3.5",
   "coverage[toml]>=7.2",
