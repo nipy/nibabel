@@ -113,7 +113,15 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-13', 'macos-latest']
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.13t"]
+        python-version:
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.13t"
+          - "3.14"
+          - "3.14t"
         architecture: ['x86', 'x64', 'arm64']
         dependencies: ['full', 'pre']
         include:
@@ -125,6 +133,11 @@ jobs:
           # Absolute minimum dependencies
           - os: ubuntu-latest
             python-version: "3.9"
+            architecture: 'x64'
+            dependencies: 'min'
+          # Absolute minimum dependencies
+          - os: ubuntu-latest
+            python-version: "3.10"
             architecture: 'x64'
             dependencies: 'min'
         exclude:
@@ -217,7 +230,9 @@ jobs:
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
         run: |
-          uv tool install -v tox --with=git+https://github.com/effigies/tox-gh-actions@abiflags --with=tox-uv
+          uv tool install -v tox \
+            --with=tox-uv \
+            --with=git+https://github.com/effigies/tox-gh-actions@abiflags
       - name: Show tox config
         run: tox c
       - name: Run tox

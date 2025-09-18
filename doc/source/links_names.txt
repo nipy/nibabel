@@ -20,7 +20,7 @@
 .. _nibabel issues: https://github.com/nipy/nibabel/issues
 .. _nibabel github issues: https://github.com/nipy/nibabel/issues
 .. _nibabel wiki: https://github.com/nipy/nibabel.wiki
-.. _nibabel on travis: https://travis-ci.org/nipy/nibabel
+.. _nibabel on github actions: https://github.com/nipy/nibabel/actions
 
 .. other related projects
 .. _nipy community: http://nipy.org
