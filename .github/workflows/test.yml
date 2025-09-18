@@ -136,12 +136,6 @@ jobs:
             architecture: 'x64'
             dependencies: 'min'
         exclude:
-          # Pre-release builds only for dev Python
-          - python-version: "3.14-dev"
-            dependencies: full
-          - python-version: "3.14t-dev"
-            dependencies: full
-
           # Use ubuntu-latest to cover the whole range of Python. For Windows
           # and OSX, checking oldest and newest should be sufficient.
           - os: windows-latest
