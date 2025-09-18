@@ -120,6 +120,8 @@ jobs:
           - "3.12"
           - "3.13"
           - "3.13t"
+          - "3.14"
+          - "3.14t"
         architecture: ['x86', 'x64', 'arm64']
         dependencies: ['full', 'pre']
         include:
