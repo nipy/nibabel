@@ -830,8 +830,7 @@ def write_zeros(fileobj: io.IOBase, count: int, block_size: int = 8194) -> None:
     nblocks = int(count // block_size)
     rem = count % block_size
     blk = b'\x00' * block_size
-    for bno in range(nblocks):
-        fileobj.write(blk)
+    fileobj.writelines(blk for bno in range(nblocks))
     fileobj.write(b'\x00' * rem)
 
 
@@ -1365,7 +1364,7 @@ def shape_zoom_affine(
     return aff
 
 
-def rec2dict(rec: np.ndarray) -> dict[str, np.generic | np.ndarray]:
+def rec2dict(rec: np.record) -> dict[str, np.generic | np.ndarray]:
     """Convert recarray to dictionary
 
     Also converts scalar values to scalars
@@ -1388,7 +1387,7 @@ def rec2dict(rec: np.ndarray) -> dict[str, np.generic | np.ndarray]:
     True
     """
     dct = {}
-    for key in rec.dtype.fields:
+    for key in rec.dtype.fields or ():
         val = rec[key]
         try:
             val = val.item()

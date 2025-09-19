@@ -41,7 +41,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
@@ -73,13 +73,13 @@ jobs:
     steps:
       - name: Download sdist and wheel artifacts
         if: matrix.package != 'archive'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist/
       - name: Download git archive artifact
         if: matrix.package == 'archive'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: archive
           path: archive/
@@ -113,7 +113,15 @@ jobs:
       fail-fast: false
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-13', 'macos-latest']
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.13t"]
+        python-version:
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.13t"
+          - "3.14"
+          - "3.14t"
         architecture: ['x86', 'x64', 'arm64']
         dependencies: ['full', 'pre']
         include:
@@ -125,6 +133,11 @@ jobs:
           # Absolute minimum dependencies
           - os: ubuntu-latest
             python-version: "3.9"
+            architecture: 'x64'
+            dependencies: 'min'
+          # Absolute minimum dependencies
+          - os: ubuntu-latest
+            python-version: "3.10"
             architecture: 'x64'
             dependencies: 'min'
         exclude:
@@ -183,7 +196,7 @@ jobs:
       ARCH: ${{ !contains(fromJSON('["none", "min"]'), matrix.dependencies) && matrix.architecture }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
           fetch-depth: 0
@@ -217,7 +230,9 @@ jobs:
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
         run: |
-          uv tool install -v tox --with=git+https://github.com/effigies/tox-gh-actions@abiflags --with=tox-uv
+          uv tool install -v tox \
+            --with=tox-uv \
+            --with=git+https://github.com/effigies/tox-gh-actions@abiflags
       - name: Show tox config
         run: tox c
       - name: Run tox
@@ -242,7 +257,7 @@ jobs:
         check: ['style', 'doctest', 'typecheck', 'spellcheck']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -265,7 +280,7 @@ jobs:
       id-token: write
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist/
