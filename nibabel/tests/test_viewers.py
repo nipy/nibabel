@@ -86,7 +86,6 @@ def test_viewer():
 
     # other cases
     fig, axes = plt.subplots(1, 4)
-    plt.close(fig)
     v1 = OrthoSlicer3D(data, axes=axes)
     aff = np.array([[0, 1, 0, 3], [-1, 0, 0, 2], [0, 0, 2, 1], [0, 0, 0, 1]], float)
     v2 = OrthoSlicer3D(data, affine=aff, axes=axes[:3])
@@ -102,6 +101,7 @@ def test_viewer():
     v2.link_to(v1)  # shouldn't do anything
     v1.close()
     v2.close()
+    plt.close(fig)
 
 
 @needs_mpl

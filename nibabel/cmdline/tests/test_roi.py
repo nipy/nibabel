@@ -9,6 +9,12 @@ from nibabel.cmdline.roi import lossless_slice, main, parse_slice
 from nibabel.testing import data_path
 
 
+@pytest.fixture(scope='module', autouse=True)
+def NO_COLOR():
+    with mock.patch.dict(os.environ, {'NO_COLOR': '1'}):
+        yield
+
+
 def test_parse_slice():
     assert parse_slice(None) == slice(None)
     assert parse_slice('1:5') == slice(1, 5)

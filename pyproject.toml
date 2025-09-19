@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling>=1.27", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -8,7 +8,7 @@ description = "Access a multitude of neuroimaging data formats"
 authors = [{ name = "NiBabel developers", email = "neuroimaging@python.org" }]
 maintainers = [{ name = "Christopher Markiewicz" }]
 readme = "README.rst"
-license = { text = "MIT License" }
+license = "MIT"
 requires-python = ">=3.9"
 dependencies = [
   "numpy >=1.23",
@@ -20,7 +20,6 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Environment :: Console",
   "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.9",
@@ -70,9 +69,9 @@ doc = [
   "tomli; python_version < '3.11'",
 ]
 test = [
-  "pytest >=6",
-  "pytest-doctestplus >=1",
-  "pytest-cov >=2.11",
+  "pytest >=8",
+  "pytest-doctestplus >=1.4",
+  "pytest-cov >=6",
   "pytest-httpserver >=1.0.7",
   "pytest-xdist >=3.5",
   "coverage[toml]>=7.2",
@@ -164,7 +163,6 @@ ignore = [
     "RUF012", # TODO: enable
     "RUF015",
     "RUF017", # TODO: enable
-    "UP038",  # https://github.com/astral-sh/ruff/issues/7871
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
