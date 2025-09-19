@@ -21,7 +21,7 @@ from ._compression import HAVE_INDEXED_GZIP, IndexedGzipFile, pyzstd
 if ty.TYPE_CHECKING:
     from types import TracebackType
 
-    from _typeshed import WriteableBuffer
+    from _typeshed import ReadableBuffer, WriteableBuffer
 
     from ._typing import Self
 
@@ -230,6 +230,9 @@ class Opener:
 
     def write(self, b: bytes, /) -> int | None:
         return self.fobj.write(b)
+
+    def writelines(self, lines: ty.Iterable[ReadableBuffer], /) -> None:
+        self.fobj.writelines(lines)
 
     def seek(self, pos: int, whence: int = 0, /) -> int:
         return self.fobj.seek(pos, whence)
