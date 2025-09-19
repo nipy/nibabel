@@ -1365,7 +1365,7 @@ def shape_zoom_affine(
     return aff
 
 
-def rec2dict(rec: np.ndarray) -> dict[str, np.generic | np.ndarray]:
+def rec2dict(rec: np.record) -> dict[str, np.generic | np.ndarray]:
     """Convert recarray to dictionary
 
     Also converts scalar values to scalars
@@ -1388,7 +1388,7 @@ def rec2dict(rec: np.ndarray) -> dict[str, np.generic | np.ndarray]:
     True
     """
     dct = {}
-    for key in rec.dtype.fields:
+    for key in rec.dtype.fields or ():
         val = rec[key]
         try:
             val = val.item()
