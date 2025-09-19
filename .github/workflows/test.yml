@@ -41,7 +41,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
@@ -73,13 +73,13 @@ jobs:
     steps:
       - name: Download sdist and wheel artifacts
         if: matrix.package != 'archive'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist/
       - name: Download git archive artifact
         if: matrix.package == 'archive'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: archive
           path: archive/
@@ -196,7 +196,7 @@ jobs:
       ARCH: ${{ !contains(fromJSON('["none", "min"]'), matrix.dependencies) && matrix.architecture }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: recursive
           fetch-depth: 0
@@ -257,7 +257,7 @@ jobs:
         check: ['style', 'doctest', 'typecheck', 'spellcheck']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -280,7 +280,7 @@ jobs:
       id-token: write
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist/
