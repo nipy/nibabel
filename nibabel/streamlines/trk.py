@@ -294,8 +294,8 @@ class TrkFile(TractogramFile):
 
         Parameters
         ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
+        fileobj : path-like or file-like object
+            If path-like, a filename; otherwise an open file-like object
             pointing to TRK file (and ready to read from the beginning
             of the TRK header). Note that calling this function
             does not change the file position.
@@ -401,8 +401,8 @@ class TrkFile(TractogramFile):
 
         Parameters
         ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
+        fileobj : path-like or file-like object
+            If path-like, a filename; otherwise an open file-like object
             pointing to TRK file (and ready to write from the beginning
             of the TRK header data).
         """
@@ -550,8 +550,8 @@ class TrkFile(TractogramFile):
 
         Parameters
         ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object
+        fileobj : path-like or file-like object
+            If path-like, a filename; otherwise an open file-like object
             pointing to TRK file (and ready to read from the beginning
             of the TRK header). Note that calling this function
             does not change the file position.

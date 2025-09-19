@@ -2,6 +2,7 @@
 
 import os
 import warnings
+from pathlib import Path
 
 from .array_sequence import ArraySequence
 from .header import Field
@@ -22,8 +23,8 @@ def is_supported(fileobj):
 
     Parameters
     ----------
-    fileobj : string or file-like object
-        If string, a filename; otherwise an open file-like object pointing
+    fileobj : path-like or file-like object
+        If path-like, a filename; otherwise an open file-like object pointing
         to a streamlines file (and ready to read from the beginning of the
         header)
 
@@ -39,8 +40,8 @@ def detect_format(fileobj):
 
     Parameters
     ----------
-    fileobj : string or file-like object
-        If string, a filename; otherwise an open file-like object pointing
+    fileobj : path-like or file-like object
+        If path-like, a filename; otherwise an open file-like object pointing
         to a tractogram file (and ready to read from the beginning of the
         header)
 
@@ -56,8 +57,8 @@ def detect_format(fileobj):
         except OSError:
             pass
 
-    if isinstance(fileobj, str):
-        _, ext = os.path.splitext(fileobj)
+    if isinstance(fileobj, (str, Path)):
+        ext = Path(fileobj).suffix
         return FORMATS.get(ext.lower())
 
     return None
@@ -68,8 +69,8 @@ def load(fileobj, lazy_load=False):
 
     Parameters
     ----------
-    fileobj : string or file-like object
-        If string, a filename; otherwise an open file-like object
+    fileobj : path-like or file-like object
+        If path-like, a filename; otherwise an open file-like object
         pointing to a streamlines file (and ready to read from the beginning
         of the streamlines file's header).
     lazy_load : {False, True}, optional
@@ -106,7 +107,7 @@ def save(tractogram, filename, **kwargs):
         provided keyword arguments.
         If :class:`TractogramFile` object, the file format is known and will
         be used to save its content to `filename`.
-    filename : str
+    filename : path-like object
         Name of the file where the tractogram will be saved.
     \*\*kwargs : keyword arguments
         Keyword arguments passed to :class:`TractogramFile` constructor.
