@@ -164,7 +164,6 @@ ignore = [
     "RUF012", # TODO: enable
     "RUF015",
     "RUF017", # TODO: enable
-    "UP038",  # https://github.com/astral-sh/ruff/issues/7871
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
