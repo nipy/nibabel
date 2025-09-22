@@ -385,7 +385,7 @@ class TckFile(TractogramFile):
                 'TCK only supports single-file - in other words the filename part must be '
                 f"specified as '.' but '{hdr['file'].split()[0]}' was specified."
             )
-            raise HeaderError("Missing 'file' attribute in TCK header.")
+            raise HeaderError(msg)
 
         # Set endianness and _dtype attributes in the header.
         hdr[Field.ENDIANNESS] = '>' if hdr['datatype'].endswith('BE') else '<'
