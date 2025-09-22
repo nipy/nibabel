@@ -68,10 +68,9 @@ Release checklist
 
   because this will be the output used by pypi_
 
-* Check the dependencies listed in ``nibabel/info.py`` (e.g.
-  ``NUMPY_MIN_VERSION``) and in ``doc/source/installation.rst`` and in
-  ``requirements.txt`` and ``.travis.yml``.  They should at least match. Do
-  they still hold?  Make sure `nibabel on travis`_ is testing the minimum
+* Check the dependencies listed in ``pyproject.toml`` and in
+  ``doc/source/installation.rst``. They should at least match. Do
+  they still hold?  Verify that `nibabel on GitHub actions`_ is testing the minimum
   dependencies specifically.
 
 * Do a final check on the `nipy buildbot`_.  Use the ``try_branch.py``
@@ -129,7 +128,7 @@ Release checklist
 
       make -C doc doctest
 
-    This should also be tested by `nibabel on travis`_.
+    This should also be tested by `nibabel on GitHub actions`_.
 
   * Check everything compiles without syntax errors::
 
