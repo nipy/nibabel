@@ -2,7 +2,6 @@
 
 import os
 import warnings
-from pathlib import Path
 
 from .array_sequence import ArraySequence
 from .header import Field
