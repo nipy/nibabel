@@ -57,7 +57,7 @@ def detect_format(fileobj):
         except OSError:
             pass
 
-    if isinstance(fileobj, (str, Path)):
+    if isinstance(fileobj, (str, os.PathLike)):
         _, ext = os.path.splitext(fileobj)
         return FORMATS.get(ext.lower())
 
