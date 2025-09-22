@@ -9,7 +9,7 @@
 	url = https://github.com/effigies/nipy-ecattest
 [submodule "nibabel-data/nitest-freesurfer"]
 	path = nibabel-data/nitest-freesurfer
-	url = https://bitbucket.org/nipy/nitest-freesurfer.git
+	url = https://codeberg.org/nipy-data/nitest-freesurfer.git
 [submodule "nibabel-data/parrec_oblique"]
 	path = nibabel-data/parrec_oblique
 	url = https://github.com/grlee77/parrec_oblique.git
