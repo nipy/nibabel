@@ -44,11 +44,6 @@ from nibabel.pkg_info import get_pkg_info as _get_pkg_info
 from nibabel.spm2analyze import Spm2AnalyzeHeader, Spm2AnalyzeImage
 from nibabel.spm99analyze import Spm99AnalyzeHeader, Spm99AnalyzeImage
 
-try:
-    from pytest import ExitCode  # type: ignore[import]  # noqa: PT013
-except (ImportError, ModuleNotFoundError):
-    class ExitCode(int): ...  # type: ignore[no-redef]
-
 def get_info() -> dict[str, str]: ...
 def test(
     label: Any = None,
@@ -58,10 +53,10 @@ def test(
     coverage: bool = False,
     raise_warnings: Any = None,
     timer: Any = False,
-) -> ExitCode: ...
+) -> int: ...
 def bench(
     label: Any = None, verbose: int = 1, extra_argv: list[Any] | None = None
-) -> ExitCode: ...
+) -> int: ...
 
 __all__ = [
     'AnalyzeHeader',
