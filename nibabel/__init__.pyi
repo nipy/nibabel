@@ -54,9 +54,7 @@ def test(
     raise_warnings: Any = None,
     timer: Any = False,
 ) -> int: ...
-def bench(
-    label: Any = None, verbose: int = 1, extra_argv: list[Any] | None = None
-) -> int: ...
+def bench(label: Any = None, verbose: int = 1, extra_argv: list[Any] | None = None) -> int: ...
 
 __all__ = [
     'AnalyzeHeader',
