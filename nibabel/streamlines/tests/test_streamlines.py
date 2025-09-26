@@ -3,6 +3,7 @@ import unittest
 import warnings
 from io import BytesIO
 from os.path import join as pjoin
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -90,6 +91,7 @@ def test_is_supported_detect_format(tmp_path):
     assert not nib.streamlines.is_supported('')
     assert nib.streamlines.detect_format(f) is None
     assert nib.streamlines.detect_format('') is None
+    assert nib.streamlines.detect_format(Path('')) is None
 
     # Valid file without extension
     for tfile_cls in FORMATS.values():
@@ -128,6 +130,12 @@ def test_is_supported_detect_format(tmp_path):
         assert nib.streamlines.is_supported(f)
         assert nib.streamlines.detect_format(f) == tfile_cls
 
+    # Good extension, Path only
+    for ext, tfile_cls in FORMATS.items():
+        f = Path('my_tractogram' + ext)
+        assert nib.streamlines.is_supported(f)
+        assert nib.streamlines.detect_format(f) == tfile_cls
+
     # Extension should not be case-sensitive.
     for ext, tfile_cls in FORMATS.items():
         f = 'my_tractogram' + ext.upper()
@@ -149,10 +157,24 @@ class TestLoadSave(unittest.TestCase):
                 with pytest.warns(Warning) if lazy_load else error_warnings():
                     assert_tractogram_equal(tfile.tractogram, DATA['empty_tractogram'])
 
-    def test_load_simple_file(self):
+    def test_load_simple_file_str(self):
         for lazy_load in [False, True]:
             for simple_filename in DATA['simple_filenames']:
                 tfile = nib.streamlines.load(simple_filename, lazy_load=lazy_load)
+                assert isinstance(tfile, TractogramFile)
+
+                if lazy_load:
+                    assert type(tfile.tractogram), Tractogram
+                else:
+                    assert type(tfile.tractogram), LazyTractogram
+
+                with pytest.warns(Warning) if lazy_load else error_warnings():
+                    assert_tractogram_equal(tfile.tractogram, DATA['simple_tractogram'])
+
+    def test_load_simple_file_path(self):
+        for lazy_load in [False, True]:
+            for simple_filename in DATA['simple_filenames']:
+                tfile = nib.streamlines.load(Path(simple_filename), lazy_load=lazy_load)
                 assert isinstance(tfile, TractogramFile)
 
                 if lazy_load:
@@ -202,6 +224,11 @@ class TestLoadSave(unittest.TestCase):
 
         with InTemporaryDirectory():
             nib.streamlines.save(trk_file, 'dummy.trk')
+            tfile = nib.streamlines.load('dummy.trk', lazy_load=False)
+            assert_tractogram_equal(tfile.tractogram, tractogram)
+
+        with InTemporaryDirectory():
+            nib.streamlines.save(trk_file, Path('dummy.trk'))
             tfile = nib.streamlines.load('dummy.trk', lazy_load=False)
             assert_tractogram_equal(tfile.tractogram, tractogram)
 

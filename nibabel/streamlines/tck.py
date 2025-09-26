@@ -112,8 +112,8 @@ class TckFile(TractogramFile):
 
         Parameters
         ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object in
+        fileobj : path-like or file-like object
+            If path-like, a filename; otherwise an open file-like object in
             binary mode pointing to TCK file (and ready to read from the
             beginning of the TCK header). Note that calling this function
             does not change the file position.
@@ -167,8 +167,8 @@ class TckFile(TractogramFile):
 
         Parameters
         ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object in
+        fileobj : path-like or or file-like object
+            If path-like, a filename; otherwise an open file-like object in
             binary mode pointing to TCK file (and ready to write from the
             beginning of the TCK header data).
         """
@@ -403,8 +403,8 @@ class TckFile(TractogramFile):
 
         Parameters
         ----------
-        fileobj : string or file-like object
-            If string, a filename; otherwise an open file-like object in
+        fileobj : path-like or file-like object
+            If path-like, a filename; otherwise an open file-like object in
             binary mode pointing to TCK file (and ready to read from the
             beginning of the TCK header). Note that calling this function
             does not change the file position.
