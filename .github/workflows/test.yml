@@ -2,7 +2,7 @@ name: Build and test
 
 # This file tests the claimed support range of NiBabel including
 #
-# * Operating systems: Linux, Windows (x64 & x86), OSX
+# * Operating systems: Linux, Windows (x64 & x86), macOS
 # * Dependencies: minimum requirements, optional requirements
 # * Installation methods: setup.py, sdist, wheel, archive
 
@@ -142,7 +142,7 @@ jobs:
             dependencies: 'min'
         exclude:
           # Use ubuntu-latest to cover the whole range of Python. For Windows
-          # and OSX, checking oldest and newest should be sufficient.
+          # and macOS, checking oldest and newest should be sufficient.
           - os: windows-latest
             python-version: "3.10"
           - os: windows-latest

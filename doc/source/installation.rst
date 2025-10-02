@@ -36,7 +36,7 @@ If you are not using a Linux package manager, then best way to install NiBabel
 is via pip_.  If you don't have pip already, follow the `pip install
 instructions`_.
 
-Then open a terminal (``Terminal.app`` on OSX, ``cmd`` or ``Powershell`` on
+Then open a terminal (``Terminal.app`` on macOS, ``cmd`` or ``Powershell`` on
 Windows), and type::
 
     pip install nibabel
