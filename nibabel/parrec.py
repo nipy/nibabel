@@ -346,9 +346,10 @@ def _split_header(fobj):
 def _process_gen_dict(gen_dict):
     """Process `gen_dict` key, values into `general_info`"""
     general_info = {}
+    hdr_key_dict_lower = {key.lower(): val for key, val in _hdr_key_dict.items()}
     for key, value in gen_dict.items():
         # get props for this hdr field
-        props = _hdr_key_dict[key]
+        props = hdr_key_dict_lower[key.lower()]
         # turn values into meaningful dtype
         if len(props) == 2:
             # only dtype spec and no shape

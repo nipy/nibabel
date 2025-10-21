@@ -53,6 +53,8 @@ VARY_PAR = pjoin(DATA_PATH, 'phantom_varscale.PAR')
 VARY_REC = pjoin(DATA_PATH, 'phantom_varscale.REC')
 # V4.2 PAR with variant field names in the header
 VARIANT_PAR = pjoin(DATA_PATH, 'variant_v4_2_header.PAR')
+# R11 PAR with adjusted general info keys
+R11_PAR = pjoin(DATA_PATH, 'R11_T2W_TSE.PAR')
 # Affine as we determined it mid-2014
 AN_OLD_AFFINE = np.array(
     [
@@ -908,3 +910,7 @@ def test_alternative_header_field_names():
     assert HDR_INFO['diffusion_echo_time'] == 0.0
     assert HDR_INFO['repetition_time'] == npa([21225.76])
     assert HDR_INFO['patient_position'] == 'HFS'
+    # PAR/REC files output using R11 have a capital D in "Max. number of
+    # Diffusion values" in the General Information section. This tests that
+    # the key is read correctly regardless of case.
+    assert HDR_INFO['max_diffusion_values'] == 1
