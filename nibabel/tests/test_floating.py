@@ -117,7 +117,7 @@ def test_check_nmant_nexp():
         ti = type_info(t)
         if ti['nmant'] not in (105, 106):  # This check does not work for PPC double pair
             assert _check_nmant(t, ti['nmant'])
-        # Test fails for longdouble after blacklisting of OSX powl as of numpy
+        # Test fails for longdouble after blacklisting of macOS powl as of numpy
         # 1.12 - see https://github.com/numpy/numpy/issues/8307
         if t != np.longdouble or sys.platform != 'darwin':
             assert _check_maxexp(t, ti['maxexp'])

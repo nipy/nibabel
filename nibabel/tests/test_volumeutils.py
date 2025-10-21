@@ -1013,7 +1013,7 @@ def test_fname_ext_ul_case():
     with InTemporaryDirectory():
         with open('afile.TXT', 'w') as fobj:
             fobj.write('Interesting information')
-        # OSX usually has case-insensitive file systems; Windows also
+        # macOS usually has case-insensitive file systems; Windows also
         os_cares_case = not exists('afile.txt')
         with open('bfile.txt', 'w') as fobj:
             fobj.write('More interesting information')

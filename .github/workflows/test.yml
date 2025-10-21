@@ -2,7 +2,7 @@ name: Build and test
 
 # This file tests the claimed support range of NiBabel including
 #
-# * Operating systems: Linux, Windows (x64 & x86), OSX
+# * Operating systems: Linux, Windows (x64 & x86), macOS
 # * Dependencies: minimum requirements, optional requirements
 # * Installation methods: setup.py, sdist, wheel, archive
 
@@ -112,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'windows-latest', 'macos-13', 'macos-latest']
+        os: ['ubuntu-latest', 'windows-latest', 'macos-14', 'macos-latest']
         python-version:
           - "3.9"
           - "3.10"
@@ -142,48 +142,56 @@ jobs:
             dependencies: 'min'
         exclude:
           # Use ubuntu-latest to cover the whole range of Python. For Windows
-          # and OSX, checking oldest and newest should be sufficient.
+          # and macOS, checking oldest and newest should be sufficient.
           - os: windows-latest
             python-version: "3.10"
           - os: windows-latest
             python-version: "3.11"
           - os: windows-latest
             python-version: "3.12"
-          - os: macos-13
+          - os: windows-latest
+            python-version: "3.13"
+          - os: windows-latest
+            python-version: "3.13t"
+          - os: macos-14
+            python-version: "3.9"
+          - os: macos-14
             python-version: "3.10"
-          - os: macos-13
+          - os: macos-14
+            python-version: "3.14"
+          - os: macos-14
+            python-version: "3.14t"
+          - os: macos-latest
+            python-version: "3.10"
+          - os: macos-latest
             python-version: "3.11"
-          - os: macos-13
+          - os: macos-latest
             python-version: "3.12"
           - os: macos-latest
-            python-version: "3.10"
+            python-version: "3.13"
           - os: macos-latest
-            python-version: "3.11"
-          - os: macos-latest
-            python-version: "3.12"
+            python-version: "3.13t"
 
           ## Unavailable architectures
           # x86 is available for Windows
           - os: ubuntu-latest
             architecture: x86
-          - os: macos-latest
+          - os: macos-14
             architecture: x86
-          - os: macos-13
+          - os: macos-latest
             architecture: x86
           # arm64 is available for macos-14+
           - os: ubuntu-latest
             architecture: arm64
           - os: windows-latest
             architecture: arm64
-          - os: macos-13
-            architecture: arm64
-          # x64 is not available for macos-14+
+          # x64 is not available for macos-15
           - os: macos-latest
             architecture: x64
 
           ## Reduced support
-          # Drop pre tests for macos-13
-          - os: macos-13
+          # Drop pre tests for macos-14
+          - os: macos-14
             dependencies: pre
           # Drop pre tests for SPEC-0-unsupported Python versions
           - python-version: '3.9'
