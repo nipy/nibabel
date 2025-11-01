@@ -54,12 +54,12 @@ jobs:
       - name: Build git archive
         run: mkdir archive && git archive -v -o archive/nibabel-archive.tgz HEAD
       - name: Upload sdist and wheel artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: dist
           path: dist/
       - name: Upload git archive artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: archive
           path: archive/
@@ -73,13 +73,13 @@ jobs:
     steps:
       - name: Download sdist and wheel artifacts
         if: matrix.package != 'archive'
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: dist
           path: dist/
       - name: Download git archive artifact
         if: matrix.package == 'archive'
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: archive
           path: archive/
@@ -251,7 +251,7 @@ jobs:
           files: cov.xml
           token: ${{ secrets.CODECOV_TOKEN }}
       - name: Upload pytest test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: pytest-results-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.dependencies }}-${{ matrix.architecture }}
           path: test-results.xml
@@ -288,7 +288,7 @@ jobs:
       id-token: write
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: dist
           path: dist/
