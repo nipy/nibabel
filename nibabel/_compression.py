@@ -16,7 +16,7 @@ import io
 import typing as ty
 
 try:
-    from compression import zstd
+    from compression import zstd  # type: ignore[import-not-found]
     HAVE_ZSTD = True
 except ImportError:  # PY313
     HAVE_ZSTD = False
@@ -154,8 +154,8 @@ def zstd_open(
     filename: str,
     mode: Mode = 'r',
     *,
-    level : int = None,
-    options : dict = None,
+    level : int | None = None,
+    options : dict | None = None,
     zstd_dict: zstd.ZstdDict | None = None,
     level_or_option: int | dict | None = None
 ) -> zstd.ZstdFile:
