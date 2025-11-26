@@ -30,14 +30,6 @@ if ty.TYPE_CHECKING:
 
     from ._typing import Self
 
-    ModeRT = ty.Literal['r', 'rt']
-    ModeRB = ty.Literal['rb']
-    ModeWT = ty.Literal['w', 'wt']
-    ModeWB = ty.Literal['wb']
-    ModeR = ty.Union[ModeRT, ModeRB]
-    ModeW = ty.Union[ModeWT, ModeWB]
-    Mode = ty.Union[ModeR, ModeW]
-
     OpenerDef = tuple[ty.Callable[..., io.IOBase], tuple[str, ...]]
 
 

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import bz2
 import gzip
+import io
 import typing as ty
 
 from .optpkg import optional_package
@@ -30,6 +31,15 @@ if ty.TYPE_CHECKING:
 
     HAVE_INDEXED_GZIP = True
     HAVE_ZSTD = True
+
+    ModeRT = ty.Literal['r', 'rt']
+    ModeRB = ty.Literal['rb']
+    ModeWT = ty.Literal['w', 'wt']
+    ModeWB = ty.Literal['wb']
+    ModeR = ty.Union[ModeRT, ModeRB]
+    ModeW = ty.Union[ModeWT, ModeWB]
+    Mode = ty.Union[ModeR, ModeW]
+
 else:
     indexed_gzip, HAVE_INDEXED_GZIP, _ = optional_package('indexed_gzip')
     zstd, HAVE_ZSTD, _ = optional_package(('compression.zstd',
@@ -101,6 +111,30 @@ def gzip_open(
     mtime: int = 0,
     keep_open: bool = False,
 ) -> gzip.GzipFile:
+    """Open a gzip file for reading or writing.
+
+    If opening a file for reading, and ``indexed_gzip`` is available,
+    an ``IndexedGzipFile`` is returned.
+
+    Otherwise (opening for writing, or ``indexed_gzip`` not available),
+    a ``DeterministicGzipFile`` is returned.
+
+    Parameters:
+    -----------
+
+    filename : str
+        Path of file to open.
+    mode : Mode
+        Opening mode - either ``rb`` or ``wb``.
+    compresslevel: int
+        Compression level when writing.
+    mtime: int
+        Modification time used when writing a file - passed to the
+        ``DetemrinisticGzipFile``. Ignored when reading.
+    keep_open: bool
+        Whether to keep the file handle open between reads. Ignored when writing,
+        or when ``indexed_gzip`` is not present.
+    """
     if not HAVE_INDEXED_GZIP or mode != 'rb':
         gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
 
