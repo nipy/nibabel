@@ -16,7 +16,7 @@ import typing as ty
 from bz2 import BZ2File
 from os.path import splitext
 
-from ._compression import HAVE_INDEXED_GZIP, IndexedGzipFile, pyzstd
+from ._compression import HAVE_INDEXED_GZIP, IndexedGzipFile, zstd
 
 if ty.TYPE_CHECKING:
     from types import TracebackType
@@ -103,9 +103,9 @@ def _zstd_open(
     mode: Mode = 'r',
     *,
     level_or_option: int | dict | None = None,
-    zstd_dict: pyzstd.ZstdDict | None = None,
-) -> pyzstd.ZstdFile:
-    return pyzstd.ZstdFile(filename, mode, level_or_option=level_or_option, zstd_dict=zstd_dict)
+    zstd_dict: zstd.ZstdDict | None = None,
+) -> zstd.ZstdFile:
+    return zstd.ZstdFile(filename, mode, level_or_option=level_or_option, zstd_dict=zstd_dict)
 
 
 class Opener:

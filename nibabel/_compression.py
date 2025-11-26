@@ -20,14 +20,20 @@ if ty.TYPE_CHECKING:
     import io
 
     import indexed_gzip  # type: ignore[import]
-    import pyzstd
+
+    # >= py314
+    try:
+        from compression import zstd  # type: ignore[import]
+    # < py314
+    except ImportError:
+        from backports import zstd  # type: ignore[import]
 
     HAVE_INDEXED_GZIP = True
     HAVE_ZSTD = True
 else:
     indexed_gzip, HAVE_INDEXED_GZIP, _ = optional_package('indexed_gzip')
-    pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
-
+    zstd, HAVE_ZSTD, _ = optional_package(('compression.zstd',
+                                           'backports.zstd', 'pyzstd'))
 
 # Collections of types for isinstance or exception matching
 COMPRESSED_FILE_LIKES: tuple[type[io.IOBase], ...] = (
@@ -47,5 +53,5 @@ else:
     IndexedGzipFile = gzip.GzipFile
 
 if HAVE_ZSTD:
-    COMPRESSED_FILE_LIKES += (pyzstd.ZstdFile,)
-    COMPRESSION_ERRORS += (pyzstd.ZstdError,)
+    COMPRESSED_FILE_LIKES += (zstd.ZstdFile,)
+    COMPRESSION_ERRORS += (zstd.ZstdError,)
