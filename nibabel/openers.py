@@ -10,18 +10,15 @@
 
 from __future__ import annotations
 
-import gzip
 import io
 import typing as ty
 from bz2 import BZ2File
 from os.path import splitext
 
-from ._compression import (HAVE_INDEXED_GZIP,
-                           IndexedGzipFile,
-                           DeterministicGzipFile,
-                           zstd,
-                           gzip_open,
-                           zstd_open)
+from ._compression import (
+    gzip_open,
+    zstd_open,
+)
 
 if ty.TYPE_CHECKING:
     from types import TracebackType
