@@ -62,7 +62,8 @@ class Opener:
 
     gz_def = (gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
-    zstd_def = (zstd_open, ('mode', 'level_or_option', 'zstd_dict'))
+    zstd_def = (zstd_open, ('mode', 'level_or_option', 'zstd_dict', 'level',
+                            'option'))
     compress_ext_map: dict[str | None, OpenerDef] = {
         '.gz': gz_def,
         '.bz2': bz2_def,

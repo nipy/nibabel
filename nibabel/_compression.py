@@ -124,7 +124,7 @@ def gzip_open(
 
     filename : str
         Path of file to open.
-    mode : Mode
+    mode : str
         Opening mode - either ``rb`` or ``wb``.
     compresslevel: int
         Compression level when writing.
@@ -153,5 +153,53 @@ def zstd_open(
     *,
     level_or_option: int | dict | None = None,
     zstd_dict: zstd.ZstdDict | None = None,
+    level : int = None,
+    options : dict = None,
 ) -> zstd.ZstdFile:
-    return zstd.ZstdFile(filename, mode, level_or_option=level_or_option, zstd_dict=zstd_dict)
+    """Open a zstd file for reading or writing.
+
+    The specific object type returned depends on which module out of
+    ``compression.zstd``, ``backports.zstd``, or ``pyzstd`` is available.
+
+    At most one of the ``level_or_options``, ``level``, or
+    ``options`` parameters may be provided - a ``ValueError`` will be raised
+    if more than one is specified.
+
+    Parameters
+    ----------
+
+    filename : str
+        Path of file to open.
+    mode : str
+        Opening mode.
+    level_or_option: int or dict
+        Compression level or dictionary containing options (see also the
+        level and options parameters).
+    zstd_dict : ZstdDict
+        Dictionary used for compression/decompression.
+    level : int
+        Compression level when writing.
+    options : dict
+        Dictionary of compression/decompression options.
+    """
+    level_or_option_provided = sum((level_or_option is not None,
+                                 level is not None,
+                                 options is not None))
+    if level_or_option_provided > 1:
+        raise ValueError(
+            'Only one of level_or_option, level, or options may be specified')
+    # pyzstd accepts level_or_option, but compression.zstd/backports.zstd
+    # expects level or options
+    level_or_option_kwarg = {}
+    if level_or_option_provided == 1:
+        level_or_option_value = [v for v in [level_or_option, level, options]
+                                  if v is not None][0]
+        if zstd.__name__ == 'pyzstd':
+            level_or_option_kwarg['level_or_option'] = level_or_option_value
+        else:
+            if isinstance(level_or_option_value, int):
+                level_or_option_kwarg['level'] = level_or_option_value
+            else:
+                level_or_option_kwarg['options'] = level_or_option_value
+    return zstd.ZstdFile(
+        filename, mode, zstd_dict=zstd_dict, **level_or_option_kwarg)
