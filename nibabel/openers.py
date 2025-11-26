@@ -124,6 +124,7 @@ class Opener:
         specified, is `rb`.  ``compresslevel``, if relevant, and not specified,
         is set from class variable ``default_compresslevel``. ``keep_open``, if
         relevant, and not specified, is ``False``.
+    compression : { None, "gz", "bz2", "zst" }, optional, keyworld only
     \*\*kwargs : keyword arguments
         passed to opening method when `fileish` is str.  Change of defaults as
         for \*args
@@ -153,13 +154,13 @@ class Opener:
 
     fobj: io.IOBase
 
-    def __init__(self, fileish: str | io.IOBase, *args, **kwargs):
+    def __init__(self, fileish: str | io.IOBase, *args, compression: str | None = None, **kwargs):
         if isinstance(fileish, (io.IOBase, Fileish)):
             self.fobj = fileish
             self.me_opened = False
             self._name = getattr(fileish, 'name', None)
             return
-        opener, arg_names = self._get_opener_argnames(fileish)
+        opener, arg_names = self._get_opener_argnames(fileish, compression)
         # Get full arguments to check for mode and compresslevel
         full_kwargs = {**kwargs, **dict(zip(arg_names, args))}
         # Set default mode
@@ -183,7 +184,11 @@ class Opener:
         self._name = fileish
         self.me_opened = True
 
-    def _get_opener_argnames(self, fileish: str) -> OpenerDef:
+    def _get_opener_argnames(self, fileish: str, compression: str | None) -> OpenerDef:
+        if compression is not None:
+            if compression[0] != '.':
+                compression = f'.{compression}'
+            return self.compress_ext_map[compression]
         _, ext = splitext(fileish)
         if self.compress_ext_icase:
             ext = ext.lower()
