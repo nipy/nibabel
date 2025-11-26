@@ -121,8 +121,10 @@ def patch_indexed_gzip(state):
     else:
         values = (False, GzipFile)
     with (
+        mock.patch('nibabel._compression.HAVE_INDEXED_GZIP', values[0]),
         mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]),
         mock.patch('nibabel.openers.IndexedGzipFile', values[1], create=True),
+        mock.patch('nibabel._compression.IndexedGzipFile', values[1], create=True),
     ):
         yield
 
