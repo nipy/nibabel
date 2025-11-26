@@ -19,11 +19,11 @@ from ..openers import ImageOpener
 from ..optpkg import optional_package
 from ..rstutils import rst_table
 from ..tmpdirs import InTemporaryDirectory
+from .._compression import HAVE_ZSTD
 
 SHAPE = (64, 64, 32, 100)
 ROW_NAMES = [f'axis {i}, len {dim}' for i, dim in enumerate(SHAPE)]
 COL_NAMES = ['mid int', 'step 1', 'half step 1', 'step mid int']
-HAVE_ZSTD = optional_package('pyzstd')[1]
 
 
 def _slices_for_len(L):

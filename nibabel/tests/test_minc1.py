@@ -24,8 +24,7 @@ from ..testing import assert_data_similar, data_path
 from ..tmpdirs import InTemporaryDirectory
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
-
-pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
+from .._compression import zstd, HAVE_ZSTD
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
 
@@ -175,7 +174,7 @@ class TestMinc1File(_TestMincFile):
             content = open(tp['fname'], 'rb').read()
             openers_exts = [(gzip.open, '.gz'), (bz2.BZ2File, '.bz2')]
             if HAVE_ZSTD:  # add .zst to test if installed
-                openers_exts += [(pyzstd.ZstdFile, '.zst')]
+                openers_exts += [(zstd.ZstdFile, '.zst')]
             with InTemporaryDirectory():
                 for opener, ext in openers_exts:
                     fname = 'test.mnc' + ext

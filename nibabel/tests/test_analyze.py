@@ -38,10 +38,9 @@ from ..testing import (
     suppress_warnings,
 )
 from ..tmpdirs import InTemporaryDirectory
+from .._compression import HAVE_ZSTD
 from . import test_spatialimages as tsi
 from . import test_wrapstruct as tws
-
-HAVE_ZSTD = optional_package('pyzstd')[1]
 
 header_file = os.path.join(data_path, 'analyze.hdr')
 

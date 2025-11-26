@@ -56,8 +56,7 @@ from ..volumeutils import (
     working_type,
     write_zeros,
 )
-
-pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
+from .._compression import zstd, HAVE_ZSTD
 
 # convenience variables for numpy types
 FLOAT_TYPES = sctypes['float']
@@ -81,7 +80,7 @@ def test__is_compressed_fobj():
     with InTemporaryDirectory():
         file_openers = [('', open, False), ('.gz', gzip.open, True), ('.bz2', BZ2File, True)]
         if HAVE_ZSTD:
-            file_openers += [('.zst', pyzstd.ZstdFile, True)]
+            file_openers += [('.zst', zstd.ZstdFile, True)]
         for ext, opener, compressed in file_openers:
             fname = 'test.bin' + ext
             for mode in ('wb', 'rb'):
@@ -105,7 +104,7 @@ def test_fobj_string_assumptions():
     with InTemporaryDirectory():
         openers = [open, gzip.open, BZ2File]
         if HAVE_ZSTD:
-            openers += [pyzstd.ZstdFile]
+            openers += [zstd.ZstdFile]
         for n, opener in itertools.product((256, 1024, 2560, 25600), openers):
             in_arr = np.arange(n, dtype=dtype)
             # Write array to file
@@ -262,7 +261,7 @@ def test_array_from_file_reread():
     with InTemporaryDirectory():
         openers = [open, gzip.open, bz2.BZ2File, BytesIO]
         if HAVE_ZSTD:
-            openers += [pyzstd.ZstdFile]
+            openers += [zstd.ZstdFile]
         for shape, opener, dtt, order in itertools.product(
             ((64,), (64, 65), (64, 65, 66)), openers, (np.int16, np.float32), ('F', 'C')
         ):
