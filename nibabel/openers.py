@@ -62,8 +62,7 @@ class Opener:
 
     gz_def = (gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
-    zstd_def = (zstd_open, ('mode', 'level_or_option', 'zstd_dict', 'level',
-                            'option'))
+    zstd_def = (zstd_open, ('mode', 'level', 'option', 'zstd_dict'))
     compress_ext_map: dict[str | None, OpenerDef] = {
         '.gz': gz_def,
         '.bz2': bz2_def,
@@ -72,13 +71,12 @@ class Opener:
     }
     #: default compression level when writing gz and bz2 files
     default_compresslevel = 1
-    #: default option for zst files
-    default_zst_compresslevel = 3
-    default_level_or_option = {
+    #: default compression level for zst files
+    default_zst_level = {
         'rb': None,
         'r': None,
-        'wb': default_zst_compresslevel,
-        'w': default_zst_compresslevel,
+        'wb': 3,
+        'w': 3,
     }
     #: whether to ignore case looking for compression extensions
     compress_ext_icase: bool = True
@@ -92,7 +90,7 @@ class Opener:
             self._name = getattr(fileish, 'name', None)
             return
         opener, arg_names = self._get_opener_argnames(fileish)
-        # Get full arguments to check for mode and compresslevel
+        # Get full arguments to check for optional parameters
         full_kwargs = {**kwargs, **dict(zip(arg_names, args))}
         # Set default mode
         if 'mode' not in full_kwargs:
@@ -100,11 +98,13 @@ class Opener:
             kwargs['mode'] = mode
         else:
             mode = full_kwargs['mode']
-        # Default compression level
+        # Default gz/bz2 compression level
         if 'compresslevel' in arg_names and 'compresslevel' not in kwargs:
             kwargs['compresslevel'] = self.default_compresslevel
-        if 'level_or_option' in arg_names and 'level_or_option' not in kwargs:
-            kwargs['level_or_option'] = self.default_level_or_option[mode]
+        # Default zstd compression level
+        if ('level' in arg_names and 'level' not in kwargs and
+            'option' not in kwargs):
+            kwargs['level'] = self.default_zst_level[mode]
         # Default keep_open hint
         if 'keep_open' in arg_names:
             kwargs.setdefault('keep_open', False)

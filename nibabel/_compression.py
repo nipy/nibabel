@@ -15,19 +15,22 @@ import gzip
 import io
 import typing as ty
 
+try:
+    from compression import zstd
+    HAVE_ZSTD = True
+except ImportError:  # PY313
+    HAVE_ZSTD = False
+
+from .deprecated import alert_future_error
 from .optpkg import optional_package
 
 if ty.TYPE_CHECKING:
-    import io
 
     import indexed_gzip  # type: ignore[import]
 
-    # >= py314
-    try:
-        from compression import zstd  # type: ignore[import]
-    # < py314
-    except ImportError:
+    if not HAVE_ZSTD:  # PY313
         from backports import zstd  # type: ignore[import]
+        HAVE_ZSTD = True
 
     HAVE_INDEXED_GZIP = True
     HAVE_ZSTD = True
@@ -42,8 +45,8 @@ if ty.TYPE_CHECKING:
 
 else:
     indexed_gzip, HAVE_INDEXED_GZIP, _ = optional_package('indexed_gzip')
-    zstd, HAVE_ZSTD, _ = optional_package(('compression.zstd',
-                                           'backports.zstd', 'pyzstd'))
+    if not HAVE_ZSTD:  # PY313
+        zstd, HAVE_ZSTD, _ = optional_package('backports.zstd')
 
 # Collections of types for isinstance or exception matching
 COMPRESSED_FILE_LIKES: tuple[type[io.IOBase], ...] = (
@@ -151,19 +154,15 @@ def zstd_open(
     filename: str,
     mode: Mode = 'r',
     *,
-    level_or_option: int | dict | None = None,
-    zstd_dict: zstd.ZstdDict | None = None,
     level : int = None,
     options : dict = None,
+    zstd_dict: zstd.ZstdDict | None = None,
+    level_or_option: int | dict | None = None
 ) -> zstd.ZstdFile:
     """Open a zstd file for reading or writing.
 
-    The specific object type returned depends on which module out of
-    ``compression.zstd``, ``backports.zstd``, or ``pyzstd`` is available.
-
-    At most one of the ``level_or_options``, ``level``, or
-    ``options`` parameters may be provided - a ``ValueError`` will be raised
-    if more than one is specified.
+    The specific object returned will be a ``compression.zstd.ZstdFile`` or
+    a ``backports.zstd.ZstdFile``.
 
     Parameters
     ----------
@@ -172,9 +171,6 @@ def zstd_open(
         Path of file to open.
     mode : str
         Opening mode.
-    level_or_option: int or dict
-        Compression level or dictionary containing options (see also the
-        level and options parameters).
     zstd_dict : ZstdDict
         Dictionary used for compression/decompression.
     level : int
@@ -182,24 +178,27 @@ def zstd_open(
     options : dict
         Dictionary of compression/decompression options.
     """
-    level_or_option_provided = sum((level_or_option is not None,
-                                 level is not None,
-                                 options is not None))
-    if level_or_option_provided > 1:
-        raise ValueError(
-            'Only one of level_or_option, level, or options may be specified')
-    # pyzstd accepts level_or_option, but compression.zstd/backports.zstd
-    # expects level or options
-    level_or_option_kwarg = {}
-    if level_or_option_provided == 1:
-        level_or_option_value = [v for v in [level_or_option, level, options]
-                                  if v is not None][0]
-        if zstd.__name__ == 'pyzstd':
-            level_or_option_kwarg['level_or_option'] = level_or_option_value
-        else:
-            if isinstance(level_or_option_value, int):
-                level_or_option_kwarg['level'] = level_or_option_value
+    if level_or_option is not None:
+        alert_future_error(
+            'The level_or_option parameter will be removed in a future '
+            'version of nibabel',
+            '7.0',
+            warning_rec='This warning can be silenced by using the separate '
+            'level/option parameters',
+            error_rec='Future errors can be avoided by using the separate '
+            'level/option parameters',
+            error_class=TypeError)
+        level_or_option_provided = sum((level_or_option is not None,
+                                        level is not None,
+                                        options is not None))
+        if level_or_option_provided > 1:
+            raise ValueError(
+                'Only one of level_or_option, level or options may be '
+                'specified')
+        if level_or_option is not None:
+            if isinstance(level_or_option, int):
+                level = level_or_option
             else:
-                level_or_option_kwarg['options'] = level_or_option_value
+                options = level_or_option
     return zstd.ZstdFile(
-        filename, mode, zstd_dict=zstd_dict, **level_or_option_kwarg)
+        filename, mode, level=level, options=options, zstd_dict=zstd_dict)
