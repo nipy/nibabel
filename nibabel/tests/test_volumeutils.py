@@ -32,9 +32,9 @@ from nibabel.testing import (
     suppress_warnings,
 )
 
+from .._compression import HAVE_ZSTD, zstd
 from ..casting import OK_FLOATS, floor_log2, sctypes, shared_range, type_info
 from ..openers import BZ2File, ImageOpener, Opener
-from ..optpkg import optional_package
 from ..tmpdirs import InTemporaryDirectory
 from ..volumeutils import (
     _dt_min_max,
@@ -56,7 +56,6 @@ from ..volumeutils import (
     working_type,
     write_zeros,
 )
-from .._compression import zstd, HAVE_ZSTD
 
 # convenience variables for numpy types
 FLOAT_TYPES = sctypes['float']

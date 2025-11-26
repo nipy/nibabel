@@ -16,13 +16,13 @@ from .. import (
     Spm2AnalyzeImage,
     Spm99AnalyzeImage,
 )
+from .._compression import HAVE_ZSTD
 from ..filebasedimages import ImageFileError
 from ..loadsave import _signature_matches_extension, load, read_img_data
 from ..openers import Opener
 from ..optpkg import optional_package
 from ..testing import deprecated_to, expires
 from ..tmpdirs import InTemporaryDirectory
-from .._compression import HAVE_ZSTD
 
 _, have_scipy, _ = optional_package('scipy')
 

@@ -14,12 +14,11 @@ from timeit import timeit
 
 import numpy as np
 
+from .._compression import HAVE_ZSTD
 from ..fileslice import fileslice
 from ..openers import ImageOpener
-from ..optpkg import optional_package
 from ..rstutils import rst_table
 from ..tmpdirs import InTemporaryDirectory
-from .._compression import HAVE_ZSTD
 
 SHAPE = (64, 64, 32, 100)
 ROW_NAMES = [f'axis {i}, len {dim}' for i, dim in enumerate(SHAPE)]
