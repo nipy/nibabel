@@ -16,7 +16,12 @@ import typing as ty
 from bz2 import BZ2File
 from os.path import splitext
 
-from ._compression import HAVE_INDEXED_GZIP, IndexedGzipFile, zstd
+from ._compression import (HAVE_INDEXED_GZIP,
+                           IndexedGzipFile,
+                           DeterministicGzipFile,
+                           zstd,
+                           gzip_open,
+                           zstd_open)
 
 if ty.TYPE_CHECKING:
     from types import TracebackType
@@ -42,72 +47,6 @@ class Fileish(ty.Protocol):
     def write(self, b: bytes, /) -> int | None: ...
 
 
-class DeterministicGzipFile(gzip.GzipFile):
-    """Deterministic variant of GzipFile
-
-    This writer does not add filename information to the header, and defaults
-    to a modification time (``mtime``) of 0 seconds.
-    """
-
-    def __init__(
-        self,
-        filename: str | None = None,
-        mode: Mode | None = None,
-        compresslevel: int = 9,
-        fileobj: io.FileIO | None = None,
-        mtime: int = 0,
-    ):
-        if mode is None:
-            mode = 'rb'
-        modestr: str = mode
-
-        # These two guards are adapted from
-        # https://github.com/python/cpython/blob/6ab65c6/Lib/gzip.py#L171-L174
-        if 'b' not in modestr:
-            modestr = f'{mode}b'
-        if fileobj is None:
-            if filename is None:
-                raise TypeError('Must define either fileobj or filename')
-            # Cast because GzipFile.myfileobj has type io.FileIO while open returns ty.IO
-            fileobj = self.myfileobj = ty.cast('io.FileIO', open(filename, modestr))
-        super().__init__(
-            filename='',
-            mode=modestr,
-            compresslevel=compresslevel,
-            fileobj=fileobj,
-            mtime=mtime,
-        )
-
-
-def _gzip_open(
-    filename: str,
-    mode: Mode = 'rb',
-    compresslevel: int = 9,
-    mtime: int = 0,
-    keep_open: bool = False,
-) -> gzip.GzipFile:
-    if not HAVE_INDEXED_GZIP or mode != 'rb':
-        gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
-
-    # use indexed_gzip if possible for faster read access.  If keep_open ==
-    # True, we tell IndexedGzipFile to keep the file handle open. Otherwise
-    # the IndexedGzipFile will close/open the file on each read.
-    else:
-        gzip_file = IndexedGzipFile(filename, drop_handles=not keep_open)
-
-    return gzip_file
-
-
-def _zstd_open(
-    filename: str,
-    mode: Mode = 'r',
-    *,
-    level_or_option: int | dict | None = None,
-    zstd_dict: zstd.ZstdDict | None = None,
-) -> zstd.ZstdFile:
-    return zstd.ZstdFile(filename, mode, level_or_option=level_or_option, zstd_dict=zstd_dict)
-
-
 class Opener:
     r"""Class to accept, maybe open, and context-manage file-likes / filenames
 
@@ -129,9 +68,9 @@ class Opener:
         for \*args
     """
 
-    gz_def = (_gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
+    gz_def = (gzip_open, ('mode', 'compresslevel', 'mtime', 'keep_open'))
     bz2_def = (BZ2File, ('mode', 'buffering', 'compresslevel'))
-    zstd_def = (_zstd_open, ('mode', 'level_or_option', 'zstd_dict'))
+    zstd_def = (zstd_open, ('mode', 'level_or_option', 'zstd_dict'))
     compress_ext_map: dict[str | None, OpenerDef] = {
         '.gz': gz_def,
         '.bz2': bz2_def,
