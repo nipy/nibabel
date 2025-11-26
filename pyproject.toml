@@ -58,7 +58,7 @@ dicomfs = ["nibabel[dicom]", "pillow >=8.4"]
 minc2 = ["h5py >=3.5"]
 spm = ["scipy >=1.8"]
 viewers = ["matplotlib >=3.5"]
-zstd = ["pyzstd >=0.15.2"]
+zstd = ["backports.zstd; python_version<'3.14'"]
 # For doc and test, make easy to use outside of tox
 # tox should use these with extras instead of duplicating
 doc = [
