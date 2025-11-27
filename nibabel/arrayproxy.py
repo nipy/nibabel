@@ -35,8 +35,7 @@ from threading import RLock
 
 import numpy as np
 
-from . import openers
-from . import _compression
+from . import _compression, openers
 from .fileslice import canonical_slicers, fileslice
 from .volumeutils import apply_read_scaling, array_from_file
 
