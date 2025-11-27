@@ -36,7 +36,7 @@ from threading import RLock
 import numpy as np
 
 from . import openers
-from ._compression import HAVE_INDEXED_GZIP
+from . import _compression
 from .fileslice import canonical_slicers, fileslice
 from .volumeutils import apply_read_scaling, array_from_file
 
@@ -331,7 +331,7 @@ class ArrayProxy(ArrayLike):
         if self._has_fh():
             return False, False
         # if the file is a gzip file, and we have_indexed_gzip,
-        have_igzip = HAVE_INDEXED_GZIP and self.file_like.endswith('.gz')
+        have_igzip = _compression.HAVE_INDEXED_GZIP and self.file_like.endswith('.gz')
 
         persist_opener = keep_file_open or have_igzip
         return keep_file_open, persist_opener
