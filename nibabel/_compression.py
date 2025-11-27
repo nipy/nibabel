@@ -17,6 +17,7 @@ import typing as ty
 
 try:
     from compression import zstd  # type: ignore[import-not-found]
+
     HAVE_ZSTD = True
 except ImportError:  # PY313
     HAVE_ZSTD = False
@@ -25,11 +26,11 @@ from .deprecated import alert_future_error
 from .optpkg import optional_package
 
 if ty.TYPE_CHECKING:
-
     import indexed_gzip  # type: ignore[import]
 
     if not HAVE_ZSTD:  # PY313
         from backports import zstd  # type: ignore[import]
+
         HAVE_ZSTD = True
 
     HAVE_INDEXED_GZIP = True
@@ -70,7 +71,6 @@ if HAVE_ZSTD:
     COMPRESSION_ERRORS += (zstd.ZstdError,)
 
 
-
 class DeterministicGzipFile(gzip.GzipFile):
     """Deterministic variant of GzipFile
 
@@ -106,6 +106,7 @@ class DeterministicGzipFile(gzip.GzipFile):
             fileobj=fileobj,
             mtime=mtime,
         )
+
 
 def gzip_open(
     filename: str,
@@ -154,10 +155,10 @@ def zstd_open(
     filename: str,
     mode: Mode = 'r',
     *,
-    level : int | None = None,
-    options : dict | None = None,
+    level: int | None = None,
+    options: dict | None = None,
     zstd_dict: zstd.ZstdDict | None = None,
-    level_or_option: int | dict | None = None
+    level_or_option: int | dict | None = None,
 ) -> zstd.ZstdFile:
     """Open a zstd file for reading or writing.
 
@@ -180,25 +181,21 @@ def zstd_open(
     """
     if level_or_option is not None:
         alert_future_error(
-            'The level_or_option parameter will be removed in a future '
-            'version of nibabel',
+            'The level_or_option parameter will be removed in a future version of nibabel',
             '7.0',
             warning_rec='This warning can be silenced by using the separate '
             'level/option parameters',
-            error_rec='Future errors can be avoided by using the separate '
-            'level/option parameters',
-            error_class=TypeError)
-        level_or_option_provided = sum((level_or_option is not None,
-                                        level is not None,
-                                        options is not None))
+            error_rec='Future errors can be avoided by using the separate level/option parameters',
+            error_class=TypeError,
+        )
+        level_or_option_provided = sum(
+            (level_or_option is not None, level is not None, options is not None)
+        )
         if level_or_option_provided > 1:
-            raise ValueError(
-                'Only one of level_or_option, level or options may be '
-                'specified')
+            raise ValueError('Only one of level_or_option, level or options may be specified')
         if level_or_option is not None:
             if isinstance(level_or_option, int):
                 level = level_or_option
             else:
                 options = level_or_option
-    return zstd.ZstdFile(
-        filename, mode, level=level, options=options, zstd_dict=zstd_dict)
+    return zstd.ZstdFile(filename, mode, level=level, options=options, zstd_dict=zstd_dict)

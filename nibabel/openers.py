@@ -99,8 +99,7 @@ class Opener:
         if 'compresslevel' in arg_names and 'compresslevel' not in kwargs:
             kwargs['compresslevel'] = self.default_compresslevel
         # Default zstd compression level
-        if ('level' in arg_names and 'level' not in kwargs and
-            'option' not in kwargs):
+        if 'level' in arg_names and 'level' not in kwargs and 'option' not in kwargs:
             kwargs['level'] = self.default_zst_level[mode]
         # Default keep_open hint
         if 'keep_open' in arg_names:
