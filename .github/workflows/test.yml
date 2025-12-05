@@ -205,41 +205,21 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-      - name: Install the latest version of uv
+      - name: Setup uv and Python ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@v7
-      - name: Set up Python ${{ matrix.python-version }}
-        if: "!endsWith(matrix.python-version, 't')"
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: ${{ matrix.architecture != 'x86' }}
+      - name: Setup 32-bit Python ${{ matrix.python-version }}
+        if: matrix.architecture == 'x86'
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
-          allow-prereleases: true
-      - name: Set up Python ${{ matrix.python-version }}
-        if: endsWith(matrix.python-version, 't')
-        run: |
-          echo "UV_PYTHON=${IMPL}-${VERSION}-${OS%-*}-${ARCH}-${LIBC}" >> $GITHUB_ENV
-          source $GITHUB_ENV
-          uv python install $UV_PYTHON
-        env:
-          IMPL: cpython
-          VERSION: ${{ matrix.python-version }}
-          # uv expects linux|macos|windows, we can drop the -* but need to rename ubuntu
-          OS: ${{ matrix.os == 'ubuntu-latest' && 'linux' ||
-                  startsWith(matrix.os, 'macos') && 'macos' ||
-                  matrix.os }}
-          # uv expects x86, x86_64, aarch64 (among others)
-          ARCH: ${{ matrix.architecture == 'x64' && 'x86_64' ||
-                    matrix.architecture == 'arm64' && 'aarch64' ||
-                    matrix.architecture }}
-          # windows and macos have no options, gnu is the only option for the archs
-          LIBC: ${{ matrix.os == 'ubuntu-latest' && 'gnu' || 'none' }}
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
-        run: |
-          uv tool install -v tox \
-            --with=tox-uv \
-            --with=git+https://github.com/effigies/tox-gh-actions@abiflags
+        run: uv tool install -v tox --with=tox-uv --with=tox-gh-actions
       - name: Show tox config
         run: tox c
       - name: Setup test suite
