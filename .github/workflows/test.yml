@@ -125,10 +125,6 @@ jobs:
           - os: ubuntu-latest
             python-version: 3.9
             dependencies: 'min'
-          # NoGIL
-          - os: ubuntu-latest
-            python-version: '3.13-dev'
-            dependencies: 'dev'
         exclude:
           # x86 for Windows + Python<3.12
           - os: ubuntu-latest
