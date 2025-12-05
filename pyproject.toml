@@ -82,6 +82,14 @@ doctest = ["tox"]
 style = ["tox"]
 typing = ["tox"]
 
+[dependency-groups]
+style = [
+  "ruff >=0.14.0",
+]
+typecheck = [
+  "mypy",
+]
+
 [tool.hatch.build.targets.sdist]
 exclude = [
   ".git_archival.txt",
