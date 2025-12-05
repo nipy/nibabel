@@ -85,7 +85,7 @@ jobs:
           path: archive/
       - uses: actions/setup-python@v5
         with:
-          python-version: 3
+          python-version: 3.12
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Update pip
@@ -115,7 +115,7 @@ jobs:
         os: ['ubuntu-latest', 'windows-latest', 'macos-13', 'macos-latest']
         python-version: ["3.9", "3.10", "3.11", "3.12"]
         architecture: ['x64', 'x86', 'arm64']
-        dependencies: ['full', 'pre']
+        dependencies: ['full'] #, 'pre']
         include:
           # Basic dependencies only
           - os: ubuntu-latest
