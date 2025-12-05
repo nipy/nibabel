@@ -183,19 +183,14 @@ def zstd_open(
         alert_future_error(
             'The level_or_option parameter will be removed in a future version of nibabel',
             '7.0',
-            warning_rec='This warning can be silenced by using the separate '
-            'level/option parameters',
+            warning_rec='This warning can be silenced by using the separate level/option parameters',
             error_rec='Future errors can be avoided by using the separate level/option parameters',
             error_class=TypeError,
         )
-        level_or_option_provided = sum(
-            (level_or_option is not None, level is not None, options is not None)
-        )
-        if level_or_option_provided > 1:
+        if level is not None or options is not None:
             raise ValueError('Only one of level_or_option, level or options may be specified')
-        if level_or_option is not None:
-            if isinstance(level_or_option, int):
-                level = level_or_option
-            else:
-                options = level_or_option
+        if isinstance(level_or_option, int):
+            level = level_or_option
+        else:
+            options = level_or_option
     return zstd.ZstdFile(filename, mode, level=level, options=options, zstd_dict=zstd_dict)
