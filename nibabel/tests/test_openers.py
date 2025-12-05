@@ -20,11 +20,9 @@ from unittest import mock
 import pytest
 from packaging.version import Version
 
-from ..openers import HAVE_INDEXED_GZIP, BZ2File, DeterministicGzipFile, ImageOpener, Opener
-from ..optpkg import optional_package
+from .._compression import HAVE_INDEXED_GZIP, HAVE_ZSTD, DeterministicGzipFile, zstd
+from ..openers import BZ2File, ImageOpener, Opener
 from ..tmpdirs import InTemporaryDirectory
-
-pyzstd, HAVE_ZSTD, _ = optional_package('pyzstd')
 
 
 class Lunk:
@@ -122,8 +120,8 @@ def patch_indexed_gzip(state):
     else:
         values = (False, GzipFile)
     with (
-        mock.patch('nibabel.openers.HAVE_INDEXED_GZIP', values[0]),
-        mock.patch('nibabel.openers.IndexedGzipFile', values[1], create=True),
+        mock.patch('nibabel._compression.HAVE_INDEXED_GZIP', values[0]),
+        mock.patch('nibabel._compression.IndexedGzipFile', values[1], create=True),
     ):
         yield
 
@@ -266,12 +264,12 @@ def test_compressed_ext_case():
                 assert isinstance(fobj.fobj, file_class)
             elif lext == 'gz':
                 try:
-                    from ..openers import IndexedGzipFile
+                    from .._compression import IndexedGzipFile
                 except ImportError:
                     IndexedGzipFile = GzipFile
                 assert isinstance(fobj.fobj, (GzipFile, IndexedGzipFile))
             elif lext == 'zst':
-                assert isinstance(fobj.fobj, pyzstd.ZstdFile)
+                assert isinstance(fobj.fobj, zstd.ZstdFile)
             else:
                 assert isinstance(fobj.fobj, BZ2File)
 

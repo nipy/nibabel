@@ -35,7 +35,7 @@ from threading import RLock
 
 import numpy as np
 
-from . import openers
+from . import _compression, openers
 from .fileslice import canonical_slicers, fileslice
 from .volumeutils import apply_read_scaling, array_from_file
 
@@ -263,7 +263,7 @@ class ArrayProxy(ArrayLike):
          - whether ``self.file_like`` is an an open file handle, or a path to a
            ``'.gz'`` file, or a path to a non-gzip file.
          - whether ``indexed_gzip`` is present (see
-           :attr:`.openers.HAVE_INDEXED_GZIP`).
+           :attr:`._compression.HAVE_INDEXED_GZIP`).
 
         An ``ArrayProxy`` object uses two internal flags to manage
         ``ImageOpener`` instances and underlying file handles.
@@ -330,7 +330,7 @@ class ArrayProxy(ArrayLike):
         if self._has_fh():
             return False, False
         # if the file is a gzip file, and we have_indexed_gzip,
-        have_igzip = openers.HAVE_INDEXED_GZIP and self.file_like.endswith('.gz')
+        have_igzip = _compression.HAVE_INDEXED_GZIP and self.file_like.endswith('.gz')
 
         persist_opener = keep_file_open or have_igzip
         return keep_file_open, persist_opener

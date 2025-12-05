@@ -31,7 +31,7 @@ repos:
           - types-Pillow
           - pydicom
           - numpy
-          - pyzstd
+          - backports.zstd
           - importlib_resources
         args: ["nibabel"]
         pass_filenames: false

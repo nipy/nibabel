@@ -16,6 +16,7 @@ from .. import (
     Spm2AnalyzeImage,
     Spm99AnalyzeImage,
 )
+from .._compression import HAVE_ZSTD
 from ..filebasedimages import ImageFileError
 from ..loadsave import _signature_matches_extension, load, read_img_data
 from ..openers import Opener
@@ -24,7 +25,6 @@ from ..testing import deprecated_to, expires
 from ..tmpdirs import InTemporaryDirectory
 
 _, have_scipy, _ = optional_package('scipy')
-_, have_pyzstd, _ = optional_package('pyzstd')
 
 import pytest
 from numpy.testing import assert_almost_equal, assert_array_equal
@@ -84,7 +84,7 @@ def test_load_empty_image():
 
 @pytest.mark.parametrize('extension', ['.gz', '.bz2', '.zst'])
 def test_load_bad_compressed_extension(tmp_path, extension):
-    if extension == '.zst' and not have_pyzstd:
+    if extension == '.zst' and not HAVE_ZSTD:
         pytest.skip()
     file_path = tmp_path / f'img.nii{extension}'
     file_path.write_bytes(b'bad')
@@ -94,7 +94,7 @@ def test_load_bad_compressed_extension(tmp_path, extension):
 
 @pytest.mark.parametrize('extension', ['.gz', '.bz2', '.zst'])
 def test_load_good_extension_with_bad_data(tmp_path, extension):
-    if extension == '.zst' and not have_pyzstd:
+    if extension == '.zst' and not HAVE_ZSTD:
         pytest.skip()
     file_path = tmp_path / f'img.nii{extension}'
     with Opener(file_path, 'wb') as fobj:

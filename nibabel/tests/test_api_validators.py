@@ -99,7 +99,7 @@ class TestRunAllTests(ValidateAPI):
     We check this in the module teardown function
     """
 
-    run_tests = {}
+    run_tests = set()
 
     def obj_params(self):
         yield 1, 2
