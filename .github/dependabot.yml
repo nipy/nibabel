@@ -8,3 +8,16 @@ updates:
       actions-infrastructure:
         patterns:
           - "actions/*"
+    cooldown:
+      default-days: 14
+  - package-ecosystem: uv
+    directory: "/"
+    labels: ["dependencies"]
+    schedule:
+      interval: monthly
+    groups:
+      python:
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 14

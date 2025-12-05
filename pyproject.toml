@@ -58,15 +58,15 @@ dicomfs = ["nibabel[dicom]", "pillow >=8.4"]
 minc2 = ["h5py >=3.5"]
 spm = ["scipy >=1.8"]
 viewers = ["matplotlib >=3.5"]
-zstd = ["backports.zstd; python_version<'3.14'"]
+zstd = ["backports.zstd >=1.1; python_version<'3.14'"]
 # For doc and test, make easy to use outside of tox
 # tox should use these with extras instead of duplicating
 doc = [
-  "sphinx",
+  "sphinx >=7.4",
   "matplotlib>=3.5",
-  "numpydoc",
-  "texext",
-  "tomli; python_version < '3.11'",
+  "numpydoc >=1.9",
+  "texext >=0.6.8",
+  "tomli >=2.3; python_version < '3.11'",
 ]
 test = [
   "pytest >=8",
@@ -77,10 +77,18 @@ test = [
   "coverage[toml]>=7.2",
 ]
 # Remaining: Simpler to centralize in tox
-dev = ["tox"]
-doctest = ["tox"]
-style = ["tox"]
-typing = ["tox"]
+dev = []
+doctest = []
+style = []
+typing = []
+
+[dependency-groups]
+style = [
+  "ruff >=0.14.0",
+]
+typecheck = [
+  "mypy >=1.15",
+]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
