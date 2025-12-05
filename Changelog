@@ -25,6 +25,17 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.3.3 (Friday 5 December 2025)
+==============================
+
+Bug-fix release in the 5.3.x series.
+
+Bug fixes
+---------
+* Fix frame order for single-frame DICOM files (pr/1387) (Brendan Moloney, reviewed by CM)
+* Replace :class:`dict` literal with :class:`set` in test. (pr/1382) (CM)
+
+
 5.3.2 (Wednesday 23 October 2024)
 =================================
 
