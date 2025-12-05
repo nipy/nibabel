@@ -238,8 +238,10 @@ jobs:
             --with=git+https://github.com/effigies/tox-gh-actions@abiflags
       - name: Show tox config
         run: tox c
-      - name: Run tox
-        run: tox -vv --exit-and-dump-after 1200
+      - name: Setup test suite
+        run: tox run -vv --notest
+      - name: Run test suite
+        run: tox -v --skip-pkg-install --exit-and-dump-after 1200
       - uses: codecov/codecov-action@v5
         if: ${{ always() }}
         with:
