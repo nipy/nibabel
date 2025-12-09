@@ -13,6 +13,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from ..affines import from_matvec, to_matvec
+from ..nifti1 import Nifti1Image
 from ..orientations import (
     OrientationError,
     aff2axcodes,
@@ -289,6 +290,57 @@ def test_io_orientation():
             [2, 1],
         ],
     )
+
+
+def test_io_orientation_column_strength_regression():
+    # Build a small image using the real-world affine that motivated the
+    # stronger column ordering.
+    affine = np.array(
+        [
+            [1.12271041e-01, 7.70245194e-02, -2.08759499e00, 5.00499039e01],
+            [-5.34135476e-02, 1.58019245e-01, 1.04219818e00, -2.11098356e01],
+            [1.24289364e-01, -1.66752085e-03, 2.33361936e00, -8.56721640e01],
+            [0.00000000e00, 0.00000000e00, 0.00000000e00, 1.00000000e00],
+        ]
+    )
+    img = Nifti1Image(np.zeros((2, 3, 4), dtype=np.float32), affine)
+
+    # Sanity check: current orientation for the provided affine.
+    assert_array_equal(io_orientation(img.affine), [[0, 1], [1, 1], [2, 1]])
+
+    # Duplicate the first column to make two axes compete for the same output
+    # axis. The fixed code (ordering by RS strengths) keeps the strongest axis
+    # and drops the duplicate; the buggy SVD-ordered variant would pick the
+    # wrong column.
+    dup_affine = affine.copy()
+    dup_affine[:3, 1] = dup_affine[:3, 0]
+    expected = np.array([[0, 1], [1, -1], [2, 1]], dtype=np.int8)
+    assert_array_equal(io_orientation(dup_affine), expected)
+
+    def buggy_io_orientation(aff):
+        # Replicates the pre-fix iteration order (range(p)) that could flip
+        # assignments when columns compete for the same output axis.
+        q, p = aff.shape[0] - 1, aff.shape[1] - 1
+        rzs = aff[:q, :p]
+        zooms = np.sqrt(np.sum(rzs * rzs, axis=0))
+        zooms[zooms == 0] = 1
+        rs = rzs / zooms
+        P, S, Qs = np.linalg.svd(rs, full_matrices=False)
+        tol = S.max() * max(rs.shape) * np.finfo(S.dtype).eps
+        keep = S > tol
+        R = np.dot(P[:, keep], Qs[keep])
+        ornt = np.ones((p, 2), dtype=np.int8) * np.nan
+        for in_ax in range(p):
+            col = R[:, in_ax]
+            if not np.allclose(col, 0):
+                out_ax = np.argmax(np.abs(col))
+                ornt[in_ax, 0] = out_ax
+                ornt[in_ax, 1] = -1 if col[out_ax] < 0 else 1
+                R[out_ax, :] = 0
+        return ornt
+
+    # check that the buggy orientation is not the expected orientation
+    assert not np.array_equal(buggy_io_orientation(dup_affine), expected)
 
 
 def test_ornt_transform():
