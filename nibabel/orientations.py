@@ -77,7 +77,7 @@ def io_orientation(affine, tol=None):
     ornt = np.ones((p, 2), dtype=np.int8) * np.nan
     # Process input axes from strongest to weakest (stable on ties) so a given
     # dimension is labeled consistently regardless of the original order.
-    in_axes = np.argsort(np.min(-(RS**2), axis=0), kind='stable')
+    in_axes = np.argsort(np.min(-(R**2), axis=0), kind='stable')
     for in_ax in in_axes:
         col = R[:, in_ax]
         if not np.allclose(col, 0):
