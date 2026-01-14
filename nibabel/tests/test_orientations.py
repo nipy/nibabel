@@ -272,8 +272,8 @@ def test_io_orientation():
     assert_array_equal(
         io_orientation(aff_extra_col, tol=1e-5),
         [
-            [0, 1],
             [np.nan, np.nan],
+            [0, 1],
             [2, 1],
             [np.nan, np.nan],
         ],
