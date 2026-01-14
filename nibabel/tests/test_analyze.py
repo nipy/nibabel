@@ -847,10 +847,10 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         assert_array_equal(hdr.get_zooms(), (9, 3, 4))
         # Modify data in-place?  Update on save
         data = img.get_fdata()
-        data.shape = (3, 2, 4)
+        data[0, 0, 0] = 1
         img.to_file_map()
         img_back = img.from_file_map(img.file_map)
-        assert_array_equal(img_back.shape, (3, 2, 4))
+        assert img_back.get_fdata()[0, 0, 0] == 1
 
     def test_pickle(self):
         # Test that images pickle
