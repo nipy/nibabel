@@ -359,7 +359,7 @@ def _process_gen_dict(gen_dict):
             value = np.fromstring(value, props[1], sep=' ')
             # if shape is None, allow arbitrary length
             if props[2] is not None:
-                value.shape = props[2]
+                value = value.reshape(props[2])
         general_info[props[0]] = value
     return general_info
 

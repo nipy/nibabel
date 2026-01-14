@@ -115,8 +115,7 @@ class PerArrayDict(SliceableDataDict):
         value = np.asarray(value, dtype=dtype)
 
         if value.ndim == 1 and value.dtype != object:
-            # Reshape without copy
-            value.shape = (len(value), 1)
+            value = value.reshape(len(value), 1)
 
         if value.ndim != 2 and value.dtype != object:
             raise ValueError('data_per_streamline must be a 2D array.')
