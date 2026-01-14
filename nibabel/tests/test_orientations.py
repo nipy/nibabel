@@ -319,7 +319,7 @@ def test_io_orientation_column_strength_regression():
 
     # Using the previous method, this appeared to be SAL
     assert_array_equal(img_ras_ornt, axcodes2ornt('RAS'))
-    assert img_ras_reornt.shape == (4, 3, 2)
+    assert img_ras.shape == (4, 3, 2)
 
     # Test idempotence
     img_ras_reornt = img_ras.as_reoriented(img_ras_ornt)
