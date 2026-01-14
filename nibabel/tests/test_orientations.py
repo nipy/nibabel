@@ -293,8 +293,12 @@ def test_io_orientation():
 
 
 def test_io_orientation_column_strength_regression():
-    # Build a small image using the real-world affine that motivated the
-    # stronger column ordering.
+    # Real-world IAR affine that triggered this test.
+    # The feature of interest is that the third row of both the first and third columns
+    # has the highest magnitude.
+    # An left-to-right labeling will change labels when the columns are permuted,
+    # hence we use a magnitude-based labeling for consistency.
+    # See https://github.com/nipy/nibabel/issues/1449 for further discussion
     affine = np.array(
         [
             [2.08759499e00, 7.70245194e-02, 1.12271041e-01, -1.67531357e01],
@@ -304,27 +308,25 @@ def test_io_orientation_column_strength_regression():
         ]
     )
 
-    # create image from afffine and reorient
+    # Verify IAR orientation
+    iar_ornt = io_orientation(affine)
+    assert_array_equal(iar_ornt, axcodes2ornt('IAR'))
+
+    # Reorient to RAS and verify it is identified as RAS
     img = Nifti1Image(np.zeros((2, 3, 4), dtype=np.float32), affine)
-    print(aff2axcodes(img.affine))
-
-    # check that orientation is as expected
-    img_ornt = io_orientation(affine)
-    assert_array_equal(img_ornt, axcodes2ornt('IAR'))
-
-    # reorient image to RAS
-    img_ras = img.as_reoriented(img_ornt)
+    img_ras = img.as_reoriented(iar_ornt)
     img_ras_ornt = io_orientation(img_ras.affine)
 
-    # Verify reorientation swaps first and third axes and the labels follow the axes
-    assert_array_equal(io_orientation(img.affine), [[2, -1], [1, 1], [0, 1]])
+    # Using the previous method, this appeared to be SAL
+    assert_array_equal(img_ras_ornt, axcodes2ornt('RAS'))
+    assert img_ras_reornt.shape == (4, 3, 2)
 
     # Test idempotence
     img_ras_reornt = img_ras.as_reoriented(img_ras_ornt)
     img_ras_reornt_ornt = io_orientation(img_ras_reornt.affine)
 
+    assert_array_equal(img_ras_reornt_ornt, axcodes2ornt('RAS'))
     assert img_ras_reornt.shape == (4, 3, 2)
-    assert_array_equal(img_ras_reornt_ornt, [[0, 1], [1, 1], [2, 1]])
 
 
 def test_ornt_transform():
