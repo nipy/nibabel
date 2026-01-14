@@ -75,7 +75,10 @@ def io_orientation(affine, tol=None):
     # axis N changes.  In case there are ties, we choose the axes
     # iteratively, removing used axes from consideration as we go
     ornt = np.ones((p, 2), dtype=np.int8) * np.nan
-    for in_ax in range(p):
+    # Process input axes from strongest to weakest (stable on ties) so a given
+    # dimension is labeled consistently regardless of the original order.
+    in_axes = np.argsort(np.min(-(R**2), axis=0), kind='stable')
+    for in_ax in in_axes:
         col = R[:, in_ax]
         if not np.allclose(col, 0):
             out_ax = np.argmax(np.abs(col))
