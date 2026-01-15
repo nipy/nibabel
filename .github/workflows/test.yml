@@ -112,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'windows-latest', 'macos-14', 'macos-latest']
+        os: ['ubuntu-latest', 'windows-latest', 'macos-latest', 'macos-15-intel']
         python-version:
           - "3.10"
           - "3.11"
@@ -150,35 +150,37 @@ jobs:
             python-version: "3.13"
           - os: windows-latest
             python-version: "3.13t"
-          - os: macos-14
+          - os: macos-latest
             python-version: "3.11"
-          - os: macos-14
+          - os: macos-latest
             python-version: "3.12"
-          - os: macos-14
+          - os: macos-latest
             python-version: "3.13"
-          - os: macos-14
+          - os: macos-latest
             python-version: "3.13t"
-          - os: macos-latest
+          - os: macos-15-intel
             python-version: "3.11"
-          - os: macos-latest
+          - os: macos-15-intel
             python-version: "3.12"
-          - os: macos-latest
+          - os: macos-15-intel
             python-version: "3.13"
-          - os: macos-latest
+          - os: macos-15-intel
             python-version: "3.13t"
 
           ## Unavailable architectures
-          # x86 is available for Windows
+          # x86 is available for Windows and Mac
           - os: ubuntu-latest
             architecture: x86
-          - os: macos-14
-            architecture: x86
           - os: macos-latest
+            architecture: x86
+          - os: macos-15-intel
             architecture: x86
           # arm64 is available for macos-14+
           - os: ubuntu-latest
             architecture: arm64
           - os: windows-latest
+            architecture: arm64
+          - os: macos-15-intel
             architecture: arm64
           # x64 is not available for macos-15
           - os: macos-latest
@@ -222,7 +224,9 @@ jobs:
           IMPL: cpython
           VERSION: ${{ matrix.python-version }}
           # uv expects linux|macos|windows, we can drop the -* but need to rename ubuntu
-          OS: ${{ matrix.os == 'ubuntu-latest' && 'linux' || matrix.os }}
+          OS: ${{ matrix.os == 'ubuntu-latest' && 'linux' ||
+                  startsWith(matrix.os, 'macos') && 'macos' ||
+                  matrix.os }}
           # uv expects x86, x86_64, aarch64 (among others)
           ARCH: ${{ matrix.architecture == 'x64' && 'x86_64' ||
                     matrix.architecture == 'arm64' && 'aarch64' ||
