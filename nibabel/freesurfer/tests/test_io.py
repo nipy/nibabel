@@ -7,6 +7,7 @@ import unittest
 from os.path import isdir
 from os.path import join as pjoin
 from pathlib import Path
+import subprocess
 
 import numpy as np
 import pytest
@@ -89,6 +90,13 @@ def test_geometry():
             read_geometry(surf_path, read_metadata=True)
         assert any('volume information contained' in str(ww.message) for ww in w)
         assert any('extension code' in str(ww.message) for ww in w)
+
+        # Test reading/writing a surface file in scanner RAS
+        cmd = f"mris_convert --to-scanner {pjoin(data_path, 'surf', 'lh.inflated')} {surf_path}"
+        _ = subprocess.run(cmd.split(), capture_output=True)
+        _ ,_, metadata = read_geometry(surf_path, read_metadata=True)
+        np.testing.assert_array_equal(metadata["head"], [2, 1, 20])
+        write_geometry(surf_path, coords, faces, create_stamp, metadata)
 
         volume_info['head'] = [1, 2]
         with pytest.warns(UserWarning, match='Unknown extension'):
