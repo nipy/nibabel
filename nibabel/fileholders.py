@@ -26,6 +26,9 @@ class FileHolderError(Exception):
 class FileHolder:
     """class to contain filename, fileobj and file position"""
 
+    # Default image opener class / callable
+    make_image_opener = ImageOpener
+
     def __init__(
         self,
         filename: str | None = None,
@@ -71,10 +74,11 @@ class FileHolder:
            ``self.pos``
         """
         if self.fileobj is not None:
-            obj = ImageOpener(self.fileobj)  # for context manager
+            # for context manager
+            obj = self.make_image_opener(self.fileobj)
             obj.seek(self.pos)
         elif self.filename is not None:
-            obj = ImageOpener(self.filename, *args, **kwargs)
+            obj = self.make_image_opener(self.filename, *args, **kwargs)
             if self.pos != 0:
                 obj.seek(self.pos)
         else:
