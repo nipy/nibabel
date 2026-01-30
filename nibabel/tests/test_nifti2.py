@@ -7,10 +7,10 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for nifti2 reading package"""
-
 import os
 
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
 from .. import nifti2

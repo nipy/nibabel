@@ -3,6 +3,8 @@
 from os import getcwd
 from os.path import abspath, dirname, isfile, realpath
 
+import pytest
+
 from ..tmpdirs import InGivenDirectory
 
 MY_PATH = abspath(__file__)
