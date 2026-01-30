@@ -102,6 +102,7 @@ class _TestProxyAPI(ValidateAPI):
     # Flag True if offset can be set into header of image
     settable_offset = False
 
+    @pytest.mark.thread_unsafe
     def validate_shape(self, pmaker, params):
         # Check shape
         prox, fio, hdr = pmaker()
@@ -119,6 +120,7 @@ class _TestProxyAPI(ValidateAPI):
         with pytest.raises(AttributeError):
             prox.ndim = len(params['shape'])
 
+    @pytest.mark.thread_unsafe
     def validate_is_proxy(self, pmaker, params):
         # Check shape
         prox, fio, hdr = pmaker()
@@ -194,6 +196,7 @@ class _TestProxyAPI(ValidateAPI):
             hdr.set_data_offset(32)
         assert_array_equal(prox, params['arr_out'])
 
+    @pytest.mark.thread_unsafe
     def validate_fileobj_isolated(self, pmaker, params):
         # Check file position of read independent of file-like object
         prox, fio, hdr = pmaker()
@@ -318,6 +321,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                 params = params.copy()
                 yield fname_func, params
 
+    @pytest.mark.thread_unsafe
     def validate_dtype(self, pmaker, params):
         # Read-only dtype attribute
         prox, fio, hdr = pmaker()
@@ -325,6 +329,7 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
         with pytest.raises(AttributeError):
             prox.dtype = np.dtype(prox.dtype)
 
+    @pytest.mark.thread_unsafe
     def validate_slope_inter_offset(self, pmaker, params):
         # Check slope, inter, offset
         prox, fio, hdr = pmaker()

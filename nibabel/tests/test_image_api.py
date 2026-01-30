@@ -201,7 +201,7 @@ class GetSetDtypeMixin:
 
     Add this one if your image has ``get_data_dtype`` and ``set_data_dtype``.
     """
-
+    @pytest.mark.thread_unsafe
     def validate_dtype(self, imaker, params):
         # data / storage dtype
         img = imaker()
@@ -394,6 +394,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             data = get_data_func(dtype=float_type)
             assert (data is img.dataobj) == (arr_dtype == float_type)
 
+    @pytest.mark.thread_unsafe
     def validate_shape(self, imaker, params):
         # Validate shape
         img = imaker()
@@ -496,6 +497,7 @@ class SerializeMixin:
         assert self._header_eq(img.header, rt_img.header)
         assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
 
+    @pytest.mark.thread_unsafe
     def validate_file_stream_equivalence(self, imaker, params):
         img = imaker()
         klass = getattr(self, 'klass', img.__class__)

@@ -11,6 +11,7 @@
 from .. import imageglobals as igs
 
 
+@pytest.mark.thread_unsafe
 def test_errorlevel():
     orig_level = igs.error_level
     for level in (10, 20, 30):
