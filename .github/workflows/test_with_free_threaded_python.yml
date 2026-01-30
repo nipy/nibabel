@@ -52,7 +52,7 @@ jobs:
             run: |
                 uv venv -p 3.14t
                 source .venv/bin/activate
-                uv pip install -e '.[all,dicomfs,indexed_gzip,spm,zstd]'
+                uv pip install -e '.[test,dicomfs,indexed_gzip,spm,zstd]'
                 uv pip install pytest-run-parallel    
 
         -   name: Run test suite
