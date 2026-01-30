@@ -91,3 +91,6 @@ image.hdr
 stream
 streamlines.trk
 test.dtseries.nii
+test.hdr
+test.img
+test.nii
