@@ -52,6 +52,7 @@ class TestEcatHeader(tws._TestWrapStructBase):
         # Called from test_bytes test method.  Specific to the header data type
         hdr['scan_start_time'] = 42
 
+    @pytest.mark.thread_unsafe
     def test_dtype(self):
         # dtype not specified in header, only in subheaders
         hdr = self.header_class()

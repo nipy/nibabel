@@ -128,6 +128,7 @@ class _TestProxyAPI(ValidateAPI):
         with pytest.raises(AttributeError):
             prox.is_proxy = False
 
+    @pytest.mark.thread_unsafe
     def validate_asarray(self, pmaker, params):
         # Check proxy returns expected array from asarray
         prox, fio, hdr = pmaker()
@@ -137,6 +138,7 @@ class _TestProxyAPI(ValidateAPI):
         # Shape matches expected shape
         assert out.shape == params['shape']
 
+    @pytest.mark.thread_unsafe
     def validate_array_interface_with_dtype(self, pmaker, params):
         # Check proxy returns expected array from asarray
         prox, fio, hdr = pmaker()
@@ -174,6 +176,7 @@ class _TestProxyAPI(ValidateAPI):
         if context is not None:
             context.__exit__()
 
+    @pytest.mark.thread_unsafe
     def validate_header_isolated(self, pmaker, params):
         # Confirm altering input header has no effect
         # Depends on header providing 'get_data_dtype', 'set_data_dtype',
@@ -199,6 +202,7 @@ class _TestProxyAPI(ValidateAPI):
         fio.read()  # move to end of file
         assert_array_equal(prox, params['arr_out'])
 
+    @pytest.mark.thread_unsafe
     def validate_proxy_slicing(self, pmaker, params):
         # Confirm that proxy object can be sliced correctly
         arr = params['arr_out']

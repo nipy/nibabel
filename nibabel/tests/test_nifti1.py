@@ -1497,6 +1497,7 @@ class TestNifti1General:
         assert lnim.header.get_slope_inter() == (None, None)
         assert (lnim.dataobj.slope, lnim.dataobj.inter) == (2, 8)
 
+    @pytest.mark.thread_unsafe
     def test_load(self):
         # test module level load.  We try to load a nii and an .img and a .hdr
         # and expect to get a nifti back of single or pair type

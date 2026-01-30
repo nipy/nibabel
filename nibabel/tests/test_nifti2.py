@@ -36,6 +36,7 @@ class _Nifti2Mixin:
         # Disable this check
         pass
 
+    @pytest.mark.thread_unsafe
     def test_eol_check(self):
         # Check checking of EOL check field
         HC = self.header_class
