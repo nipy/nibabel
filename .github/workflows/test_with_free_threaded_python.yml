@@ -65,4 +65,4 @@ jobs:
                 source .venv/bin/activate
                 PYTEST_RUN_PARALLEL_VERBOSE=1
                 N_THREADS=16
-                pytest --parallel-threads $N_THREADS -n auto nibabel
+                pytest -ra --strict-config --strict-markers --showlocals --capture=no --parallel-threads $N_THREADS -n auto nibabel
