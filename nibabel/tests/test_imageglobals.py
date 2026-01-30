@@ -7,6 +7,7 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for imageglobals module"""
+import pytest
 
 from .. import imageglobals as igs
 
