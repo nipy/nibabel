@@ -463,6 +463,7 @@ def gen_par_fobj():
             yield par, fobj
 
 
+@pytest.mark.thread_unsafe
 def test_truncated_load():
     # Test loading of truncated header
     with open(TRUNC_PAR) as fobj:
