@@ -118,6 +118,7 @@ def test_adapt_affine():
 
 
 @needs_scipy
+@pytest.mark.thread_unsafe
 def test_resample_from_to(caplog):
     # Test resampling from image to image / image space
     data = np.arange(24, dtype='int32').reshape((2, 3, 4))
@@ -222,6 +223,7 @@ def test_resample_from_to(caplog):
 
 
 @needs_scipy
+@pytest.mark.thread_unsafe
 def test_resample_to_output(caplog):
     # Test routine to sample images to output space
     # Image aligned to output axes - no-op
@@ -331,6 +333,7 @@ def test_resample_to_output(caplog):
 
 
 @needs_scipy
+@pytest.mark.thread_unsafe
 def test_smooth_image(caplog):
     # Test image smoothing
     data = np.arange(24, dtype='int32').reshape((2, 3, 4))
@@ -386,6 +389,7 @@ def test_smooth_image(caplog):
 
 
 @needs_scipy
+@pytest.mark.thread_unsafe
 def test_spatial_axes_check(caplog):
     for fname in MINC_3DS + OTHER_IMGS:
         img = nib.load(pjoin(DATA_DIR, fname))
@@ -457,6 +461,7 @@ def test_against_spm_resample():
 
 
 @needs_scipy
+@pytest.mark.thread_unsafe
 def test_conform(caplog):
     anat = nib.load(pjoin(DATA_DIR, 'anatomical.nii'))
 

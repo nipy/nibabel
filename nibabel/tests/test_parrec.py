@@ -580,6 +580,7 @@ def test_xyzt_unit_conversion():
         assert nifti_hdr.get_xyzt_units() == ('mm', 'sec')
 
 
+@pytest.mark.thread_unsafe
 def test_truncations():
     # Test tests for truncation
     par = pjoin(DATA_PATH, 'T2_.PAR')
@@ -771,6 +772,7 @@ class FakeHeader:
         return self._shape[:2] + (n_slices,)
 
 
+@pytest.mark.thread_unsafe
 def test_parrec_proxy():
     # Test PAR / REC proxy class, including mmap flags
     shape = (10, 20, 30, 5)
@@ -882,6 +884,7 @@ def test_dualTR():
         assert dualTR_hdr.get_zooms()[3] == expected_TRs[0] / 1000
 
 
+@pytest.mark.thread_unsafe
 def test_ADC_map():
     # test reading an apparent diffusion coefficient map
     with open(ADC_PAR) as fobj:

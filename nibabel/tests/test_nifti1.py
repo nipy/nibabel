@@ -198,6 +198,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
                     assert hdr.get_slope_inter() == out_tup
             assert_array_equal([hdr['scl_slope'], hdr['scl_inter']], raw_values)
 
+    @pytest.mark.thread_unsafe
     def test_nifti_qfac_checks(self):
         # Test qfac is 1 or -1
         hdr = self.header_class()
@@ -212,6 +213,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert fhdr['pixdim'][0] == 1
         assert message == 'pixdim[0] (qfac) should be 1 (default) or -1; setting qfac to 1'
 
+    @pytest.mark.thread_unsafe
     def test_nifti_qsform_checks(self):
         # qform, sform checks
         HC = self.header_class
@@ -244,6 +246,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             with pytest.raises(KeyError):
                 hdr.set_sform(affine, bad_code)
 
+    @pytest.mark.thread_unsafe
     def test_magic_offset_checks(self):
         # magic and offset
         HC = self.header_class
@@ -994,6 +997,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         img.set_sform(None, img.get_sform(coded=True)[1])
         img.set_qform(None, img.get_qform(coded=True)[1])
 
+    @pytest.mark.thread_unsafe
     def test_hdr_diff(self):
         # Check an offset beyond data does not raise an error
         img = self.image_class(np.zeros((2, 3, 4)), np.eye(4))
@@ -1003,6 +1007,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         with InTemporaryDirectory():
             img.to_filename('another_file' + ext)
 
+    @pytest.mark.thread_unsafe
     def test_load_save(self):
         IC = self.image_class
         img_ext = IC.files_types[0][1]
@@ -1453,6 +1458,7 @@ class TestNifti1General:
     module = nifti1
     example_file = image_file
 
+    @pytest.mark.thread_unsafe
     def test_loadsave_cycle(self):
         nim = self.module.load(self.example_file)
         # ensure we have extensions

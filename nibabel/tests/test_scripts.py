@@ -272,6 +272,7 @@ def check_conversion(cmd, pr_data, out_fname):
 
 
 @script_test
+@pytest.mark.thread_unsafe
 def test_parrec2nii():
     # Test parrec2nii script
     cmd = ['parrec2nii', '--help']
@@ -435,6 +436,7 @@ def test_parrec2nii_with_data():
 
 
 @script_test
+@pytest.mark.thread_unsafe
 def test_nib_trk2tck():
     simple_trk = pjoin(DATA_PATH, 'simple.trk')
     standard_trk = pjoin(DATA_PATH, 'standard.trk')
@@ -478,6 +480,7 @@ def test_nib_trk2tck():
 
 
 @script_test
+@pytest.mark.thread_unsafe
 def test_nib_tck2trk():
     anat = pjoin(DATA_PATH, 'standard.nii.gz')
     standard_tck = pjoin(DATA_PATH, 'standard.tck')

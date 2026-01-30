@@ -91,6 +91,7 @@ def test_read_mgh():
     assert_almost_equal(v[1, 2, 3, 1], 0.0018, 4)
 
 
+@pytest.mark.thread_unsafe
 def test_write_mgh():
     # write our data to a tmp file
     v = np.arange(120)
@@ -121,6 +122,7 @@ def test_write_mgh():
     assert_almost_equal(dat, v, 7)
 
 
+@pytest.mark.thread_unsafe
 def test_write_noaffine_mgh():
     # now just save the image without the vox2ras transform
     # and see if it uses the default values to save
@@ -188,6 +190,7 @@ def test_bad_dtype_mgh():
         bad_dtype_mgh()
 
 
+@pytest.mark.thread_unsafe
 def test_filename_exts():
     # Test acceptable filename extensions
     v = np.ones((7, 13, 3, 22), np.uint8)

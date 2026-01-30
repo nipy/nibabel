@@ -186,6 +186,7 @@ class TestEcatImage(TestCase):
         assert Path(self.img.file_map['header'].filename) == Path(self.example_file)
         assert Path(self.img.file_map['image'].filename) == Path(self.example_file)
 
+    @pytest.mark.thread_unsafe
     def test_save(self):
         tmp_file = 'tinypet_tmp.v'
         with InTemporaryDirectory():
@@ -222,6 +223,7 @@ class TestEcatImage(TestCase):
         for sliceobj in slicer_samples(self.img.shape):
             assert_array_equal(arr[sliceobj], prox[sliceobj])
 
+    @pytest.mark.thread_unsafe
     def test_isolation(self):
         # Test image isolated from external changes to affine
         img_klass = self.image_class

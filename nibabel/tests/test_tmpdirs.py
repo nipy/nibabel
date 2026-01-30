@@ -9,6 +9,7 @@ MY_PATH = abspath(__file__)
 MY_DIR = dirname(MY_PATH)
 
 
+@pytest.mark.thread_unsafe
 def test_given_directory():
     # Test InGivenDirectory
     cwd = getcwd()

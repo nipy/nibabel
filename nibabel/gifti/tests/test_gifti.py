@@ -562,6 +562,7 @@ def test_darray_dtype_coercion_failures():
         assert_array_equal(da_copy.data, da.data)
 
 
+@pytest.mark.thread_unsafe
 def test_gifti_file_close(recwarn):
     gii = load(get_test_data('gifti', 'ascii.gii'))
     with InTemporaryDirectory():

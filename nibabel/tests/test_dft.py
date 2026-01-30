@@ -42,6 +42,7 @@ class Test_DBclass:
     def test_repr(self):
         assert repr(self._db) == "<DFT ':memory:'>"
 
+    @pytest.mark.thread_unsafe
     def test_cursor_conflict(self):
         rwc = self._db.readwrite_cursor
         statement = ('INSERT INTO directory (path, mtime) VALUES (?, ?)', ('/tmp', 0))
