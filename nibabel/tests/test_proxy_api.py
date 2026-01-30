@@ -110,6 +110,7 @@ class _TestProxyAPI(ValidateAPI):
         with pytest.raises(AttributeError):
             prox.shape = params['shape']
 
+    @pytest.mark.thread_unsafe
     def validate_ndim(self, pmaker, params):
         # Check shape
         prox, fio, hdr = pmaker()
