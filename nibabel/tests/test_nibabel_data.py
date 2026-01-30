@@ -17,7 +17,6 @@ def teardown_module():
     nibd.environ = os.environ
 
 
-@pytest.mark.thread_unsafe
 def test_get_nibabel_data():
     # Test getting directory
     local_data = realpath(pjoin(MY_DIR, '..', '..', 'nibabel-data'))
