@@ -287,6 +287,7 @@ def check_series_map(mapping):
     assert mapping.series_unit == 'SECOND'
 
 
+@pytest.mark.thread_unsafe
 def test_dtseries():
     series_map = create_series_map((0,))
     geometry_map = create_geometry_map((1,))
@@ -308,6 +309,7 @@ def test_dtseries():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_dscalar():
     scalar_map = create_scalar_map((0,))
     geometry_map = create_geometry_map((1,))
@@ -329,6 +331,7 @@ def test_dscalar():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_dlabel():
     label_map = create_label_map((0,))
     geometry_map = create_geometry_map((1,))
@@ -350,6 +353,7 @@ def test_dlabel():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_dconn():
     mapping = create_geometry_map((0, 1))
     matrix = ci.Cifti2Matrix()
@@ -370,6 +374,7 @@ def test_dconn():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_ptseries():
     series_map = create_series_map((0,))
     parcel_map = create_parcel_map((1,))
@@ -391,6 +396,7 @@ def test_ptseries():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_pscalar():
     scalar_map = create_scalar_map((0,))
     parcel_map = create_parcel_map((1,))
@@ -412,6 +418,7 @@ def test_pscalar():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_pdconn():
     geometry_map = create_geometry_map((0,))
     parcel_map = create_parcel_map((1,))
@@ -433,6 +440,7 @@ def test_pdconn():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_dpconn():
     parcel_map = create_parcel_map((0,))
     geometry_map = create_geometry_map((1,))
@@ -454,6 +462,7 @@ def test_dpconn():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_plabel():
     label_map = create_label_map((0,))
     parcel_map = create_parcel_map((1,))
@@ -474,6 +483,7 @@ def test_plabel():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_pconn():
     mapping = create_parcel_map((0, 1))
     matrix = ci.Cifti2Matrix()
@@ -494,6 +504,7 @@ def test_pconn():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_pconnseries():
     parcel_map = create_parcel_map((0, 1))
     series_map = create_series_map((2,))
@@ -517,6 +528,7 @@ def test_pconnseries():
         del img2
 
 
+@pytest.mark.thread_unsafe
 def test_pconnscalar():
     parcel_map = create_parcel_map((0, 1))
     scalar_map = create_scalar_map((2,))

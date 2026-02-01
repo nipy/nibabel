@@ -77,6 +77,7 @@ def test_conversion_spatialimages(caplog):
                 assert_array_equal(img2.affine, affine)
 
 
+@pytest.mark.thread_unsafe
 def test_save_load_endian():
     shape = (2, 4, 6)
     affine = np.diag([1, 2, 3, 1])
@@ -296,6 +297,7 @@ def test_guessed_image_type():
         assert nils.guessed_image_type(pjoin(DATA_PATH, 'analyze.hdr')) == Spm2AnalyzeImage
 
 
+@pytest.mark.thread_unsafe
 def test_fail_save():
     with InTemporaryDirectory():
         dataobj = np.ones((10, 10, 10), dtype=np.float16)

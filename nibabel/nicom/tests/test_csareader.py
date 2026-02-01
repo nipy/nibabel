@@ -64,6 +64,7 @@ def test_csa_len0():
     assert len(tags) == 44
 
 
+@pytest.mark.thread_unsafe
 def test_csa_nitem():
     # testing csa.read's ability to raise an error when n_items >= 200
     with pytest.raises(csa.CSAReadError):

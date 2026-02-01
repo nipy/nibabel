@@ -145,6 +145,7 @@ class TestSpm99AnalyzeHeader(test_analyze.TestAnalyzeHeader, HeaderScalingMixin)
                 assert hdr.get_slope_inter() == out_tup
             assert_array_equal(hdr['scl_slope'], raw_slope)
 
+    @pytest.mark.thread_unsafe
     def test_origin_checks(self):
         HC = self.header_class
         # origin

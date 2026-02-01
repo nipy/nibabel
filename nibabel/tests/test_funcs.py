@@ -29,6 +29,7 @@ def _as_fname(img):
     return fname
 
 
+@pytest.mark.thread_unsafe
 def test_concat():
     # Smoke test: concat empty list.
     with pytest.raises(ValueError):

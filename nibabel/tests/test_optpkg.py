@@ -52,6 +52,7 @@ def test_basic():
         assert_bad('nottriedbefore')
 
 
+@pytest.mark.thread_unsafe
 def test_versions():
     fake_name = '_a_fake_package'
     fake_pkg = types.ModuleType(fake_name)

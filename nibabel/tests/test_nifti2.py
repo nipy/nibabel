@@ -7,10 +7,10 @@
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Tests for nifti2 reading package"""
-
 import os
 
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
 from .. import nifti2
@@ -36,6 +36,7 @@ class _Nifti2Mixin:
         # Disable this check
         pass
 
+    @pytest.mark.thread_unsafe
     def test_eol_check(self):
         # Check checking of EOL check field
         HC = self.header_class
@@ -89,6 +90,7 @@ class TestNifti2General(tn1.TestNifti1General):
     example_file = image_file
 
 
+@pytest.mark.thread_unsafe
 def test_nifti12_conversion():
     shape = (2, 3, 4)
     dtype_type = np.int64

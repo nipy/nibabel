@@ -136,6 +136,7 @@ class GenericImageAPI(ValidateAPI):
         with pytest.raises(AttributeError):
             img.header = hdr
 
+    @pytest.mark.thread_unsafe
     def validate_filenames(self, imaker, params):
         # Validate the filename, file_map interface
 
@@ -200,7 +201,7 @@ class GetSetDtypeMixin:
 
     Add this one if your image has ``get_data_dtype`` and ``set_data_dtype``.
     """
-
+    @pytest.mark.thread_unsafe
     def validate_dtype(self, imaker, params):
         # data / storage dtype
         img = imaker()
@@ -393,6 +394,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             data = get_data_func(dtype=float_type)
             assert (data is img.dataobj) == (arr_dtype == float_type)
 
+    @pytest.mark.thread_unsafe
     def validate_shape(self, imaker, params):
         # Validate shape
         img = imaker()
@@ -405,6 +407,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         with pytest.raises(AttributeError):
             img.shape = np.eye(4)
 
+    @pytest.mark.thread_unsafe
     def validate_ndim(self, imaker, params):
         # Validate shape
         img = imaker()
@@ -417,6 +420,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         with pytest.raises(AttributeError):
             img.ndim = 5
 
+    @pytest.mark.thread_unsafe
     def validate_mmap_parameter(self, imaker, params):
         img = imaker()
         fname = img.get_filename()
@@ -493,6 +497,7 @@ class SerializeMixin:
         assert self._header_eq(img.header, rt_img.header)
         assert np.array_equal(img.get_fdata(), rt_img.get_fdata())
 
+    @pytest.mark.thread_unsafe
     def validate_file_stream_equivalence(self, imaker, params):
         img = imaker()
         klass = getattr(self, 'klass', img.__class__)
@@ -518,6 +523,7 @@ class SerializeMixin:
             del img_a
             del img_b
 
+    @pytest.mark.thread_unsafe
     def validate_to_from_bytes(self, imaker, params):
         img = imaker()
         klass = getattr(self, 'klass', img.__class__)
@@ -544,6 +550,7 @@ class SerializeMixin:
         self.httpserver = httpserver
         self.tmp_path = tmp_path
 
+    @pytest.mark.thread_unsafe
     def validate_from_url(self, imaker, params):
         server = self.httpserver
 
@@ -683,6 +690,7 @@ class DtypeOverrideMixin(GetSetDtypeMixin):
                     rt_img = bytesio_round_trip(new_img)
                 assert rt_img.get_data_dtype() == dtype
 
+    @pytest.mark.thread_unsafe
     def validate_to_file_dtype_override(self, imaker, params):
         if not self.can_save:
             raise unittest.SkipTest

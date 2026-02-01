@@ -1,0 +1,68 @@
+---
+# Runs tests suite with free threaded python.
+#
+###
+name: test free threaded python
+
+on:
+    pull_request:
+    workflow_dispatch:
+    push:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    FORCE_COLOR: true
+
+jobs:
+
+    free_threaded:
+        name: 'Test with ${{ matrix.py }} on ${{ matrix.os }}'
+
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+            fail-fast: false
+            matrix:
+                py: [3.14t]
+                os: [macos-latest, ubuntu-latest]
+                env: [free_threaded]
+
+        steps:
+        -   uses: actions/checkout@v6
+
+        -   name: Install the latest version of uv
+            uses: astral-sh/setup-uv@v7
+
+        -   name: Setup python
+            uses: actions/setup-python@v6
+            with:
+                python-version: ${{ matrix.py }}
+                allow-prereleases: true
+
+        -   name: Install dependencies
+            # for now one of the dependencies of plotly cannot be installed
+            # for free threaded python so only testing with matplotlib
+            #
+            # for now one of the dependencies of plotly
+            # cannot be installed for free threaded python
+            # so only testing with matplotlib
+            run: |
+                uv venv -p 3.14t
+                source .venv/bin/activate
+                uv pip install -e '.[test,dicomfs,indexed_gzip,spm,zstd]'
+                uv pip install pytest-run-parallel    
+
+        -   name: Run test suite
+            # run on several threads
+            # this may take a bit longer with fewer threads
+            # but as some tests can be flaky,
+            # they will more systematically fail with more threads
+            id: test_free_threaded
+            run: |
+                source .venv/bin/activate
+                PYTEST_RUN_PARALLEL_VERBOSE=1
+                N_THREADS=16
+                pytest -ra --strict-config --strict-markers --showlocals --capture=no --parallel-threads $N_THREADS nibabel

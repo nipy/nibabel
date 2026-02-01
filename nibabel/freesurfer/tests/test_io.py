@@ -144,6 +144,7 @@ def test_morph_data():
         assert np.array_equal(curv2, curv)
 
 
+@pytest.mark.thread_unsafe
 def test_write_morph_data():
     """Test write_morph_data edge cases"""
     values = np.arange(20, dtype='>f4')
@@ -211,6 +212,7 @@ def test_annot():
         assert names == names2
 
 
+@pytest.mark.thread_unsafe
 def test_read_write_annot():
     """Test generating .annot file and reading it back."""
     # This annot file will store a LUT for a mesh made of 10 vertices, with
@@ -244,6 +246,7 @@ def test_read_write_annot():
         assert names2 == names
 
 
+@pytest.mark.thread_unsafe
 def test_write_annot_fill_ctab():
     """Test the `fill_ctab` parameter to :func:`.write_annot`."""
     nvertices = 10
@@ -291,6 +294,7 @@ def test_write_annot_fill_ctab():
         assert names2 == names
 
 
+@pytest.mark.thread_unsafe
 def test_read_annot_old_format():
     """Test reading an old-style .annot file."""
 
@@ -353,6 +357,7 @@ def test_label():
     assert len(labels) == len(scalars)
 
 
+@pytest.mark.thread_unsafe
 def test_write_annot_maxstruct():
     """Test writing ANNOT files with repeated labels"""
     with InTemporaryDirectory():

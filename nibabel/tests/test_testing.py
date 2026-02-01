@@ -71,6 +71,7 @@ def assert_warn_len_equal(mod, n_in_context):
         assert len(mod_warns) == n_in_context
 
 
+@pytest.mark.thread_unsafe
 def test_clear_and_catch_warnings():
     # Initial state of module, no warnings
     my_mod = get_fresh_mod(__name__)
@@ -98,6 +99,7 @@ class my_cacw(clear_and_catch_warnings):
     class_modules = (sys.modules[__name__],)
 
 
+@pytest.mark.thread_unsafe
 def test_clear_and_catch_warnings_inherit():
     # Test can subclass and add default modules
     my_mod = get_fresh_mod(__name__)

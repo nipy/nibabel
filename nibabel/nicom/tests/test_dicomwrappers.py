@@ -522,6 +522,7 @@ class TestMultiFrameWrapper(TestCase):
         WRAPCLASS = didw.MultiframeWrapper
 
     @dicom_test
+    @pytest.mark.thread_unsafe
     def test_shape(self):
         # Check the shape algorithm
         fake_mf = deepcopy(self.MINIMAL_MF)
