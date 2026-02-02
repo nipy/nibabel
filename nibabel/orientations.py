@@ -76,7 +76,7 @@ def io_orientation(affine, tol=None):
     # from further consideration.
     ornt = np.ones((p, 2), dtype=np.int8) * np.nan
     for _ in range(p):
-        row, col = np.unravel_index(np.argmax(np.abs(R)), R.shape, order=R.order)
+        row, col = np.unravel_index(np.argmax(np.abs(R)), R.shape)
         max_val = R[row, col]
         if not np.isclose(max_val, 0):
             ornt[col] = [col, np.sign(max_val)]
