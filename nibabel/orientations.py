@@ -70,27 +70,18 @@ def io_orientation(affine, tol=None):
     # the matrix R is such that np.dot(R,R.T) is projection onto the
     # columns of P[:,keep] and np.dot(R.T,R) is projection onto the rows
     # of Qs[keep].  R (== np.dot(R, np.eye(p))) gives rotation of the
-    # unit input vectors to output coordinates.  Therefore, the row
-    # index of abs max R[:,N], is the output axis changing most as input
-    # axis N changes.  In case there are ties, we choose the axes
-    # iteratively, removing used axes from consideration as we go
+    # unit input vectors to output coordinates.  Therefore, we iteratively
+    # select the column vector with the highest alignment with any coordinate
+    # axis and name that vector by this axis, removing that row and column
+    # from further consideration.
     ornt = np.ones((p, 2), dtype=np.int8) * np.nan
-    # Process input axes from strongest to weakest (stable on ties) so a given
-    # dimension is labeled consistently regardless of the original order.
-    in_axes = np.argsort(np.min(-(R**2), axis=0), kind='stable')
-    for in_ax in in_axes:
-        col = R[:, in_ax]
-        if not np.allclose(col, 0):
-            out_ax = np.argmax(np.abs(col))
-            ornt[in_ax, 0] = out_ax
-            assert col[out_ax] != 0
-            if col[out_ax] < 0:
-                ornt[in_ax, 1] = -1
-            else:
-                ornt[in_ax, 1] = 1
-            # remove the identified axis from further consideration, by
-            # zeroing out the corresponding row in R
-            R[out_ax, :] = 0
+    for _ in range(p):
+        row, col = np.unravel_index(np.argmax(np.abs(R)), R.shape, order=R.order)
+        max_val = R[row, col]
+        if not np.isclose(max_val, 0):
+            ornt[col] = [col, np.sign(max_val)]
+            R[row, :] = 0
+            R[:, col] = 0
     return ornt
 
 
