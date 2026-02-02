@@ -201,6 +201,7 @@ class GetSetDtypeMixin:
 
     Add this one if your image has ``get_data_dtype`` and ``set_data_dtype``.
     """
+
     @pytest.mark.thread_unsafe
     def validate_dtype(self, imaker, params):
         # data / storage dtype
