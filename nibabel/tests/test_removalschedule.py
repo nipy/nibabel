@@ -157,18 +157,21 @@ def test_attribute_removal():
 _sched = 'nibabel.tests.test_removalschedule.{}_SCHEDULE'.format
 
 
+@pytest.mark.thread_unsafe
 @mock.patch(_sched('MODULE'), [('3.0.0', ['nibabel.nifti1'])])
 def test_unremoved_module():
     with pytest.raises(AssertionError):
         test_module_removal()
 
 
+@pytest.mark.thread_unsafe
 @mock.patch(_sched('OBJECT'), [('3.0.0', [('nibabel.nifti1', 'Nifti1Image')])])
 def test_unremoved_object():
     with pytest.raises(AssertionError):
         test_object_removal()
 
 
+@pytest.mark.thread_unsafe
 @mock.patch(_sched('ATTRIBUTE'), [('3.0.0', [('nibabel.nifti1', 'Nifti1Image', 'affine')])])
 def test_unremoved_attr():
     with pytest.raises(AssertionError):

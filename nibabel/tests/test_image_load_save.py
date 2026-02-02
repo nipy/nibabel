@@ -124,6 +124,7 @@ def test_save_load_endian():
     assert_array_equal(m_img2.get_fdata(), data)
 
 
+@pytest.mark.thread_unsafe
 def test_save_load():
     shape = (2, 4, 6)
     npt = np.float32

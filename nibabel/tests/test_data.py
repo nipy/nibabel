@@ -186,6 +186,7 @@ def test_find_data_dir():
     assert dd == here
 
 
+@pytest.mark.thread_unsafe
 def test_make_datasource(with_nimd_env):
     pkg_def = dict(relpath='pkg')
     with TemporaryDirectory() as tmpdir:
