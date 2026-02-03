@@ -79,7 +79,7 @@ def io_orientation(affine, tol=None):
         row, col = np.unravel_index(np.argmax(np.abs(R)), R.shape)
         max_val = R[row, col]
         if not np.isclose(max_val, 0):
-            ornt[col] = [col, np.sign(max_val)]
+            ornt[col] = [row, np.sign(max_val)]
             R[row, :] = 0
             R[:, col] = 0
     return ornt
