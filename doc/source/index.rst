@@ -133,6 +133,7 @@ contributed code and discussion (in rough order of appearance):
 * Guillaume Becq
 * Joshua Newton
 * Sandro from the Fedora Project
+* `Leonardo Ayala`_
 
 License reprise
 ===============
