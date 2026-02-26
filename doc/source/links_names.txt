@@ -250,6 +250,7 @@
 .. _Nolan Nichols: http://www.nolan-nichols.com
 .. _Satrajit Ghosh: http://satra.cogitatum.org
 .. _Chris Rorden: http://www.mccauslandcenter.sc.edu/crnl/chris-rorden
+.. _Leonardo Ayala: https://leoyala.github.io/
 
 .. Substitutions
 .. |emdash| unicode:: U+02014
