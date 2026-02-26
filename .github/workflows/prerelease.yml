@@ -73,4 +73,22 @@ jobs:
       - name: Setup test suite
         run: tox run -vv --notest
       - name: Run test suite
+        id: pre
         run: tox -v --skip-pkg-install --exit-and-dump-after 1200
+      - name: Create issue
+        # Workflows triggered by schedule only notify the workflow creator
+        # So let's open an issue to make sure this is visible to all
+        if: ${{ steps.pre.outcome != 'success' }}
+        uses: JasonEtco/create-an-issue@v2.9.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run_id: ${{ github.run_id }}
+          repository: ${{ github.repository }}
+          workflow_name: PRE-RELEASE TESTS
+        with:
+          filename: .github/workflow_failure.md
+          update_existing: true
+          search_existing: open
+      - name: Return failure
+        if: ${{ steps.pre.outcome != 'success' }}
+        run: exit 1
