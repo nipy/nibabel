@@ -286,7 +286,7 @@ class TrkFile(TractogramFile):
     def create_empty_header(cls, endianness=None):
         """Return an empty compliant TRK header as dict"""
         st_arr = cls._default_structarr(endianness)
-        return dict(zip(st_arr.dtype.names, st_arr.tolist()))
+        return dict(zip(st_arr.dtype.names, st_arr.tolist(), strict=False))
 
     @classmethod
     def load(cls, fileobj, lazy_load=False):
@@ -600,7 +600,7 @@ class TrkFile(TractogramFile):
                 )
 
             # Convert the first record of `header_rec` into a dictionary
-            header = dict(zip(header_rec.dtype.names, header_rec[0]))
+            header = dict(zip(header_rec.dtype.names, header_rec[0], strict=False))
             header[Field.ENDIANNESS] = endianness
 
             # If vox_to_ras[3][3] is 0, it means the matrix is not recorded.

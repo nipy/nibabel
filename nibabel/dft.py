@@ -75,7 +75,7 @@ class _Study:
                 c.execute('SELECT * FROM series WHERE study = ?', (self.uid,))
                 cols = [el[0] for el in c.description]
                 for row in c:
-                    d = dict(zip(cols, row))
+                    d = dict(zip(cols, row, strict=False))
                     val.append(_Series(d))
             self.series = val
         return val
@@ -110,7 +110,7 @@ class _Series:
                 c.execute(query, (self.uid,))
                 cols = [el[0] for el in c.description]
                 for row in c:
-                    d = dict(zip(cols, row))
+                    d = dict(zip(cols, row, strict=False))
                     val.append(_StorageInstance(d))
             self.storage_instances = val
         return val
@@ -289,7 +289,7 @@ def get_studies(base_dir=None, followlinks=False):
             studies = []
             cols = [el[0] for el in c.description]
             for row in c:
-                d = dict(zip(cols, row))
+                d = dict(zip(cols, row, strict=False))
                 studies.append(_Study(d))
         return studies
     query = """SELECT study
@@ -309,7 +309,7 @@ def get_studies(base_dir=None, followlinks=False):
         for uid in study_uids:
             c.execute('SELECT * FROM study WHERE uid = ?', (uid,))
             cols = [el[0] for el in c.description]
-            d = dict(zip(cols, c.fetchone()))
+            d = dict(zip(cols, c.fetchone(), strict=False))
             studies.append(_Study(d))
     return studies
 

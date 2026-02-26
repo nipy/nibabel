@@ -375,7 +375,7 @@ def test_metadata_list_interface():
 
 def test_gifti_label_rgba():
     rgba = rng.random(4)
-    kwargs = dict(zip(['red', 'green', 'blue', 'alpha'], rgba))
+    kwargs = dict(zip(['red', 'green', 'blue', 'alpha'], rgba, strict=False))
 
     gl1 = GiftiLabel(**kwargs)
     assert_array_equal(rgba, gl1.rgba)

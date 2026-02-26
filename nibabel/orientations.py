@@ -279,7 +279,7 @@ def ornt2axcodes(ornt, labels=None):
     ('F', 'L', 'U')
     """
     if labels is None:
-        labels = list(zip('LPI', 'RAS'))
+        labels = list(zip('LPI', 'RAS', strict=False))
     axcodes = []
     for axno, direction in np.asarray(ornt):
         if np.isnan(axno):
@@ -324,7 +324,7 @@ def axcodes2ornt(axcodes, labels=None):
            [ 0., -1.],
            [ 2.,  1.]])
     """
-    labels = list(zip('LPI', 'RAS')) if labels is None else labels
+    labels = list(zip('LPI', 'RAS', strict=False)) if labels is None else labels
     allowed_labels = sum(map(list, labels), [None])
     if len(allowed_labels) != len(set(allowed_labels)):
         raise ValueError(f'Duplicate labels in {allowed_labels}')

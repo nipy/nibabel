@@ -346,7 +346,7 @@ class ArraySequence:
 
         next_offset = 0
         offsets = []
-        for offset, length in zip(self._offsets, self._lengths):
+        for offset, length in zip(self._offsets, self._lengths, strict=False):
             offsets.append(next_offset)
             chunk = self._data[offset : offset + length]
             seq._data[next_offset : next_offset + length] = chunk
@@ -457,15 +457,17 @@ class ArraySequence:
                 msg = f'Trying to set {sum(lengths)} points with {elements.total_nb_rows} points.'
                 raise ValueError(msg)
 
-            for o1, l1, o2, l2 in zip(offsets, lengths, elements._offsets, elements._lengths):
+            for o1, l1, o2, l2 in zip(
+                offsets, lengths, elements._offsets, elements._lengths, strict=False
+            ):
                 data[o1 : o1 + l1] = elements._data[o2 : o2 + l2]
 
         elif isinstance(elements, numbers.Number):
-            for o1, l1 in zip(offsets, lengths):
+            for o1, l1 in zip(offsets, lengths, strict=False):
                 data[o1 : o1 + l1] = elements
 
         else:  # Try to iterate over it.
-            for o1, l1, element in zip(offsets, lengths, elements):
+            for o1, l1, element in zip(offsets, lengths, elements, strict=False):
                 data[o1 : o1 + l1] = element
 
     def _op(self, op, value=None, inplace=False):
@@ -496,6 +498,7 @@ class ArraySequence:
                 self._lengths,
                 value._offsets,
                 value._lengths,
+                strict=False,
             )
 
             # Change seq.dtype to match the operation resulting type.
@@ -511,7 +514,7 @@ class ArraySequence:
 
         else:
             args = [] if value is None else [value]  # Dealing with unary and binary ops.
-            elements = zip(seq._offsets, seq._lengths, self._offsets, self._lengths)
+            elements = zip(seq._offsets, seq._lengths, self._offsets, self._lengths, strict=False)
 
             # Change seq.dtype to match the operation resulting type.
             o0, l0, o1, l1 = next(elements)
@@ -530,7 +533,7 @@ class ArraySequence:
                 'ArraySequence object corrupted: len(self._lengths) != len(self._offsets)'
             )
 
-        for offset, lengths in zip(self._offsets, self._lengths):
+        for offset, lengths in zip(self._offsets, self._lengths, strict=False):
             yield self._data[offset : offset + lengths]
 
     def __len__(self):

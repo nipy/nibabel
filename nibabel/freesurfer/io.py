@@ -559,7 +559,7 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
         # num_entries
         write(ctab.shape[0])
 
-        for ind, (clu, name) in enumerate(zip(ctab, names)):
+        for ind, (clu, name) in enumerate(zip(ctab, names, strict=False)):
             write(ind)
             write_string(name)
             for val in clu[:-1]:

@@ -88,7 +88,7 @@ class Opener:
             return
         opener, arg_names = self._get_opener_argnames(fileish)
         # Get full arguments to check for optional parameters
-        full_kwargs = {**kwargs, **dict(zip(arg_names, args))}
+        full_kwargs = {**kwargs, **dict(zip(arg_names, args, strict=False))}
         # Set default mode
         if 'mode' not in full_kwargs:
             mode = 'rb'

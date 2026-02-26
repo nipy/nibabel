@@ -191,7 +191,7 @@ def test_apply():
 
 def test_io_orientation():
     for shape in ((2, 3, 4), (20, 15, 7)):
-        for in_arr, out_ornt in zip(IN_ARRS, OUT_ORNTS):
+        for in_arr, out_ornt in zip(IN_ARRS, OUT_ORNTS, strict=False):
             ornt = io_orientation(in_arr)
             assert_array_equal(ornt, out_ornt)
             taff = inv_ornt_aff(ornt, shape)
@@ -381,7 +381,7 @@ def test_ornt2axcodes():
     with pytest.raises(ValueError):
         ornt2axcodes([[0, 0]])
 
-    for axcodes, ornt in zip(ALL_AXCODES, ALL_ORNTS):
+    for axcodes, ornt in zip(ALL_AXCODES, ALL_ORNTS, strict=False):
         assert ornt2axcodes(ornt) == axcodes
 
 
@@ -420,7 +420,7 @@ def test_axcodes2ornt():
         with pytest.raises(ValueError):
             axcodes2ornt('blD', labels)
 
-    for axcodes, ornt in zip(ALL_AXCODES, ALL_ORNTS):
+    for axcodes, ornt in zip(ALL_AXCODES, ALL_ORNTS, strict=False):
         assert_array_equal(axcodes2ornt(axcodes), ornt)
 
 

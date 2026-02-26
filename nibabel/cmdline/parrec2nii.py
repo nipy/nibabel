@@ -383,7 +383,7 @@ def proc_file(infile, opts):
             with open(basefilename + '.ordering.csv', 'w', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile, delimiter=',')
                 csvwriter.writerow(vol_keys)
-                for vals in zip(*[labels[k] for k in vol_keys]):
+                for vals in zip(*[labels[k] for k in vol_keys], strict=False):
                     csvwriter.writerow(vals)
 
     # write out dwell time if requested

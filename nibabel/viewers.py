@@ -139,7 +139,7 @@ class OrthoSlicer3D:
         ]
         self._sizes = [self._data.shape[order] for order in self._order]
         for ii, xax, yax, ratio, label in zip(
-            [0, 1, 2], [1, 0, 0], [2, 2, 1], r, ('SAIP', 'SRIL', 'ARPL')
+            [0, 1, 2], [1, 0, 0], [2, 2, 1], r, ('SAIP', 'SRIL', 'ARPL'), strict=False
         ):
             ax = self._axes[ii]
             d = np.zeros((self._sizes[yax], self._sizes[xax]))
@@ -175,7 +175,7 @@ class OrthoSlicer3D:
                 ['center', 'top'],
                 ['right', 'center'],
             ]
-            for pos, anchor, lab in zip(poss, anchors, label):
+            for pos, anchor, lab in zip(poss, anchors, label, strict=False):
                 ax.text(
                     pos[0], pos[1], lab, horizontalalignment=anchor[0], verticalalignment=anchor[1]
                 )
@@ -202,7 +202,7 @@ class OrthoSlicer3D:
             ax.set_xticks(np.unique(np.linspace(0, self.n_volumes - 1, 5).astype(int)))
             ax.set_xlim(x[0], x[-1])
             yl = [self._data.min(), self._data.max()]
-            yl = [lim + s * np.diff(lims)[0] for lim, s in zip(yl, [-1.01, 1.01])]
+            yl = [lim + s * np.diff(lims)[0] for lim, s in zip(yl, [-1.01, 1.01], strict=False)]
             patch = mpl_patch.Rectangle(
                 [-0.5, yl[0]],
                 1.0,
@@ -400,7 +400,7 @@ class OrthoSlicer3D:
         self._position[:3] = [x, y, z]
         idxs = np.dot(self._inv_affine, self._position)[:3]
         idxs_new_order = idxs[self._order]
-        for ii, (size, idx) in enumerate(zip(self._sizes, idxs_new_order)):
+        for ii, (size, idx) in enumerate(zip(self._sizes, idxs_new_order, strict=False)):
             self._data_idx[ii] = max(min(round(idx), size - 1), 0)
         for ii in range(3):
             # sagittal: get to S/A

@@ -386,7 +386,7 @@ def fake_frames(seq_name, field_name, value_seq, frame_seq=None):
     """
     if frame_seq is None:
         frame_seq = [pydicom.Dataset() for _ in range(len(value_seq))]
-    for value, fake_frame in zip(value_seq, frame_seq):
+    for value, fake_frame in zip(value_seq, frame_seq, strict=False):
         if value is None:
             continue
         if hasattr(fake_frame, seq_name):
@@ -496,7 +496,7 @@ def fake_shape_dependents(
     # create the PerFrameFunctionalGroupsSequence
     frames = [
         PerFrmFuncGrpSeqElem(div, sid, ipp, iop)
-        for div, sid, ipp, iop in zip(div_seq, sid_seq, ipp_seq, iop_seq)
+        for div, sid, ipp, iop in zip(div_seq, sid_seq, ipp_seq, iop_seq, strict=False)
     ]
     return {
         'NumberOfFrames': num_of_frames,

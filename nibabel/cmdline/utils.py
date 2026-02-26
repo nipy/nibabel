@@ -54,12 +54,14 @@ def table2string(table, out=None):
 
     # eat whole entry while computing width for @w (for wide)
     markup_strip = re.compile(r'^@([lrc]|w.*)')
-    col_width = [max(len(markup_strip.sub('', x)) for x in column) for column in zip(*table)]
+    col_width = [
+        max(len(markup_strip.sub('', x)) for x in column) for column in zip(*table, strict=False)
+    ]
     trans = str.maketrans('lrcw', '<>^^')
     lines = []
     for row in table:
         line = []
-        for item, width in zip(row, col_width):
+        for item, width in zip(row, col_width, strict=False):
             item = str(item)
             if item.startswith('@'):
                 align = item[1]

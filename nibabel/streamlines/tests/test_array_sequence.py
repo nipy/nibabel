@@ -360,7 +360,9 @@ class TestArraySequence(unittest.TestCase):
                 orig = arrseq.copy()
                 seq = getattr(orig, op)(other)
                 assert seq is not SEQ_DATA['seq']
-                check_arr_seq(seq, [getattr(e1, op)(e2) for e1, e2 in zip(arrseq, other)])
+                check_arr_seq(
+                    seq, [getattr(e1, op)(e2) for e1, e2 in zip(arrseq, other, strict=False)]
+                )
 
             # Operations between array sequences of different lengths.
             orig = arrseq.copy()
