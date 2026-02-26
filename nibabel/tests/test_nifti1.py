@@ -1297,7 +1297,7 @@ def test_extension_list():
     ext_c0.append(ext)
     assert ext_c0 == ext_c1
 
-
+@pytest.mark.thread_unsafe
 def test_extension_io():
     bio = BytesIO()
     ext1 = Nifti1Extension(6, b'Extra comment')
