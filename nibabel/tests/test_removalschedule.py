@@ -161,7 +161,7 @@ _sched = 'nibabel.tests.test_removalschedule.{}_SCHEDULE'.format
 def is_gil_enabled():
     """Check if the Python GIL is enabled."""
     try:
-        sys._is_gil_enabled()
+        return sys._is_gil_enabled()
     except AttributeError:
         return True
 
