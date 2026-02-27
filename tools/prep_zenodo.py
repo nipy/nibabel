@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "gitpython>=3.1.46",
+# ]
+# ///
 import json
 from pathlib import Path
 from subprocess import PIPE, run
 
 import git
 
-skip = {'nibotmi'}
+skip = {'nibotmi', 'dependabot[bot]'}
 
 
 def decommify(name):
