@@ -1,14 +1,14 @@
 {
   "creators": [
     {
-      "affiliation": "School of Psychology, University of Birmingham, Birmingham, UK",
-      "name": "Brett, Matthew",
-      "orcid": "0000-0001-5500-2546"
-    },
-    {
       "affiliation": "Stanford University",
       "name": "Markiewicz, Christopher J.",
       "orcid": "0000-0002-6533-164X"
+    },
+    {
+      "affiliation": "School of Psychology, University of Birmingham, Birmingham, UK",
+      "name": "Brett, Matthew",
+      "orcid": "0000-0001-5500-2546"
     },
     {
       "affiliation": "Otto-von-Guericke-University Magdeburg, Germany",
@@ -26,12 +26,12 @@
       "orcid": "0000-0002-7782-0790"
     },
     {
+      "name": "McCarthy, Paul"
+    },
+    {
       "affiliation": "CEA",
       "name": "Papadopoulos Orfanos, Dimitri",
       "orcid": "0000-0002-1242-8990"
-    },
-    {
-      "name": "McCarthy, Paul"
     },
     {
       "affiliation": "MIT",
@@ -164,6 +164,11 @@
       "name": "van den Bosch, Jasper J.F."
     },
     {
+      "affiliation": "Brigham and Women's Hospital, Mass General Brigham/Harvard Medical School",
+      "name": "Legarreta, Jon Haitz",
+      "orcid": "0000-0002-9661-1396"
+    },
+    {
       "name": "Vincent, Robert D."
     },
     {
@@ -176,11 +181,6 @@
     },
     {
       "name": "Van, Andrew"
-    },
-    {
-      "affiliation": "Brigham and Women's Hospital, Mass General Brigham/Harvard Medical School",
-      "name": "Legarreta, Jon Haitz",
-      "orcid": "0000-0002-9661-1396"
     },
     {
       "affiliation": "Google",
@@ -246,6 +246,9 @@
       "name": "Amirbekian, Bago"
     },
     {
+      "name": "Benjamin Thyreau"
+    },
+    {
       "name": "Christian, Horea"
     },
     {
@@ -264,6 +267,9 @@
     },
     {
       "name": "St-Jean, Samuel"
+    },
+    {
+      "name": "Alex Daniel"
     },
     {
       "name": "Panfilov, Egor",
@@ -289,6 +295,10 @@
       "affiliation": "Charite Universitatsmedizin Berlin, Germany",
       "name": "Waller, Lea",
       "orcid": "0000-0002-3239-6957"
+    },
+    {
+      "name": "Ayala, Leonardo",
+      "orcid": "0000-0002-3574-2085"
     },
     {
       "name": "Hinds, Oliver P."
@@ -341,6 +351,9 @@
       "name": "Schwartz, Yannick"
     },
     {
+      "name": "Benjamin A. Beasley"
+    },
+    {
       "affiliation": "Hospital for Sick Children",
       "name": "Darwin, Benjamin C"
     },
@@ -353,6 +366,9 @@
       "name": "Gauthier, Carl"
     },
     {
+      "name": "Clorindo Notte"
+    },
+    {
       "name": "Solovey, Igor"
     },
     {
@@ -362,6 +378,9 @@
     },
     {
       "name": "Palasubramaniam, Jath"
+    },
+    {
+      "name": "Jon Cluce"
     },
     {
       "name": "Lecher, Justin"
@@ -387,6 +406,9 @@
       "name": "Gervais, Philippe"
     },
     {
+      "name": "Remi Gau"
+    },
+    {
       "name": "Gadde, Syam"
     },
     {
@@ -402,10 +424,6 @@
     },
     {
       "name": "freec84"
-    },
-    {
-      "name": "Ayala, Leonardo",
-      "orcid": "0000-0002-3574-2085"
     }
   ],
   "keywords": [
