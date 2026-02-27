@@ -40,6 +40,7 @@ contributed code and discussion (in rough order of appearance):
 * Chris Burns
 * `Gaël Varoquaux`_
 * Ian Nimmo-Smith
+* Stephan Gerhard
 * `Jarrod Millman`_
 * `Bertrand Thirion`_
 * Thomas Ballinger
@@ -82,6 +83,7 @@ contributed code and discussion (in rough order of appearance):
 * Paul McCarthy
 * Fernando Pérez García
 * Venky Reddy
+* Pradeep Raamana
 * Mark Hymers
 * Jasper J.F. van den Bosch
 * Bennet Fauber
@@ -133,7 +135,13 @@ contributed code and discussion (in rough order of appearance):
 * Guillaume Becq
 * Joshua Newton
 * Sandro from the Fedora Project
+* Benjamin Beasley
+* Clorindo Notte
+* Benjamin Thyreau
+* Alex Daniel
+* Jon Cluce
 * `Leonardo Ayala`_
+* Remi Gau
 
 License reprise
 ===============
