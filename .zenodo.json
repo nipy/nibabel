@@ -16,8 +16,8 @@
       "orcid": "0000-0001-6398-6370"
     },
     {
-      "affiliation": "Microsoft Research, Montr\u00e9al, Qu\u00e9bec, Canada",
-      "name": "C\u00f4t\u00e9, Marc-Alexandre",
+      "affiliation": "Microsoft Research, Montréal, Québec, Canada",
+      "name": "Côté, Marc-Alexandre",
       "orcid": "0000-0002-5147-7859"
     },
     {
@@ -124,10 +124,10 @@
       "name": "Madison, Cindee"
     },
     {
-      "name": "S\u00f3lon, Anibal"
+      "name": "Sólon, Anibal"
     },
     {
-      "name": "Morency, F\u00e9lix C."
+      "name": "Morency, Félix C."
     },
     {
       "affiliation": "MIT",
@@ -153,12 +153,12 @@
       "orcid": "0000-0002-5263-5070"
     },
     {
-      "affiliation": "CNRS LTCI, Telecom ParisTech, Universit\u00e9 Paris-Saclay",
+      "affiliation": "CNRS LTCI, Telecom ParisTech, Université Paris-Saclay",
       "name": "Gramfort, Alexandre",
       "orcid": "0000-0001-9791-4404"
     },
     {
-      "name": "Lepp\u00e4kangas, Jaakko"
+      "name": "Leppäkangas, Jaakko"
     },
     {
       "name": "van den Bosch, Jasper J.F."
@@ -230,16 +230,16 @@
     },
     {
       "affiliation": "University College London",
-      "name": "P\u00e9rez-Garc\u00eda, Fernando",
+      "name": "Pérez-García, Fernando",
       "orcid": "0000-0001-9090-3024"
     },
     {
-      "name": "Becq, Guillaume",
       "affiliation": "CRNS, France",
+      "name": "Becq, Guillaume",
       "orcid": "0000-0002-2134-1803"
     },
     {
-      "name": "Dock\u00e8s, J\u00e9r\u00f4me"
+      "name": "Dockès, Jérôme"
     },
     {
       "name": "Oosterhof, Nikolaas N."
@@ -248,7 +248,9 @@
       "name": "Amirbekian, Bago"
     },
     {
-      "name": "Thyreau, Benjamin"
+      "affiliation": "Tohoku University",
+      "name": "Thyreau, Benjamin",
+      "orcid": "0000-0001-6748-8192"
     },
     {
       "name": "Christian, Horea"
@@ -271,7 +273,9 @@
       "name": "St-Jean, Samuel"
     },
     {
-      "name": "Daniel, Alex"
+      "affiliation": "Sir Peter Mansfield Imaging Centre, University of Nottingham, UK",
+      "name": "Daniel, Alex",
+      "orcid": "0000-0003-2353-3283"
     },
     {
       "name": "Panfilov, Egor",
@@ -286,7 +290,7 @@
       "orcid": "0000-0003-1076-5122"
     },
     {
-      "affiliation": "Polytechnique Montr\u00e9al, Montr\u00e9al, CA",
+      "affiliation": "Polytechnique Montréal, Montréal, CA",
       "name": "Newton, Joshua",
       "orcid": "0009-0005-6963-3812"
     },
@@ -344,7 +348,7 @@
       "name": "Moreno, Miguel Estevan"
     },
     {
-      "name": "Hrn\u010diar, Tom\u00e1\u0161"
+      "name": "Hrnčiar, Tomáš"
     },
     {
       "name": "Haenel, Valentin"
@@ -388,7 +392,7 @@
       "name": "Lecher, Justin"
     },
     {
-      "affiliation": "TIB \u2013 Leibniz Information Centre for Science and Technology and University Library, Hannover, Germany",
+      "affiliation": "TIB – Leibniz Information Centre for Science and Technology and University Library, Hannover, Germany",
       "name": "Leinweber, Katrin",
       "orcid": "0000-0001-5135-5758"
     },
@@ -397,10 +401,10 @@
       "name": "Raktivan, Konstantinos"
     },
     {
-      "name": "Cal\u00e1bkov\u00e1, Mark\u00e9ta"
+      "name": "Calábková, Markéta"
     },
     {
-      "affiliation": "Friedrich-Alexander-Universit\u00e4t Erlangen-N\u00fcrnberg, Erlangen, Germany",
+      "affiliation": "Friedrich-Alexander-Universität Erlangen-Nürnberg, Erlangen, Germany",
       "name": "Fischer, Peter",
       "orcid": "0000-0003-3242-9867"
     },
@@ -408,7 +412,8 @@
       "name": "Gervais, Philippe"
     },
     {
-      "name": "Gau, Remi"
+      "name": "Gau, Rémi",
+      "orcid": "0000-0002-1535-9767"
     },
     {
       "name": "Gadde, Syam"
