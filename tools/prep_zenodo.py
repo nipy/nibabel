@@ -47,4 +47,4 @@ creators = [
 ]
 
 zenodo['creators'] = creators
-zenodo_file.write_text(json.dumps(zenodo, indent=2, sort_keys=True) + '\n')
+zenodo_file.write_text(json.dumps(zenodo, indent=2, sort_keys=True, ensure_ascii=False) + '\n')
