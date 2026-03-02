@@ -57,8 +57,6 @@ Release checklist
 * Use the opportunity to update the ``.mailmap`` file if there are any
   duplicate authors listed from ``git shortlog -nse``.
 
-* Check the copyright year in ``doc/source/conf.py``
-
 * Refresh the ``README.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
   by running ``make refresh-readme``.
 
@@ -73,111 +71,9 @@ Release checklist
   they still hold?  Verify that `nibabel on GitHub actions`_ is testing the minimum
   dependencies specifically.
 
-* Do a final check on the `nipy buildbot`_.  Use the ``try_branch.py``
-  scheduler available in nibotmi_ to test particular schedulers.
-
 * Make sure all tests pass (from the nibabel root directory)::
 
-    pytest --doctest-modules nibabel
-
-* Make sure you are set up to use the ``try_branch.py`` - see
-  https://github.com/nipy/nibotmi/blob/master/install.rst#trying-a-set-of-changes-on-the-buildbots
-
-* Make sure all your changes are committed or removed, because
-  ``try_branch.py`` pushes up the changes in the working tree;
-
-* The following checks get run with the ``nibabel-release-checks``, as in::
-
-    try_branch.py nibabel-release-checks
-
-  Beware: this build does not usually error, even if the steps do not give the
-  expected output.  You need to check the output manually by going to
-  https://nipy.bic.berkeley.edu/builders/nibabel-release-checks after the
-  build has finished.
-
-  * Make sure all tests pass from sdist::
-
-      make sdist-tests
-
-    and the three ways of installing (from tarball, repo, local in repo)::
-
-      make check-version-info
-
-    The last may not raise any errors, but you should detect in the output
-    lines of this form::
-
-      {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'archive substitution', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
-      /var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel/__init__.pyc
-      {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'installation', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/var/folders/jg/jgfZ12ZXHwGSFKD85xLpLk+++TI/-Tmp-/tmpGPiD3E/pylib/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
-      /Users/mb312/dev_trees/nibabel/nibabel/__init__.pyc
-      {'sys_version': '2.6.6 (r266:84374, Aug 31 2010, 11:00:51) \n[GCC 4.0.1 (Apple Inc. build 5493)]', 'commit_source': 'repository', 'np_version': '1.5.0', 'commit_hash': '25b4125', 'pkg_path': '/Users/mb312/dev_trees/nibabel/nibabel', 'sys_executable': '/Library/Frameworks/Python.framework/Versions/2.6/Resources/Python.app/Contents/MacOS/Python', 'sys_platform': 'darwin'}
-
-  * Check the ``setup.py`` file is picking up all the library code and scripts,
-    with::
-
-      make check-files
-
-    Look for output at the end about missed files, such as::
-
-      Missed script files:  /Users/mb312/dev_trees/nibabel/bin/nib-dicomfs, /Users/mb312/dev_trees/nibabel/bin/nifti1_diagnose.py
-
-    Fix ``setup.py`` to carry across any files that should be in the
-    distribution.
-
-  * Check the documentation doctests::
-
-      make -C doc doctest
-
-    This should also be tested by `nibabel on GitHub actions`_.
-
-  * Check everything compiles without syntax errors::
-
-      python -m compileall .
-
-  * Check that nibabel correctly generates a source distribution::
-
-      make source-release
-
-* Edit ``nibabel/info.py`` to set ``_version_extra`` to ``''``; commit;
-
-* You may have virtualenvs for different Python versions.  Check the tests
-  pass for different configurations. The long-hand way looks like this::
-
-    workon python26
-    make distclean
-    make sdist-tests
-    deactivate
-
-  etc for the different virtualenvs;
-
-* Check on different platforms, particularly windows and PPC. Look at the
-  `nipy buildbot`_ automated test runs for this;
-
-* Force build of your release candidate branch with the slow and big-memory
-  tests on the ``zibi`` buildslave::
-
-    try_branch.py nibabel-py2.7-osx-10.10
-
-  Check the build web-page for errors:
-
-  * https://nipy.bic.berkeley.edu/builders/nibabel-py2.7-osx-10.10
-
-* Force builds of your local branch on the win32 and amd64 binaries on
-  buildbot::
-
-    try_branch.py nibabel-bdist32-27
-    try_branch.py nibabel-bdist32-33
-    try_branch.py nibabel-bdist32-34
-    try_branch.py nibabel-bdist32-35
-    try_branch.py nibabel-bdist64-27
-
-  Check the builds completed without error on their respective web-pages:
-
-  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-27
-  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-33
-  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-34
-  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist32-35
-  * https://nipy.bic.berkeley.edu/builders/nibabel-bdist64-27
+    tox
 
 * Make sure you have travis-ci_ building set up for your own repo. Make a new
   ``release-check`` (or similar) branch, and push the code in its current
@@ -188,54 +84,17 @@ Release checklist
     # You might need the --force flag here
     git push your-github-user release-check -u
 
-* Once everything looks good, you are ready to upload the source release to
-  PyPi.  See `setuptools intro`_.  Make sure you have a file
-  ``\$HOME/.pypirc``, of form::
-
-    [distutils]
-    index-servers =
-        pypi
-        warehouse
-
-    [pypi]
-    username:your.pypi.username
-    password:your-password
-
-    [warehouse]
-    repository: https://upload.pypi.io/legacy/
-    username:your.pypi.username
-    password:your-password
-
-* Clean::
-
-    make distclean
-    # Check no files outside version control that you want to keep
-    git status
-    # Nuke
-    git clean -fxd
-
-* When ready::
-
-    python setup.py register
-    python setup.py sdist --formats=gztar,zip
-    # -s flag to sign the release
-    twine upload -r warehouse -s dist/nibabel*
-
-* Tag the release with signed tag of form ``2.0.0``::
+* Once everything looks good, you are ready to tag and release::
 
     git tag -s 2.0.0
 
 * Push the tag and any other changes to trunk with::
 
-    git push origin 2.0.0
-    git push
+    git push origin master --tags
 
 * Now the version number is OK, push the docs to github pages with::
 
     make upload-html
-
-* Finally (for the release uploads) upload the Windows binaries you built with
-  ``try_branch.py`` above;
 
 * Set up maintenance / development branches
 
@@ -247,24 +106,11 @@ Release checklist
 
       git co -b maint/2.0.x
 
-    Set ``_version_extra`` back to ``.dev`` and bump ``_version_micro`` by 1.
-    Thus the maintenance series will have version numbers like - say -
-    '2.0.1.dev' until the next maintenance release - say '2.0.1'.  Commit.
-    Don't forget to push upstream with something like::
-
       git push upstream-remote maint/2.0.x --set-upstream
 
   * Start next development series::
 
-      git co main-master
-
-    then restore ``.dev`` to ``_version_extra``, and bump ``_version_minor``
-    by 1.  Thus the development series ('trunk') will have a version number
-    here of '2.1.0.dev' and the next full release will be '2.1.0'.
-
-    Next merge the maintenance branch with the "ours" strategy.  This just
-    labels the maintenance `info.py` edits as seen but discarded, so we can
-    merge from maintenance in future without getting spurious merge conflicts::
+      git co master
 
        git merge -s ours maint/2.0.x
 
@@ -273,23 +119,7 @@ Release checklist
 
 * Push the main branch::
 
-    git push upstream-remote main-master
-
-* Make next development release tag
-
-    After each release the master branch should be tagged
-    with an annotated (or/and signed) tag, naming the intended
-    next version, plus an 'upstream/' prefix and 'dev' suffix.
-    For example 'upstream/1.0.0.dev' means "development start
-    for upcoming version 1.0.0.
-
-    This tag is used in the Makefile rules to create development snapshot
-    releases to create proper versions for those. The version derives its name
-    from the last available annotated tag, the number of commits since that,
-    and an abbreviated SHA1. See the docs of ``git describe`` for more info.
-
-    Please take a look at the Makefile rules ``devel-src``, ``devel-dsc`` and
-    ``orig-src``.
+    git push upstream-remote master
 
 * Go to: https://github.com/nipy/nibabel/tags and select the new tag, to fill
   in the release notes.  Copy the relevant part of the Changelog into the
@@ -308,7 +138,5 @@ Release checklist
   See: https://guides.github.com/activities/citable-code
 
 * Announce to the mailing lists.
-
-.. _setuptools intro: https://pythonhosted.org/an_example_pypi_project/setuptools.html
 
 .. include:: ../links_names.txt

@@ -15,9 +15,6 @@ NOSETESTS = $(PYTHON) $(shell which nosetests)
 #
 
 PYVER := $(shell $(PYTHON) -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
-DISTUTILS_PLATFORM := \
-	$(shell \
-		$(PYTHON) -c "import distutils.util; print(distutils.util.get_platform())")
 
 # Helpers for version handling.
 # Note: can't be ':='-ed since location of invocation might vary
@@ -243,10 +240,8 @@ sdist-venv: clean
 	. venv/bin/activate && cd venv/tmp/nibabel* && python setup.py install
 	unset PYTHONPATH && . venv/bin/activate && cd venv && pytest --doctest-modules --doctest-plus --pyargs nibabel
 
-source-release: distclean
-	$(PYTHON) -m compileall .
-	make distclean
-	$(PYTHON) setup.py sdist --formats=gztar,zip
+source-release:
+	uv build --sdist
 
 venv-tests:
 	# I use this for python2.5 because the sdist-tests target doesn't work
