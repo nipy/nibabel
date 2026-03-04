@@ -40,9 +40,9 @@ if ty.TYPE_CHECKING:
     ModeRB = ty.Literal['rb']
     ModeWT = ty.Literal['w', 'wt']
     ModeWB = ty.Literal['wb']
-    ModeR = ty.Union[ModeRT, ModeRB]
-    ModeW = ty.Union[ModeWT, ModeWB]
-    Mode = ty.Union[ModeR, ModeW]
+    ModeR = ModeRT | ModeRB
+    ModeW = ModeWT | ModeWB
+    Mode = ModeR | ModeW
 
 else:
     indexed_gzip, HAVE_INDEXED_GZIP, _ = optional_package('indexed_gzip')
