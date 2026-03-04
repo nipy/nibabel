@@ -131,6 +131,7 @@ def test_brain_models():
         bml,
         ['ThalamusRight', 'Other', 'cortex_left', 'Other'],
         (False, False, True, True),
+        strict=False,
     ):
         assert np.all(bm.surface_mask == ~bm.volume_mask)
         structures = list(bm.iter_structures())
@@ -148,7 +149,7 @@ def test_brain_models():
     assert len(bmt) == 10
     structures = list(bmt.iter_structures())
     assert len(structures) == 3
-    for bm, (name, _, bm_split) in zip(bml[:3], structures):
+    for bm, (name, _, bm_split) in zip(bml[:3], structures, strict=False):
         assert bm == bm_split
         assert (bm_split.name == name).all()
         assert bm == bmt[bmt.name == bm.name[0]]
@@ -725,7 +726,7 @@ def test_common_interface():
     """
     Tests the common interface for all custom created CIFTI-2 axes
     """
-    for axis1, axis2 in zip(get_axes(), get_axes()):
+    for axis1, axis2 in zip(get_axes(), get_axes(), strict=False):
         assert axis1 == axis2
         concatenated = axis1 + axis2
         assert axis1 != concatenated
