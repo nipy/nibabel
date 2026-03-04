@@ -180,7 +180,7 @@ def create_parcel_map(applies_to_matrix_dimension):
 def check_parcel_map(mapping):
     assert mapping.indices_map_to_data_type == 'CIFTI_INDEX_TYPE_PARCELS'
     assert len(list(mapping.parcels)) == len(parcels)
-    for (name, elements), parcel in zip(parcels, mapping.parcels, strict=False):
+    for (name, elements), parcel in zip(parcels, mapping.parcels):
         assert parcel.name == name
         idx_surface = 0
         for element in elements:
@@ -192,7 +192,7 @@ def check_parcel_map(mapping):
             else:
                 assert parcel.voxel_indices_ijk._indices == element
 
-    for surface, orientation in zip(mapping.surfaces, ('LEFT', 'RIGHT'), strict=False):
+    for surface, orientation in zip(mapping.surfaces, ('LEFT', 'RIGHT')):
         assert surface.brain_structure == f'CIFTI_STRUCTURE_CORTEX_{orientation}'
         assert surface.surface_number_of_vertices == number_of_vertices
 
@@ -214,7 +214,7 @@ def check_scalar_map(mapping):
     assert mapping.indices_map_to_data_type == 'CIFTI_INDEX_TYPE_SCALARS'
     assert len(list(mapping.named_maps)) == 2
 
-    for expected, named_map in zip(scalars, mapping.named_maps, strict=False):
+    for expected, named_map in zip(scalars, mapping.named_maps):
         assert named_map.map_name == expected[0]
         if len(expected[1]) == 0:
             assert named_map.metadata is None
@@ -258,7 +258,7 @@ def check_label_map(mapping):
     assert mapping.indices_map_to_data_type == 'CIFTI_INDEX_TYPE_LABELS'
     assert len(list(mapping.named_maps)) == 2
 
-    for expected, named_map in zip(scalars, mapping.named_maps, strict=False):
+    for expected, named_map in zip(scalars, mapping.named_maps):
         assert named_map.map_name == expected[0]
         if len(expected[1]) == 0:
             assert named_map.metadata is None

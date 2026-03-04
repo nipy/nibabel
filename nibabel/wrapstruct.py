@@ -336,7 +336,7 @@ class WrapStruct:
 
     def items(self):
         """Return items from structured data"""
-        return zip(self.keys(), self.values(), strict=False)
+        return zip(self.keys(), self.values())
 
     def get(self, k, d=None):
         """Return value for the key k if present or d otherwise"""

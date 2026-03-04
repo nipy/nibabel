@@ -100,7 +100,7 @@ class TestTCK(unittest.TestCase):
         for key in ('simple_tck_fname', 'simple_tck_big_endian_fname'):
             for lazy_load in [False, True]:
                 tck = TckFile.load(DATA[key], lazy_load=lazy_load)
-                for actual, expected_tgi in zip(tck.streamlines, data, strict=False):
+                for actual, expected_tgi in zip(tck.streamlines, data):
                     assert_array_equal(actual, expected_tgi.streamline)
                     # Test we can write to arrays
                     assert actual.flags.writeable

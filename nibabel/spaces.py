@@ -83,7 +83,7 @@ def vox2out_vox(mapped_voxels, voxel_sizes=None):
         if not np.all(np.array(voxel_sizes) > 0):
             raise ValueError('voxel sizes should all be positive')
         out_vox[:n_axes] = voxel_sizes
-    in_mn_mx = zip([0, 0, 0], np.array(in_shape) - 1, strict=False)
+    in_mn_mx = zip([0, 0, 0], np.array(in_shape) - 1)
     in_corners = list(product(*in_mn_mx))
     out_corners = apply_affine(in_affine, in_corners)
     out_mn = out_corners.min(axis=0)

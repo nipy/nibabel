@@ -117,7 +117,6 @@ def test_slice2volume():
             [[1, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 1]],
             [[1, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 1]],
         ),
-        strict=False,
     ):
         for val in (0, 5, 10):
             exp_aff = np.array(def_aff)

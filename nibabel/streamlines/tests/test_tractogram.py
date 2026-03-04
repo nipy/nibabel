@@ -749,13 +749,13 @@ class TestTractogram(unittest.TestCase):
         tractogram.apply_affine(affine)
         tractogram.apply_affine(np.linalg.inv(affine))
         assert_array_almost_equal(tractogram.affine_to_rasmm, np.eye(4))
-        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines'], strict=False):
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
 
         # Test applying the identity transformation.
         tractogram = DATA['tractogram'].copy()
         tractogram.apply_affine(np.eye(4))
-        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines'], strict=False):
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
 
         # Test removing affine_to_rasmm
@@ -777,21 +777,21 @@ class TestTractogram(unittest.TestCase):
         tractogram_world = transformed_tractogram.to_world(lazy=True)
         assert type(tractogram_world) is LazyTractogram
         assert_array_almost_equal(tractogram_world.affine_to_rasmm, np.eye(4))
-        for s1, s2 in zip(tractogram_world.streamlines, DATA['streamlines'], strict=False):
+        for s1, s2 in zip(tractogram_world.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
 
         # Bring them back streamlines to world space in a in-place manner.
         tractogram_world = transformed_tractogram.to_world()
         assert tractogram_world is tractogram
         assert_array_almost_equal(tractogram.affine_to_rasmm, np.eye(4))
-        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines'], strict=False):
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
 
         # Calling to_world twice should do nothing.
         tractogram_world2 = transformed_tractogram.to_world()
         assert tractogram_world2 is tractogram
         assert_array_almost_equal(tractogram.affine_to_rasmm, np.eye(4))
-        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines'], strict=False):
+        for s1, s2 in zip(tractogram.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
 
         # Calling to_world when affine_to_rasmm is None should fail.
@@ -888,7 +888,7 @@ class TestLazyTractogram(unittest.TestCase):
         ]
 
         def _data_gen():
-            for d in zip(*data, strict=False):
+            for d in zip(*data):
                 data_for_points = {'fa': d[1], 'colors': d[2]}
                 data_for_streamline = {
                     'mean_curvature': d[3],
@@ -1024,13 +1024,13 @@ class TestLazyTractogram(unittest.TestCase):
         tractogram_world = transformed_tractogram.to_world()
         assert tractogram_world is not transformed_tractogram
         assert_array_almost_equal(tractogram_world.affine_to_rasmm, np.eye(4))
-        for s1, s2 in zip(tractogram_world.streamlines, DATA['streamlines'], strict=False):
+        for s1, s2 in zip(tractogram_world.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
 
         # Calling to_world twice should do nothing.
         tractogram_world = tractogram_world.to_world()
         assert_array_almost_equal(tractogram_world.affine_to_rasmm, np.eye(4))
-        for s1, s2 in zip(tractogram_world.streamlines, DATA['streamlines'], strict=False):
+        for s1, s2 in zip(tractogram_world.streamlines, DATA['streamlines']):
             assert_array_almost_equal(s1, s2)
 
         # Calling to_world when affine_to_rasmm is None should fail.

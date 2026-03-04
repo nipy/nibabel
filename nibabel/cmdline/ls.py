@@ -175,7 +175,7 @@ def proc_file(f, opts):
                     counts = _err(f'{len(items)} uniques. Use --all-counts')
                 else:
                     freq = np.bincount(inv)
-                    counts = ' '.join(f'{i:g}:{f}' for i, f in zip(items, freq, strict=False))
+                    counts = ' '.join(f'{i:g}:{f}' for i, f in zip(items, freq))
                 row += ['@l' + counts]
         except OSError as e:
             verbose(2, f'Failed to obtain stats/counts -- {e}')

@@ -86,11 +86,11 @@ def test_readwritedata():
             img2 = ci.load('test.nii')
             assert len(img.header.matrix) == len(img2.header.matrix)
             # Order should be preserved in load/save
-            for mim1, mim2 in zip(img.header.matrix, img2.header.matrix, strict=False):
+            for mim1, mim2 in zip(img.header.matrix, img2.header.matrix):
                 named_maps1 = [m_ for m_ in mim1 if isinstance(m_, ci.Cifti2NamedMap)]
                 named_maps2 = [m_ for m_ in mim2 if isinstance(m_, ci.Cifti2NamedMap)]
                 assert len(named_maps1) == len(named_maps2)
-                for map1, map2 in zip(named_maps1, named_maps2, strict=False):
+                for map1, map2 in zip(named_maps1, named_maps2):
                     assert map1.map_name == map2.map_name
                     if map1.label_table is None:
                         assert map2.label_table is None
@@ -109,11 +109,11 @@ def test_nibabel_readwritedata():
             img2 = nib.load('test.nii')
             assert len(img.header.matrix) == len(img2.header.matrix)
             # Order should be preserved in load/save
-            for mim1, mim2 in zip(img.header.matrix, img2.header.matrix, strict=False):
+            for mim1, mim2 in zip(img.header.matrix, img2.header.matrix):
                 named_maps1 = [m_ for m_ in mim1 if isinstance(m_, ci.Cifti2NamedMap)]
                 named_maps2 = [m_ for m_ in mim2 if isinstance(m_, ci.Cifti2NamedMap)]
                 assert len(named_maps1) == len(named_maps2)
-                for map1, map2 in zip(named_maps1, named_maps2, strict=False):
+                for map1, map2 in zip(named_maps1, named_maps2):
                     assert map1.map_name == map2.map_name
                     if map1.label_table is None:
                         assert map2.label_table is None
@@ -228,7 +228,7 @@ def test_read_geometry():
         ('CIFTI_STRUCTURE_THALAMUS_RIGHT', 1248, [32, 47, 34], [38, 55, 46]),
     ]
     current_index = 0
-    for from_file, expected in zip(geometry_mapping.brain_models, expected_geometry, strict=False):
+    for from_file, expected in zip(geometry_mapping.brain_models, expected_geometry):
         assert from_file.model_type in ('CIFTI_MODEL_TYPE_SURFACE', 'CIFTI_MODEL_TYPE_VOXELS')
         assert from_file.brain_structure == expected[0]
         assert from_file.index_offset == current_index
@@ -328,13 +328,11 @@ def test_read_parcels():
     assert img.shape[1] == len(expected_parcels)
     assert len(list(parcel_mapping.parcels)) == len(expected_parcels)
 
-    for (name, expected_surfaces), parcel in zip(
-        expected_parcels, parcel_mapping.parcels, strict=False
-    ):
+    for (name, expected_surfaces), parcel in zip(expected_parcels, parcel_mapping.parcels):
         assert parcel.name == name
         assert len(parcel.vertices) == 2
         for vertices, orientation, (length, first_element, last_element) in zip(
-            parcel.vertices, ('LEFT', 'RIGHT'), expected_surfaces, strict=False
+            parcel.vertices, ('LEFT', 'RIGHT'), expected_surfaces
         ):
             assert len(vertices) == length
             assert vertices[0] == first_element
@@ -352,7 +350,7 @@ def test_read_scalar():
     assert len(list(scalar_mapping.named_maps)) == len(expected_names)
 
     expected_meta = [('PaletteColorMapping', '<PaletteColorMapping Version="1">\n   <ScaleMo')]
-    for scalar, name in zip(scalar_mapping.named_maps, expected_names, strict=False):
+    for scalar, name in zip(scalar_mapping.named_maps, expected_names):
         assert scalar.map_name == name
 
         assert len(scalar.metadata) == len(expected_meta)
@@ -404,7 +402,7 @@ def test_read_labels():
         95: ('13b_OFP03', (1.0, 1.0, 0.0, 1.0)),
     }
 
-    for named_map, name in zip(label_mapping.named_maps, expected_names, strict=False):
+    for named_map, name in zip(label_mapping.named_maps, expected_names):
         assert named_map.map_name == name
         assert len(named_map.metadata) == 0
         assert len(named_map.label_table) == 96

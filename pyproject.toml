@@ -156,6 +156,7 @@ ignore = [
     "B023",   # TODO: enable
     "B028",
     "B904",
+    "B905",   # TODO: enable
     "C401",
     "C408",
     "C416",

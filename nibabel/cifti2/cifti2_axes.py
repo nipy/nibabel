@@ -910,7 +910,7 @@ class ParcelsAxis(Axis):
             mim.volume = cifti2.Cifti2Volume(self.volume_shape, affine)
         for name, nvertex in self.nvertices.items():
             mim.append(cifti2.Cifti2Surface(name, nvertex))
-        for name, voxels, vertices in zip(self.name, self.voxels, self.vertices, strict=False):
+        for name, voxels, vertices in zip(self.name, self.voxels, self.vertices):
             cifti_voxels = cifti2.Cifti2VoxelIndicesIJK(voxels)
             element = cifti2.Cifti2Parcel(name, cifti_voxels)
             for name_vertex, idx_vertices in vertices.items():
@@ -963,10 +963,7 @@ class ParcelsAxis(Axis):
             or len(self) != len(other)
             or not np.array_equal(self.name, other.name)
             or self.nvertices != other.nvertices
-            or any(
-                not np.array_equal(vox1, vox2)
-                for vox1, vox2 in zip(self.voxels, other.voxels, strict=False)
-            )
+            or any(not np.array_equal(vox1, vox2) for vox1, vox2 in zip(self.voxels, other.voxels))
         ):
             return False
         if self.affine is not None:
@@ -978,7 +975,7 @@ class ParcelsAxis(Axis):
                 return False
         elif other.affine is not None:
             return False
-        for vert1, vert2 in zip(self.vertices, other.vertices, strict=False):
+        for vert1, vert2 in zip(self.vertices, other.vertices):
             if len(vert1) != len(vert2):
                 return False
             for name in vert1.keys():
@@ -1133,7 +1130,7 @@ class ScalarAxis(Axis):
         :class:`.cifti2.Cifti2MatrixIndicesMap`
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_SCALARS')
-        for name, meta in zip(self.name, self.meta, strict=False):
+        for name, meta in zip(self.name, self.meta):
             named_map = cifti2.Cifti2NamedMap(name, cifti2.Cifti2MetaData(meta))
             mim.append(named_map)
         return mim
@@ -1271,7 +1268,7 @@ class LabelAxis(Axis):
         :class:`.cifti2.Cifti2MatrixIndicesMap`
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_LABELS')
-        for name, label, meta in zip(self.name, self.label, self.meta, strict=False):
+        for name, label, meta in zip(self.name, self.label, self.meta):
             label_table = cifti2.Cifti2LabelTable()
             for key, value in label.items():
                 label_table[key] = (value[0],) + tuple(value[1])

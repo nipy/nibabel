@@ -69,7 +69,7 @@ def check_hcp_grayordinates(brain_model):
     assert len(structures) == len(hcp_labels)
     idx_start = 0
     for idx, (name, _, bm), label, nel in zip(
-        range(len(structures)), structures, hcp_labels, hcp_n_elements, strict=False
+        range(len(structures)), structures, hcp_labels, hcp_n_elements
     ):
         if idx < 2:
             assert name in bm.nvertices.keys()
