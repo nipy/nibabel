@@ -319,6 +319,7 @@ def test_parrec2nii():
 
 @script_test
 @needs_nibabel_data('nitest-balls1')
+@pytest.mark.thread_unsafe
 def test_parrec2nii_with_data():
     # Use nibabel-data to test conversion
     # Premultiplier to relate our affines to Philips conversion

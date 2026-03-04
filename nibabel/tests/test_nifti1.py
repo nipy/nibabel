@@ -348,6 +348,7 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
                 assert hdr.get_data_shape() == shape
 
     @needs_nibabel_data('nitest-freesurfer')
+    @pytest.mark.thread_unsafe
     def test_freesurfer_ico7_hack(self):
         HC = self.header_class
         hdr = HC()

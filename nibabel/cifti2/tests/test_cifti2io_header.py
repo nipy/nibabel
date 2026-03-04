@@ -78,6 +78,7 @@ def test_version():
 
 
 @needs_nibabel_data('nitest-cifti2')
+@pytest.mark.thread_unsafe
 def test_readwritedata():
     with InTemporaryDirectory():
         for name in datafiles:
@@ -101,6 +102,7 @@ def test_readwritedata():
 
 
 @needs_nibabel_data('nitest-cifti2')
+@pytest.mark.thread_unsafe
 def test_nibabel_readwritedata():
     with InTemporaryDirectory():
         for name in datafiles:

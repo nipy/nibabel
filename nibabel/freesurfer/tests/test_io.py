@@ -47,6 +47,7 @@ freesurfer_test = unittest.skipUnless(
 
 
 @freesurfer_test
+@pytest.mark.thread_unsafe
 def test_geometry():
     """Test IO of .surf"""
     surf_path = pjoin(data_path, 'surf', 'lh.inflated')
@@ -114,6 +115,7 @@ def test_geometry():
 
 @freesurfer_test
 @needs_nibabel_data('nitest-freesurfer')
+@pytest.mark.thread_unsafe
 def test_quad_geometry():
     """Test IO of freesurfer quad files."""
     new_quad = pjoin(
@@ -131,6 +133,7 @@ def test_quad_geometry():
 
 
 @freesurfer_test
+@pytest.mark.thread_unsafe
 def test_morph_data():
     """Test IO of morphometry data file (eg. curvature)."""
     curv_path = pjoin(data_path, 'surf', 'lh.curv')
@@ -169,6 +172,7 @@ def test_write_morph_data():
 
 
 @freesurfer_test
+@pytest.mark.thread_unsafe
 def test_annot():
     """Test IO of .annot against freesurfer example data."""
     annots = ['aparc', 'aparc.a2005s']
