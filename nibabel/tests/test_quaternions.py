@@ -39,7 +39,7 @@ eg_rots = [
 # Example quaternions (from rotations)
 eg_quats = [nq.mat2quat(M) for M in eg_rots]
 # M, quaternion pairs
-eg_pairs = list(zip(eg_rots, eg_quats, strict=False))
+eg_pairs = list(zip(eg_rots, eg_quats))
 
 # Set of arbitrary unit quaternions
 unit_quats = set(

@@ -351,12 +351,12 @@ virginia
                 for line in lines:
                     fobj.write(str.encode(line + os.linesep))
             with Opener(input, 'rb') as fobj:
-                for back_line, line in zip(fobj, lines, strict=False):
+                for back_line, line in zip(fobj, lines):
                     assert back_line.decode().rstrip() == line
             if not does_t:
                 continue
             with Opener(input, 'rt') as fobj:
-                for back_line, line in zip(fobj, lines, strict=False):
+                for back_line, line in zip(fobj, lines):
                     assert back_line.rstrip() == line
         lobj = Opener(Lunk(''))
         with pytest.raises(TypeError):
