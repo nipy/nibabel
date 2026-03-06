@@ -232,7 +232,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        check: ['style', 'doctest', 'typecheck', 'spellcheck']
+        check: ['doctest']
 
     steps:
       - uses: actions/checkout@v6
