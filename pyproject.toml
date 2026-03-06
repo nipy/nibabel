@@ -92,7 +92,9 @@ doc = [
 ]
 typecheck = [
   "mypy >=1.15",
-  "nibabel[all,test]",
+  "nibabel[all]",
+  # Easier than including a bunch of unnecessary deps
+  "pytest >=8",
   "types-pillow>=10.2.0.20240822",
 ]
 # Replaced by pre-commit

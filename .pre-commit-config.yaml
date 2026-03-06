@@ -22,24 +22,16 @@ repos:
     hooks:
       - id: ruff-check
         args: [ --fix ]
-        exclude: = ["doc", "tools"]
       - id: ruff-format
-        exclude: = ["doc", "tools"]
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.1
+  # Use uv run so we can use uv pinning
+  - repo: local
     hooks:
-      - id: mypy
-        # Sync with project.optional-dependencies.typing
-        additional_dependencies:
-          - pytest
-          - types-setuptools
-          - types-Pillow
-          - pydicom
-          - numpy
-          - backports.zstd
-          - importlib_resources
-        args: ["nibabel"]
+      - id: typecheck
+        name: Typecheck
+        language: python
+        entry: uv run --active --no-dev --group=typecheck mypy nibabel
         pass_filenames: false
+        additional_dependencies: [uv]
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
