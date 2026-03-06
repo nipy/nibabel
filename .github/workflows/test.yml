@@ -39,7 +39,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6
         with:
@@ -228,7 +228,7 @@ jobs:
         if: ${{ always() }}
 
   checks:
-    runs-on: 'ubuntu-latest'
+    runs-on: 'ubuntu-slim'
     continue-on-error: true
     strategy:
       matrix:
@@ -250,7 +250,7 @@ jobs:
         run: pipx run tox -e ${{ matrix.check }}
 
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     environment: "Package deployment"
     needs: [test, test-package]
     permissions:
