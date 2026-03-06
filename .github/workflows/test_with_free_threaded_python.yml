@@ -1,0 +1,46 @@
+---
+# Runs tests suite with free threaded python.
+#
+###
+name: test free threaded python
+
+on:
+    pull_request:
+    workflow_dispatch:
+    push:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+env:
+    FORCE_COLOR: true
+
+jobs:
+
+    free_threaded:
+        name: 'Test with ${{ matrix.py }} on ${{ matrix.os }}'
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                py: [3.14t]
+                os: [macos-latest, ubuntu-latest]
+                env: [free_threaded]
+        steps:
+        -   uses: actions/checkout@v6
+            with:
+                submodules: recursive
+                fetch-depth: 0
+        -   name: Install the latest version of uv
+            uses: astral-sh/setup-uv@v7
+        -   name: Setup python
+            uses: actions/setup-python@v6
+            with:
+                python-version: ${{ matrix.py }}
+                allow-prereleases: true
+        -   name: Install tox
+            run: uv tool install -v tox --with=tox-uv --with=tox-gh-actions
+        -   name: Run test suite
+            id: test_free_threaded
+            run: tox run -e free_threaded --list-dependencies

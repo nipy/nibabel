@@ -27,6 +27,7 @@ if has_mpl:
 
 
 @needs_mpl
+@pytest.mark.thread_unsafe
 def test_viewer():
     # Test viewer
     plt = optional_package('matplotlib.pyplot')[0]
@@ -105,6 +106,7 @@ def test_viewer():
 
 
 @needs_mpl
+@pytest.mark.thread_unsafe
 def test_viewer_nonRAS():
     data1 = np.random.rand(10, 20, 40)
     data1[5, 10, :] = 0
@@ -137,6 +139,7 @@ def test_viewer_nonRAS():
 
 
 @needs_mpl
+@pytest.mark.thread_unsafe
 def test_viewer_nonRAS_on_mouse():
     """
     test on_mouse selection on non RAS matrices
@@ -205,6 +208,7 @@ def test_viewer_nonRAS_on_mouse():
 
 
 @needs_mpl
+@pytest.mark.thread_unsafe
 def test_viewer_nonRAS_on_scroll():
     """
     test scrolling on non RAS matrices

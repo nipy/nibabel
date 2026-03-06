@@ -21,6 +21,7 @@ from ..filename_parser import (
 )
 
 
+@pytest.mark.thread_unsafe
 def test_filenames():
     types_exts = (('image', '.img'), ('header', '.hdr'))
     for t_fname in ('test.img', 'test.hdr', 'test', 'test.'):
