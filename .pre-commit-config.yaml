@@ -2,6 +2,8 @@ ci:
   autoupdate_schedule: monthly
   autoupdate_commit_message: 'chore: update pre-commit hooks'
   autofix_prs: false
+  skip:
+    - typecheck
 
 exclude: ".*/data/.*"
 repos:
