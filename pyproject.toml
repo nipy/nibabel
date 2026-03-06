@@ -77,8 +77,11 @@ style = []
 typing = []
 
 [dependency-groups]
-style = [
-  "ruff >=0.14.0",
+dev = [
+  "pre-commit>=4.5.1",
+  "pre-commit-uv>=4.2.1",
+  "tox>=4.48.1",
+  "tox-uv>=1.33.1",
 ]
 doc = [
   "sphinx >=7.4",
@@ -92,6 +95,8 @@ typecheck = [
   "nibabel[all,test]",
   "types-pillow>=10.2.0.20240822",
 ]
+# Replaced by pre-commit
+style = []
 
 [tool.hatch.build.targets.sdist]
 exclude = [
