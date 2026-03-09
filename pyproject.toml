@@ -59,15 +59,7 @@ minc2 = ["h5py >=3.8"]
 spm = ["scipy >=1.11"]
 viewers = ["matplotlib >=3.7"]
 zstd = ["backports.zstd >=1.1; python_version<'3.14'"]
-# For doc and test, make easy to use outside of tox
-# tox should use these with extras instead of duplicating
-doc = [
-  "sphinx >=7.4",
-  "matplotlib>=3.5",
-  "numpydoc >=1.9",
-  "texext >=0.6.8",
-  "tomli >=2.3; python_version < '3.11'",
-]
+# Test dependencies, to allow testing an installed package
 test = [
   "pytest >=8",
   "pytest-doctestplus >=1.4",
@@ -76,19 +68,37 @@ test = [
   "pytest-xdist >=3.5",
   "coverage[toml]>=7.2",
 ]
-# Remaining: Simpler to centralize in tox
+# Development dependencies; transferred to dependency-groups, here to avoid
+# breaking existing users of these extras.
+doc = []
 dev = []
 doctest = []
 style = []
 typing = []
 
 [dependency-groups]
-style = [
-  "ruff >=0.14.0",
+dev = [
+  "pre-commit>=4.5.1",
+  "pre-commit-uv>=4.2.1",
+  "tox>=4.48.1",
+  "tox-uv>=1.33.1",
+]
+doc = [
+  "sphinx >=7.4",
+  "matplotlib>=3.5",
+  "numpydoc >=1.9",
+  "texext >=0.6.8",
+  "tomli >=2.3; python_version < '3.11'",
 ]
 typecheck = [
   "mypy >=1.15",
+  "nibabel[all]",
+  # Easier than including a bunch of unnecessary deps
+  "pytest >=8",
+  "types-pillow>=10.2.0.20240822",
 ]
+# Replaced by pre-commit
+style = []
 
 [tool.hatch.build.targets.sdist]
 exclude = [
