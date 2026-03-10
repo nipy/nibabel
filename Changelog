@@ -37,6 +37,12 @@ Bug fixes
 ---------
 * Adjust tests to not depend on how pytest is run, or deep clones (pr/1478) (CM)
 
+Maintenance
+-----------
+* Consolidate environment management for development tasks to ensure tox and
+  pre-commit stay in sync. (pr/1475) (CM, reviewed by Rémi Gau)
+* Update pre-commit and ruff configurations (pr/1467) (Rémi Gau, reviewed by CM)
+
 5.4.0 (Monday 2 March 2026)
 ===========================
 
