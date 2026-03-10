@@ -25,6 +25,18 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.4.1 (Tuesday 10 March 2026)
+=============================
+
+Bug-fix release in the 5.4.x series.
+
+This release addresses test failures on shallow clones or when run with
+``python -m pytest`` in Python 3.14+.
+
+Bug fixes
+---------
+* Adjust tests to not depend on how pytest is run, or deep clones (pr/1478) (CM)
+
 5.4.0 (Monday 2 March 2026)
 ===========================
 
