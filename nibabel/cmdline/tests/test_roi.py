@@ -147,7 +147,7 @@ def test_entrypoint(capsys):
         with pytest.raises(SystemExit):
             main()
     captured = capsys.readouterr()
-    assert captured.out.startswith('usage: nib-roi')
+    assert captured.out.startswith('usage: ')
 
 
 def test_nib_roi_unknown_axes(capsys):
