@@ -8,7 +8,6 @@ PROJECT=nibabel
 # The Python executable to be used
 #
 PYTHON ?= python
-NOSETESTS = $(PYTHON) $(shell which nosetests)
 
 #
 # Determine details on the Python/system
@@ -19,7 +18,6 @@ PYVER := $(shell $(PYTHON) -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
 # Helpers for version handling.
 # Note: can't be ':='-ed since location of invocation might vary
 DEBCHANGELOG_VERSION = $(shell dpkg-parsechangelog | egrep ^Version | cut -d ' ' -f 2,2 | cut -d '-' -f 1,1)
-SETUPPY_VERSION = $(shell $(PYTHON) setup.py -V)
 #
 # Automatic development version
 #
@@ -80,27 +78,6 @@ $(WWW_DIR):
 		> .git-blame-ignore-revs
 	echo >> .git-blame-ignore-revs
 
-#
-# Tests
-#
-
-test: unittest testmanual
-
-
-ut-%: build
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) nibabel/tests/test_$*.py
-
-
-unittest: build
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) nibabel --with-doctest
-
-testmanual: build
-	@cd doc/source && PYTHONPATH=../..:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.rst . dicom
-
-
-coverage: build
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-coverage --cover-package=nibabel
-
 
 #
 # Documentation
@@ -140,14 +117,6 @@ website-stamp: $(WWW_DIR) html-stamp pdf-stamp
 upload-html: html-stamp
 	./tools/upload-gh-pages.sh $(WWW_DIR) $(PROJECT)
 
-#
-# Sources
-#
-
-pylint: distclean
-	# do distclean first to silence SWIG's sins
-	PYTHONPATH=.:$(PYTHONPATH) pylint --rcfile doc/misc/pylintrc nibabel
-
 
 #
 # Distributions
@@ -163,15 +132,8 @@ check-debian:
 	# Need to run in a Debian packaging branch
 	[ -d debian ]
 
-check-debian-version: check-debian
-	# Does debian version correspond to setup.py version?
-	[ "$(DEBCHANGELOG_VERSION)" = "$(SETUPPY_VERSION)" ]
 
-embed-dev-version: check-nodirty
-	# change upstream version
-	sed -i -e "s/$(SETUPPY_VERSION)/$(DEV_VERSION)/g" setup.py nibabel/__init__.py
-	# change package name
-	sed -i -e "s/= 'nibabel',/= 'nibabel-snapshot',/g" setup.py
+
 
 deb-dev-autochangelog: check-debian
 	# removed -snapshot from pkg name for now
