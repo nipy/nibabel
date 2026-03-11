@@ -5,7 +5,6 @@
 name: Multithreaded tests
 
 on:
-  pull_request:
   push:
     branches:
       - ci/multithreaded
@@ -75,7 +74,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run_id: ${{ github.run_id }}
           repository: ${{ github.repository }}
-          workflow_name: PRE-RELEASE TESTS
+          workflow_name: MULTI-THREADED TESTS
         with:
           filename: .github/workflow_failure.md
           update_existing: true
