@@ -1,0 +1,123 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`spatialimages`
+====================
+.. automodule:: nibabel.spatialimages
+
+.. currentmodule:: nibabel.spatialimages
+.. autosummary::
+
+   HasDtype
+   HeaderDataError
+   HeaderTypeError
+   ImageDataError
+   SpatialFirstSlicer
+   SpatialHeader
+   SpatialImage
+   SpatialProtocol
+   supported_np_types
+
+
+.. currentmodule:: nibabel.spatialimages
+
+
+:class:`HasDtype`
+~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: HasDtype
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`HeaderDataError`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: HeaderDataError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`HeaderTypeError`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: HeaderTypeError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`ImageDataError`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: ImageDataError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`SpatialFirstSlicer`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: SpatialFirstSlicer
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`SpatialHeader`
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: SpatialHeader
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`SpatialImage`
+~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: SpatialImage
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`SpatialProtocol`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: SpatialProtocol
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+supported_np_types
+~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: supported_np_types
+

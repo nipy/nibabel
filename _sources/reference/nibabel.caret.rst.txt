@@ -1,0 +1,26 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`caret`
+============
+.. automodule:: nibabel.caret
+
+.. currentmodule:: nibabel.caret
+.. autosummary::
+
+   CaretMetaData
+
+
+.. currentmodule:: nibabel.caret
+
+
+:class:`CaretMetaData`
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: CaretMetaData
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+

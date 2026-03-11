@@ -1,0 +1,52 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`openers`
+==============
+.. automodule:: nibabel.openers
+
+.. currentmodule:: nibabel.openers
+.. autosummary::
+
+   Fileish
+   ImageOpener
+   Opener
+
+
+.. currentmodule:: nibabel.openers
+
+
+:class:`Fileish`
+~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: Fileish
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`ImageOpener`
+~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: ImageOpener
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`Opener`
+~~~~~~~~~~~~~~~
+
+
+.. autoclass:: Opener
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+

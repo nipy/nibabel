@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+:mod:`_typing`
+==============
+.. automodule:: nibabel._typing
+
+.. currentmodule:: nibabel._typing
+.. autosummary::
+
+
+
+.. currentmodule:: nibabel._typing
+

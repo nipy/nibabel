@@ -1,0 +1,751 @@
+.. _biap3:
+
+#####################################
+BIAP3 - A JSON nifti header extension
+#####################################
+
+:Author: Matthew Brett, Bob Dougherty
+:Status: Draft
+:Type: Standards
+:Created: 2011-03-26
+
+The following Wiki documents should be merged with this one:
+
+* `NIfTI metadata extension
+  <https://github.com/nipy/nibabel/wiki/NIfTI-metadata-extension>`_
+
+********
+Abstract
+********
+
+A draft specification of the JSON header for Nibabel.
+
+**********
+Background
+**********
+
+DICOM files in particular have a lot of information in them that we might want
+to carry with the image.  There are other image file types like Minc_ or Nrrd_
+that have information we'd like to support but can't with standard nifti.
+
+One obvious place to store this information is in a `nifti header extension`_.
+
+Nifti extension types
+=====================
+
+From `adding nifti extensions`_:
+
+* 0 = NIFTI_ECODE_IGNORE = unknown private format (not recommended!)
+* 2 = NIFTI_ECODE_DICOM = DICOM format (i.e., attribute tags and values):
+  http://medical.nema.org/
+* 4 = NIFTI_ECODE_AFNI = AFNI header attributes: The format of the AFNI
+  extension in the NIfTI-1.1 format is described at
+  http://nifti.nimh.nih.gov/nifti-1/AFNIextension1/
+* 6 = NIFTI_ECODE_COMMENT = comment: arbitrary non-NUL ASCII text, with no
+  additional structure implied
+* 8 = NIFTI_ECODE_XCEDE = XCEDE metadata:
+  http://www.nbirn.net/Resources/Users/Applications/xcede/index.htm
+* 10 = NIFTI_ECODE_JIMDIMINFO = Dimensional information for the JIM software
+  (XML format); contact info is Dr Mark A Horsfield: mah5*AT*leicester.ac.uk.
+* 12 = NIFTI_ECODE_WORKFLOW_FWDS = Fiswidget XML pipeline descriptions;
+  documented at
+  http://kraepelin.wpic.pitt.edu/~fissell/NIFTI_ECODE_WORKFLOW_FWDS/NIFTI_ECODE_WORKFLOW_FWDS.html
+  ; contact info is Kate Fissell: fissell+*AT*pitt.edu.
+
+Alternatives
+============
+
+Summary: we need probably need our own extension format
+
+There is a DICOM type extension - code 2.  This might be OK for DICOM but:
+
+#. We probably don't want to have to dump the entire DICOM header for every
+   DICOM image.  If we don't that means we have to edit the DICOM header, and
+#. The DICOM format is awful to work with, so it is not a pleasant prospect
+   making a new DICOM header for images (like Minc) that aren't DICOM to start
+   with.
+#. I (MB) can't find any evidence that it's being used in the wild.
+#. It's not completely clear what format the data should be in. See `this
+   nifti thread
+   <http://nifti.nimh.nih.gov/board/read.php?f=1&i=2077&t=2069>`_.
+
+The AFNI extension format looks as if it is specific to AFNI.
+
+The XCEDE format looks rather heavy.  I'm (MB) trying to work out where the
+most current schema is.  Candidates are `bxh-xcede-tools`_ and the `xcede
+website`_. We'd need to validate the XML with the schema. It appears the
+python standard library doesn't support that so we'd need extra XML tools as a
+dependency.
+
+JIM_ is closed source.
+
+fiswidgets seems to have been quiet recently.  The link for code 12 is dead, I
+had to go back to the http://www.archive.org to get `an old copy
+<http://replay.waybackmachine.org/20060514073534/http://kraepelin.wpic.pitt.edu/~fissell/NIFTI_ECODE_WORKFLOW_FWDS/NIFTI_ECODE_WORKFLOW_FWDS.html>`_
+and that didn't have the DTD or example links that we need to understand the
+format.
+
+Learning from NRRDs
+===================
+
+Gordon Kindlmann's NRRD_ format has gone through a few versions and has
+considerable use particularly by the `3D slicer`_ team.  I've tried to
+summarize the NRRD innovations not properly covered by nifti in
+[[nifti-nrrd]].
+
+********
+Proposal
+********
+
+`JSON <http://json.org/>`_, as y'all know, encodes strings, numbers, objects
+and arrays, An object is like a Python dict, with strings as keys, and an
+array is like a Python list.
+
+In what follows, I will build dicts and lists corresponding to the objects and
+arrays of the JSON header. In each case, the ``json.dumps`` of the given Python
+object gives the corresponding JSON string.
+
+I'll use the term *field* to refer to a (key, value) pair from a Python dict /
+JSON object.
+
+General principles
+==================
+
+We specify image axes by name in the header, and give the correspondence of the
+names to the image array axes by the order of the names. This is the
+``axis_names`` field at the top level of the header.
+
+If the user transposes or otherwise reorders the axes of the data array, the
+header should change only in the ordering of the axis names in
+``axis_names``.  Call this the "axis transpose" principle.
+
+The JSON header should make sense as a key, value pair store for DICOM
+fields using a standard way of selecting DICOM fields -- the *simple DICOM*
+principle.
+
+The NIfTI image also contains the standard image metadata in the NIfTI header
+C-struct (the standard NIfTI header).  Nibabel and Nipy will write JSON
+headers correctly, and so the information in the NIfTI C-struct should always
+match the information in the JSON header.  Other software may write the JSON
+incorrectly, or copy the JSON header into another image to which it may not
+apply, but other software should always set the C-struct correctly. For that
+reason the C-struct always overrides the JSON header, unless the C-struct has
+values implying "not-set" or "don't know".  This is the *C-struct primacy*
+principle.
+
+See also
+========
+
+* `JSON-LD <http://json-ld.org/>`_ - provides a way of using json that can be
+  mapped into the Resource Description Framework (RDF). It is highly
+  recommended to take a look at the `RDF Primer
+  <http://www.w3.org/TR/rdf11-primer/>`_ to get a sense of why we might want
+  to use JSON-LD/RDF, but essentially it boils down to a couple points:
+
+  * JSON keys are turned into URIs
+  * URIs can dereference to a Web URL with additional documentation, such as a
+    definition, a pretty label (e.g., ``nipy_header_version`` has_label
+    ``"NIPY Header Version"``), etc.
+  * The URI link to documentation makes the meaning of your JSON keys
+    explicit, in a machine readable way (i.e., the json key becomes a
+    "resource" on the Web that avoids name clashes)
+  * JSON-LD/RDF has a full query language called `SPARQL
+    <http://www.w3.org/TR/sparql11-query/>`_ and a python library called
+    `RDFLib <https://rdflib.readthedocs.org/en/latest/>`_ that acts as a
+    parser, serializer, database, and query engine.
+  * In the example below, the ``@context`` section provides the namespace
+    prefix ``dcm`` as a placeholder for the URL
+    ``http://neurolex.org/wiki/Category:``, thus ``dcm:Echo_Time``
+    dereferences to http://neurolex.org/wiki/Category:Echo_Time where
+    additional documentation is provided::
+
+        {
+          "@context": {
+            "dcm": "http://neurolex.org/wiki/Category:#"
+          },
+          "dcm:Echo_Time": 45,
+          "dcm:Repetition_Time": 2,
+        }
+
+The header must contain the header version
+==========================================
+
+::
+
+    >>> hdr = dict(nipy_header_version='1.0')
+
+We chose the name "nipy_header_version" in the hope that this would not often
+occur in an unrelated JSON file.
+
+* First version will be "1.0".
+* Versioning will use `Semantic Versioning <http://semver.org>`_ of form
+  ``major.minor[.patch[-extra]]`` where ``major``, ``minor``, ``patch`` are
+  all integers, ``extra`` may be a string, and both ``patch`` and ``extra``
+  are optional.  Header versions with the same ``major`` value are `forwards
+  compatible <https://en.wikipedia.org/wiki/Forward_compatibility>`_ -- that
+  is, a reader that can read a header with a particular major version should
+  be able to read any header with that major version.  Specifically, any
+  changes to the header format within major version number should allow older
+  readers of that major version to read the header correctly, but can expand
+  on the information in the header, so that older readers can safely ignore
+  new information in the header.
+* All fields other than ``nipy_header_version`` are optional.  The dict in
+  ``hdr`` above is therefore the minimal valid header.
+
+The header will usually contain image metadata fields
+=====================================================
+
+The base level header will usually also have image metadata fields giving
+information about the whole image. A field is an "image metadata field" if it
+is defined at the top level of the header.  For example::
+
+      >>> hdr = dict(nipy_header_version='1.0',
+      ...            Manufacturer="SIEMENS")
+
+All image metadata fields are optional.
+
+As for all keys in this standard, IM (Image Metadata) keys are case sensitive.
+IM keys that begin with a capital letter must be from the DICOM data
+dictionary standard short names (DICOM keyword). Call these "DICOM IM keys".
+This is to conform to the *simple DICOM* principle.
+
+Keys beginning with "extended" will be read and written, but not further
+processed by a header reader / writer.  If you want to put extra fields into
+the header that are outside this standard you could use a dict / object of
+form::
+
+    >>> hdr = dict(nipy_header_version='1.0',
+    ...            extended=dict(my_field1=0.1, my_field2='a string'))
+
+or::
+
+    >>> hdr = dict(nipy_header_version='1.0',
+    ...            extended_mysoft=dict(mysoft_one='expensive', mysoft_two=1000))
+
+Values for DICOM IM keys are constrained by the DICOM standard.  This standard
+constrains values for ("nipy_header_version", "axis_names", "axis_metadata").
+Other values have no constraint.
+
+Questions
+==========
+
+* Should all DICOM values be allowed?
+* Should DICOM values be allowed at this level that in fact refer to a
+  particular axis, and therefore might go in the ``axis_metadata`` elements?
+* How should we relate the DICOM standard values to JSON?  For example, how
+  should we store dates and times?  One option would be to use the new DICOM
+  JSON encoding for DICOM values, but omitting the tag and value
+  representation (VR).  For example, the `DICOM JSON spec
+  <ftp://medical.nema.org/medical/dicom/final/sup166_ft5.pdf>`_ has::
+
+        "00080070": {
+            "vr": "LO",
+            "Value": [ "SIEMENS" ]
+        },
+
+  but we might prefer::
+
+        "Manufacturer": "SIEMENS"
+
+  Using the DICOM data dictionary we can reconstruct the necessary tag and VR,
+  so our version is lossless if the DICOM keyword exists in the DICOM data
+  dictionary. Of course this may well not be true for private tags, or if the
+  keyword comes from a DICOM dictionary that is later than the one we are
+  using to look up the keyword. For the latter, we could make sure we're
+  always using the latest dictionary. For the private tags, we might want to
+  recode these in any case, maybe using our own dictionary.  Maybe it is
+  unlikely we will want to reconstruct the private tags of a DICOM file from
+  the JSON.  Comments welcome.
+
+The header will usually contain axis names
+==========================================
+
+``axis_names`` is a list of strings corresponding to the axes of the image data
+to which the header refers.
+
+>>> hdr = dict(nipy_header_version='1.0',
+...            axis_names=["frequency", "phase", "slice", "time"])
+
+The names must be valid Python identifiers (should not begin with a digit, nor
+contain spaces etc).
+
+There must be the same number of names as axes in the image to which the header
+refers.  For example, the header above is valid for a 4D image but invalid for a
+3D or 5D image.
+
+The names appear in fastest-slowest order in which the image data is stored on
+disk.  The first name in ``axis_names`` corresponds to the axis over which
+the data on disk varies fastest, and the last corresponds to the axis over which
+the data varies slowest.
+
+For a NIfTI image, nibabel (and nipy) will create an image where the axes have
+this same fastest to slowest ordering in memory.  For example, let's say the
+read image is called ``img``. ``img`` has shape (4, 5, 6, 10), and a 2-byte
+datatype such as int16. In the case of the NIfTI default fastest-slowest ordered
+array, the distance in memory between ``img[0, 0, 0, 0]`` and ``img[1, 0, 0,
+0]`` is 2 bytes, and the distance between ``img[0, 0, 0, 0]`` and ``img[0, 0, 0,
+1]`` is 4 * 5 * 6 * 2 = 240 bytes.  The names in ``axis_names`` will then refer
+to the first, second, third and fourth axes respectively. In the example above,
+"frequency" is the first axis and "time" is the last.
+
+``axis_names`` is optional only if ``axis_metadata`` is empty or absent.
+Otherwise, the ``set()`` of ``axis_names`` must be a superset of the union of
+all axis names specified in the ``applies_to`` fields of ``axis_metadata``
+elements.
+
+The header will often contain axis metadata
+===========================================
+
+``axis_metadata`` is a list of *axis metadata elements*.
+
+Each *axis metadata element* in the ``axis_metadata`` list gives data that
+applies to a particular axis, or combination of axes.  ``axis_metadata`` can
+be empty::
+
+    >>> hdr['axis_metadata'] = []
+
+We prefer you delete this section if it is empty, to avoid clutter, but hey,
+mi casa, su casa.
+
+The axis metadata element
+-------------------------
+
+An axis metadata element must contain a field ``applies_to``, with a value that
+is a list that contains one or more values from ``axis_names``.  From the above
+example, the following would be valid axis metadata elements::
+
+    >>> hdr = dict(nipy_header_version='1.0',
+    ...            axis_names = ["frequency", "phase", "slice", "time"],
+    ...            axis_metadata = [
+    ...                dict(applies_to = ['time']),
+    ...                dict(applies_to = ['slice']),
+    ...                dict(applies_to = ['slice', 'time']),
+    ...            ])
+
+.. note::
+
+    The ``applies_to`` field plays the role of a dictionary key for each axis
+    metadata element, where the rest of the fields in the element are a dict
+    giving the value.  For example, in Python (but not in JSON, we could
+    represent the above as::
+
+        >>> hdr = dict(nipy_header_version='1.0',
+        ...            axis_names = ["frequency", "phase", "slice", "time"],
+        ...            axis_metadata = {
+        ...                'time': {},
+        ...                'slice': {},
+        ...                ('slice', 'time'): {},
+        ...            ])
+
+    We can't do this in JSON because all object fields must be strings, so we
+    cannot represent the key ``('slice', 'time')`` directly. The
+    ``applies_to`` field allows us to do that in JSON.  See below for why we
+    might want to specify more than one axis.
+
+As for image metadata keys, keys that begin with a capital letter are DICOM
+standard keywords.
+
+A single axis name for ``applies_to`` specifies that any axis metadata values in
+the element apply to the named axis.
+
+In this case, axis metadata values may be:
+
+* a scalar. The value applies to every point along the corresponding image
+  axis OR
+* a vector of length N (where N is the length of the corresponding image
+  axis).  Value $v_i$ in the vector $v$ corresponds to the image slice at
+  point $i$ on the corresponding axis OR
+* an array of shape (1, ...) where "..." can be any further shape, expressing
+  a vector or array that applies to all points on the given axis, OR
+* an array of shape (N, ...) where "..." can be any further shape.  The (N,
+  ...) array N vectors or arrays with one (vector or array) corresponding to
+  each point in the image axis.
+
+More than one axis name for ``applies_to`` specifies that any values in the
+element apply to the combination of the given axes.
+
+In the case of more than one axis for ``applies_to``, the axis metadata values
+apply to the Cartesian product of the image axis values.  For example, if the
+values of ``applies_to`` == ``['slice', 'time']``, and the slice and time axes
+in the array are lengths (6, 10) respectively, then the values apply to all
+combinations of the 6 possible values for slice indices and the 10 possible
+values for the time indices (ie apply to all 6x10=60 values).  The axis metadata
+values in this case can be:
+
+* a scalar. The value applies to every combination of (slice, time)
+* an array of shape (S, T) (where S is the length of the slice axis and T is
+  the length of the time axis).  Value $a_{i,j}$ in the array $a$ corresponds
+  to the image slice at point $i$ on the slice axis and $j$ on the time axis.
+* an array of shape (S, T, ...) where "..." can be any further shape.  The (S,
+  T, ...) case gives N vectors or arrays with one vector / array corresponding
+  to each combination of slice, time points in the image,
+
+In contrast to the single axis case, we do not allow length 1 axes, to
+indicate a value constant across an axis.  For example, we do not allow shape
+(1, T) arrays to indicate a value constant across slice but varying across
+time, as this should be specified with the single time axis metadata element.
+
+In general, for a given value ``applies_to``, we can take the corresponding
+axis lengths::
+
+    >>> shape_of_image = [4, 5, 6, 10]
+    >>> image_names = ['frequency', 'phase', 'slice', 'time']
+    >>> applies_to = ['slice', 'time']
+    >>> axis_indices = [image_names.index(name) for name in applies_to]
+    >>> axis_lengths = [shape_of_image[i] for i in axis_indices]
+    >>> axis_lengths
+    [6, 10]
+
+The axis metadata value can therefore be of shape:
+
+* () (a scalar) (a scalar value for every combination of points);
+* ``axis_lengths`` (a scalar value for each combination of points);
+* [1] + ``any_other_list`` if ``len(axis_lengths) == 1``;
+* ``axis_lengths + any_other_list`` (an array or vector corresponding to each
+  combination of points, where the shape of the array or vector is given by
+  ``any_other_list``)
+
+For any unique ordered combination of axis names, there can only be on axis
+metadata element.  For example, this is valid::
+
+    >>> # VALID
+    >>> hdr = dict(nipy_header_version='1.0',
+    ...            axis_names = ["frequency", "phase", "slice", "time"],
+    ...            axis_metadata = [
+    ...                dict(applies_to = ['time']),
+    ...                dict(applies_to = ['slice', 'time']),
+    ...                dict(applies_to = ['slice']),
+    ...            ])
+
+This is not, because of the repeated combination of axis names::
+
+    >>> # NOT VALID because of repeated axis combination
+    >>> hdr = dict(nipy_header_version='1.0',
+    ...            axis_names = ["frequency", "phase", "slice", "time"],
+    ...            axis_metadata = [
+    ...                dict(applies_to = ['time']),
+    ...                dict(applies_to = ['slice', 'time']),
+    ...                dict(applies_to = ['slice']),
+    ...                dict(applies_to = ['slice', 'time']),
+    ...            ])
+
+.. _q_vector:
+
+The ``q_vector`` axis metadata field
+------------------------------------
+
+We define an axis metadata field ``q_vector`` which gives the q vector
+corresponding to the diffusion gradients applied.
+
+The ``q_vector`` should apply to (``applies_to``) one axis, where that axis is
+the image volume axis.   The ``q_vector`` is a dict / object with two fields,
+``spatial_axes`` and ``array``.
+
+If there are T volumes then the array will be of shape (T, 3).  One row from
+this array corresponds to the direction of the diffusion gradient with axes
+oriented to the three spatial axes of the data.  To preserve the *axis
+transpose* principle, the ``spatial_axes`` field value is a list of the
+spatial image axes to which the first, second and third column of the
+``array`` refer.
+
+For example::
+
+    >>> import numpy as np
+    >>> element = dict(applies_to=['time'],
+    ...                q_vector = dict(
+    ...                   spatial_axes = ['frequency', 'phase', 'slice'],
+    ...                   array = [[0, 0, 0],
+    ...                            [1000, 0, 0],
+    ...                            [0, 1000, 0],
+    ...                            [0, 0, 1000],
+    ...                            [0, 0, 0],
+    ...                            [1000, 0, 0],
+    ...                            [0, 1000, 0],
+    ...                            [0, 0, 1000],
+    ...                            [0, 0, 0],
+    ...                            [1000, 0, 0]
+    ...                           ]))
+    >>> np.array(element['q_vector']['array']).shape
+    (10, 3)
+
+An individual (3,) vector is the unit vector expressing the direction of the
+gradient, multiplied by the scalar b value of the gradient. In the example,
+there are three b == 0 scans (corresponding to volumes 0, 4, 8), with the rest
+having b value of 1000.
+
+The first value corresponds to the direction along the first named image axis
+('frequency'), the second value to direction along the second named axis
+('phase'), and the third to direction along the 'slice' axis.
+
+Note that the ``q_vector`` is always specified in the axes of the image. This is
+the same convention as FSL uses for its ``bvals`` and ``bvecs`` files.
+
+``acquisition_times`` field
+---------------------------
+
+This gives a list of times of acquisition of each spatial unit of data.
+
+``acquisition_times`` can apply to (``applies_to``) slices or to volumes or to
+both.
+
+Units are milliseconds and can be expressed as integers or as floating point.
+Milliseconds is a reasonable choice for units because a Python integer can
+decode / encode any integer number in the JSON correctly, a signed 32-bit int
+can encode to around 6000 hours, and a 32-bit float can encode to 23 hours
+without loss of precision.
+
+``acquisition_times`` applying to slices
+========================================
+
+If ``acquisition_times`` applies to an image axis representing slices, then the
+array should be of shape (S,) where S is the number of slices. Each value
+$a_i$ represents the time of acquisition of slice $i$, relative to the start
+of the volume, in milliseconds. For example, to specify an ascending
+sequential slice acquisition scheme:
+
+>>> element = dict(applies_to=['slice'],
+...                acquisition_times=[0, 20, 40, 60, 80, 100])
+
+We use "slice" as the axis name here, but any name is valid.
+
+NIfTI 1 and 2 can encode some slice acquisition times using a somewhat
+complicated scheme, but they cannot - for example - encode multi-slice
+acquisitions, and NIfTI slice time encoding is rarely set.  According to the
+*C-struct primacy* principle, if the slice timing is set, it overrides this
+``acquisition_times`` field.  Slice timing is set in the C-struct if the
+`slice_code
+<http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/slice_code.html>`_
+in the C-struct is other than 0 (=unknown).  The specific slice times from the
+C-struct also depend on C-struct fields ``slice_start`` and ``slice_end``.
+
+``acquisition_times`` applying to volumes
+=========================================
+
+When `acquisition_times`` applies to a volume axis, it is a list of times of
+acquisition of each volume in milliseconds relative to the beginning of the
+acquisition of the run.
+
+These values can be useful for recording runs with missing or otherwise
+not-continuous time data.
+
+We use "time" as the axis name, but any name is valid.
+
+>>> element = dict(applies_to=['time'],
+...                acquisition_times=[0, 120, 240, 480, 600])
+
+The NIfTI C-struct can encode a non-zero start point for volumes, using the
+`toffset
+<http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/toffset.html>`_
+field.  If this is not-zero, and not equal to the first value in
+``acquisition_times``, JSON acquisition times applying to volumes are ignored.
+The C-struct ``slice_code`` field (see above) is not relevant to volume times,
+and can have any value.
+
+``acquisition_times`` applying to slices and volumes
+====================================================
+
+When `acquisition_times`` applies to both a slice and a volume axis, it is a
+list of times of acquisition of each slice in each volume in milliseconds
+relative to the beginning of the acquisition of the run.
+
+>>> element = dict(applies_to=['slice', 'time'],
+...                acquisition_times = [[0, 100, 200],
+...                                     [10, 110, 210],
+...                                     [20, 120, 220],
+...                                     [30, 130, 230],
+...                                     [40, 140, 240]]
+...           )
+
+This meaning becomes invalid with non-zero and conflicting values for
+``slice_code`` or ``toffset`` in the C-struct.  Conflicting values are values
+different from those implied from a strict per-volume repetition of the
+acquisition times from ``slice_code, slice_start, slice_end``, starting at
+``toffset``.
+
+``axis_meanings`` field
+=======================
+
+So far we are allowing any axis to be a slice or volume axis, but it might be
+nice to check.  One way of doing this is:
+
+>>> element = dict(applies_to=['mytime'],
+...                axis_meanings=["volume", "time"],
+...                acquisition_times=[0, 120, 240, 480, 600])
+>>> element = dict(applies_to=['myslice'],
+...                axis_meanings=["slice"],
+...                acquisition_times=[0, 20, 40, 60, 80, 100])
+
+In this case we can assert that ``acquisition_times`` applies to an axis with
+meanings that include "slice" or that it applies to an axis with meaning
+"volume".  For example:
+
+>>> # Should raise an error on reading full JSON
+>>> element = dict(applies_to=['myslice'],
+...                axis_meanings=["frequency"],
+...                acquisition_times=[0, 20, 40, 60, 80, 100])
+
+Being able to specify meanings that apply to more than one axis might also
+help for the situation where there is more than one frequency axis:
+
+>>> hdr = dict(nipy_header_version='1.0',
+...            axis_names = ["frequency1", "frequency2", "slice", "time"],
+...            axis_metadata = [
+...                dict(applies_to = ["frequency1"],
+...                     axis_meanings = ["frequency"]),
+...                dict(applies_to = ["frequency2"],
+...                     axis_meanings = ["frequency"]),
+...                dict(applies_to = ['slice'],
+...                     axis_meanings = ["slice"]),
+...                dict(applies_to = ['time'],
+...                     axis_meanings = ["time", "volume"]),
+...            ])
+
+We can also check that space axes really are space axes:
+
+>>> hdr = dict(nipy_header_version='1.0',
+...            axis_names = ["frequency", "phase", "slice", "time"],
+...            axis_metadata = [
+...                dict(applies_to = ["frequency"],
+...                     axis_meanings = ["frequency", "space"]),
+...                dict(applies_to = ["phase"],
+...                     axis_meanings = ["phase", "space"]),
+...                dict(applies_to = ["slice"],
+...                     axis_meanings = ["slice", "space"]),
+...                dict(applies_to = ["time"],
+...                     axis_meanings = ["time", "volume"]),
+...                dict(applies_to=["time"],
+...                     q_vector = dict(
+...                        spatial_axes = ["frequency", "phase", "slice"],
+...                        array = [[0, 0, 0],
+...                                 [1000, 0, 0]]))
+...                ])
+
+For the ``q_vector`` field, we can check that all of the ``spatial_axes`` axes
+("frequency", "phase", "slice") do in fact have meaning "space".
+
+For this check to pass, either of these must be true:
+
+* no axes are labeled with the meaning "space" OR
+* the only three axes with label "space" are those named in ``spatial_axes``.
+
+``multi_affine`` field
+----------------------
+
+Use case
+^^^^^^^^
+
+When doing motion correction on a 4D image, we calculate the required affine
+transformation from, say, the second image to the first image; the
+third image to the first image; etc. If there are N volumes in the 4D image,
+we would need to store N-1 affine transformations.  If we have registered to
+the mean volume of the volume series instead of one of the volumes in the
+volume series, then we need to store all N transforms.
+
+We often want to store this set of required transformations with the image,
+but NIfTI does not allow us to do that.  SPM therefore stores these transforms
+in a separate MATLAB-format ``.mat`` file.  We currently don't read these
+transformations because we have no API in nibabel to present or store multiple
+affines.
+
+Implementation
+^^^^^^^^^^^^^^
+
+Assume the 4D volume has T time points (volumes).
+
+There are two ways we could implement the multi-affines. The first would be to
+have (T x 3 x 4) ``array`` of affines, with one for each volume / time point,
+and a ``spatial_axes`` field specifying the input axes for the affine.  This
+is the same general idea as the `q_vector` field::
+
+    >>> element = dict(applies_to=['time'],
+    ...                multi_affine = dict(
+    ...                    spatial_axes = ['frequency', 'phase', 'slice'],
+    ...                    array = [[[   2.86,   -0.7 ,    0.83,  -80.01],
+    ...                               [   0.71,    2.91,    0.01, -114.59],
+    ...                               [  -0.54,    0.13,    4.42,  -54.34]],
+    ...                              [[   2.87,   -0.38,    1.19,  -92.77],
+    ...                               [   0.31,    2.97,    0.45, -110.87],
+    ...                               [  -0.82,   -0.2 ,    4.32,  -33.89]],
+    ...                              [[   2.97,   -0.39,    0.31,  -78.95],
+    ...                               [   0.33,    2.9 ,    1.06, -116.99],
+    ...                               [  -0.29,   -0.68,    4.36,  -36.41]],
+    ...                              [[   2.93,   -0.5 ,    0.61,  -78.02],
+    ...                               [   0.4 ,    2.9 ,    0.99, -118.9 ],
+    ...                               [  -0.5 ,   -0.59,    4.35,  -33.61]],
+    ...                              [[   2.95,   -0.44,    0.49,  -77.86],
+    ...                               [   0.3 ,    2.78,    1.62, -125.83],
+    ...                               [  -0.46,   -1.03,    4.17,  -21.66]]]))
+    >>> np.array(element['multi_affine']['array']).shape
+    (5, 3, 4)
+
+This obeys the axis transpose principle, because the spatial axes are
+specified.  If the user transposes the image, the order of axis names in
+``axis_names``  changes, but the correspondence between axis names and affine
+columns is still correctly encoded in the ``spatial_axes``.
+
+Another option would be to partially follow the `NRRD format
+<http://teem.sourceforge.net/nrrd/format.html>`_ in giving the column vectors
+from the affine to the axis to which they apply, and split the translation
+into a separate offset vector::
+
+    >>> hdr = dict(nipy_header_version='1.0',
+    ...            axis_names = ["time"],
+    ...            axis_metadata = [
+    ...                dict(applies_to=['time'],
+    ...                     output_vector=dict(
+    ...                        spatial_axis = ['frequency'],
+    ...                        array = [
+    ...                                 [ 2.86, 0.71, -0.54],
+    ...                                 [ 2.87, 0.31, -0.82],
+    ...                                 [ 2.97, 0.33, -0.29],
+    ...                                 [ 2.93, 0.4 , -0.5 ],
+    ...                                 [ 2.95, 0.3 , -0.46],
+    ...                                 ])),
+    ...                dict(applies_to=['time'],
+    ...                     output_vector=dict(
+    ...                        spatial_axis = ['phase'],
+    ...                        array = [
+    ...                                 [ -0.7 , 2.91,  0.13],
+    ...                                 [ -0.38, 2.97, -0.2 ],
+    ...                                 [ -0.39, 2.9 , -0.68],
+    ...                                 [ -0.5 , 2.9 , -0.59],
+    ...                                 [ -0.44, 2.78, -1.03],
+    ...                                 ])),
+    ...                dict(applies_to=['time'],
+    ...                     output_vector = dict(
+    ...                        spatial_axis = ['slice'],
+    ...                        array = [
+    ...                                 [ 0.83, 0.01, 4.42],
+    ...                                 [ 1.19, 0.45, 4.32],
+    ...                                 [ 0.31, 1.06, 4.36],
+    ...                                 [ 0.61, 0.99, 4.35],
+    ...                                 [ 0.49, 1.62, 4.17],
+    ...                                 ])),
+    ...                dict(applies_to=['time'],
+    ...                     output_offset = [
+    ...                              [ -80.01, -114.59, -54.34],
+    ...                              [ -92.77, -110.87, -33.89],
+    ...                              [ -78.95, -116.99, -36.41],
+    ...                              [ -78.02, -118.9,  -33.61],
+    ...                              [ -77.86, -125.83, -21.66],
+    ...                              ])],
+    ...           )
+    >>> np.array(hdr['axis_metadata'][0]['output_vector']['array']).shape
+    (5, 3)
+    >>> np.array(hdr['axis_metadata'][1]['output_vector']['array']).shape
+    (5, 3)
+    >>> np.array(hdr['axis_metadata'][2]['output_vector']['array']).shape
+    (5, 3)
+    >>> np.array(hdr['axis_metadata'][3]['output_offset']).shape
+    (5, 3)
+
+.. _minc: http://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference
+.. _nrrd: http://teem.sourceforge.net/nrrd/descformat.html
+.. _nifti header extension: http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/nifti1fields_pages/extension.html
+.. _adding nifti extensions: http://nifti.nimh.nih.gov/nifti-1/documentation/faq#Q19
+.. _bxh-xcede-tools: http://www.nitrc.org/projects/bxh_xcede_tools/
+.. _xcede website: http://www.xcede.org/XCEDE.html
+.. _JIM: http://www.xinapse.com/Manual/index.html
+.. _3D slicer: http://www.slicer.org
+
+.. vim: ft=rst
