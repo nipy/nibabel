@@ -25,6 +25,13 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.4.2 (Wednesday 11 March 2026)
+===============================
+
+Bug-fix release in the 5.4.x series.
+
+This release fixes an issue with automated deployment to PyPI.
+
 5.4.1 (Tuesday 10 March 2026)
 =============================
 
