@@ -103,11 +103,18 @@ tox runs tests in isolated environments that we specify,
 ensuring that we are able to test across many different environments,
 and those environments do not depend on our local configurations.
 
-If you have the pipx_ tool installed, then you may simply::
+The simplest way to install the necessary tools is to run::
 
-    pipx run tox
+    uv sync --group=dev
 
-Alternatively, you can install tox and run it::
+This will install tox_ and pre-commit_ with uv_ plugins into a local
+`.venv` environment.
+
+Otherwise, you may install tox using `uv tool`::
+
+    uv tool install --with=tox-uv-bare tox
+
+Or in any environment with::
 
     python -m pip install tox
     tox
@@ -131,13 +138,20 @@ Style guide
 To ensure code consistency and readability, NiBabel has adopted the following
 tools:
 
-* blue_ - An auto-formatter that aims to reduce diffs to relevant lines
-* isort_ - An import sorter that groups stdlib, third-party and local imports.
-* flake8_ - A style checker that can catch (but generally not fix) common
-  errors in code.
+* ruff_ - A general linter and autoformatter.
 * codespell_ - A spell checker targeted at source code.
 * pre-commit_ - A pre-commit hook manager that runs the above and various
   other checks/fixes.
+
+To apply our style checks uniformly, simply run::
+
+    pre-commit run --all-files
+
+Individual checks can be run with::
+
+    pre-commit run ruff-check --all-files
+    pre-commit run ruff-format --all-files
+    pre-commit run codespell --all-files
 
 While some amount of personal preference is involved in selecting and
 configuring auto-formatters, their value lies in largely eliminating the
@@ -145,14 +159,12 @@ need to think or argue about style.
 With pre-commit turned on, you can write in the style that works for you,
 and the NiBabel style will be adopted prior to the commit.
 
-To apply our style checks uniformly, simply run::
-
-    tox -e style,spellcheck
-
-To fix any issues found::
-
-    tox -e style-fix
-    tox -e spellcheck -- -w
+Ruff implements a large number of checks.
+Many of them may not be applicable to our code base,
+or may produce a large amount of churn for little gain.
+Checks may be added or disabled, but the effort may outweigh the benefits.
+Please make an affirmative argument for each change,
+including an example diff.
 
 Occasionally, codespell has a false positive. To ignore the suggestion, add
 the intended word to ``tool.codespell.ignore-words-list`` in ``pyproject.toml``.
@@ -164,15 +176,20 @@ Pre-commit hooks
 ----------------
 
 NiBabel uses pre-commit_ to help committers validate their changes
-before committing. To enable these, you can use pipx_::
+before committing.
 
-    pipx run pre-commit install
+Install the pre-commit hooks with::
 
-Or install and run::
-
-    python -m pip install pre-commit
     pre-commit install
 
+If pre-commit is not already installed in your environment,
+use one of the following::
+
+    uv sync --group=dev
+    # or
+    uv tool install --with=pre-commit-uv-bare pre-commit
+    # or
+    python -m pip install pre-commit
 
 Changelog
 =========
@@ -203,9 +220,8 @@ Please see `our community guidelines
 <https://github.com/nipy/nibabel/blob/master/.github/CODE_OF_CONDUCT.md>`_.
 Other projects call these guidelines the "code of conduct".
 
-.. _blue: https://blue.readthedocs.io/
+.. _ruff: https://docs.astral.sh/ruff/
+.. _uv: https://docs.astral.sh/uv/
 .. _codespell: https://github.com/codespell-project/codespell
-.. _flake8: https://flake8.pycqa.org/
-.. _pipx: https://pypa.github.io/pipx/
-.. _precommit: https://pre-commit.com/
+.. _pre-commit: https://pre-commit.com/
 .. _tox: https://tox.wiki/

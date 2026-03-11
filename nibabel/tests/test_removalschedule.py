@@ -185,3 +185,7 @@ def test_unremoved_object():
 def test_unremoved_attr():
     with pytest.raises(AssertionError):
         test_attribute_removal()
+
+
+if cmp_pkg_version('1.0.0') > -1:
+    pytest.skip('Shallow checkout, version unavailable', allow_module_level=True)
