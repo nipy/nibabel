@@ -4,6 +4,8 @@ import os
 from os.path import dirname, isdir, realpath
 from os.path import join as pjoin
 
+import pytest
+
 from . import nibabel_data as nibd
 
 MY_DIR = dirname(__file__)
@@ -17,6 +19,7 @@ def teardown_module():
     nibd.environ = os.environ
 
 
+@pytest.mark.thread_unsafe
 def test_get_nibabel_data():
     # Test getting directory
     local_data = realpath(pjoin(MY_DIR, '..', '..', 'nibabel-data'))

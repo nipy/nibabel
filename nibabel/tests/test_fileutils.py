@@ -14,6 +14,7 @@ from ..fileutils import read_zt_byte_strings
 from ..tmpdirs import InTemporaryDirectory
 
 
+@pytest.mark.thread_unsafe
 def test_read_zt_byte_strings():
     # sample binary block
     binary = b'test.fmr\x00test.prt\x00something'

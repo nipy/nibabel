@@ -1,16 +1,15 @@
-name: Prerelease tests
-
-# This file tests against pre-release versions of dependencies
+---
+# Runs tests suite with free threaded python.
 #
-# Because an upstream tool can break things so easily, this is done as a
-# weekly cron job so notifications can be seen without making every PR fail.
+###
+name: Multithreaded tests
 
 on:
   push:
     branches:
-      - ci/prerelease
+      - ci/multithreaded
   schedule:
-    - cron: '0 0 * * 1'
+    - cron: "0 0 * * 1"
   # Allow job to be triggered manually from GitHub interface
   workflow_dispatch:
 
@@ -31,37 +30,27 @@ permissions:
   issues: write
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os-arch[0] }}
-    continue-on-error: true
+  multithreaded:
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os-arch:
-          - ['ubuntu-latest', 'x64']
-          - ['windows-latest', 'x64']
-          - ['macos-latest', 'arm64']
+        os: [macos-latest, ubuntu-latest]
         python-version:
-          # Oldest SPEC0-supported Python (dependencies won't release for older)
-          - "3.12"
-          # Latest Python
-          - "3.14"
-          - "3.14t"
-          # Beta Python
-          # - "3.15"
-          # - "3.15t"
+          # Bump to latest version that we can install `[all]` on.
+          - '3.14t'
 
     env:
-      DEPENDS: pre
-      ARCH: ${{ matrix.os-arch[1] }}
+      MODE: threaded
 
     steps:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
-          fetch-depth: 0
-      - name: Setup uv and Python ${{ matrix.python-version }}
+      - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v7
+      - name: Setup python
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           activate-environment: true
@@ -72,7 +61,7 @@ jobs:
       - name: Show tox config
         run: tox c
       - name: Setup test suite
-        run: tox run -vv --notest
+        run: tox run -vv --notest --list-dependencies
       - name: Run test suite
         id: pre
         run: tox -v --skip-pkg-install --exit-and-dump-after 1200
@@ -85,7 +74,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run_id: ${{ github.run_id }}
           repository: ${{ github.repository }}
-          workflow_name: PRE-RELEASE TESTS
+          workflow_name: MULTI-THREADED TESTS
         with:
           filename: .github/workflow_failure.md
           update_existing: true

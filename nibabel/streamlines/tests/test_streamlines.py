@@ -208,6 +208,7 @@ class TestLoadSave(unittest.TestCase):
                 with pytest.warns(Warning) if lazy_load else error_warnings():
                     assert_tractogram_equal(tfile.tractogram, tractogram)
 
+    @pytest.mark.thread_unsafe
     def test_save_tractogram_file(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
         trk_file = trk.TrkFile(tractogram)
@@ -232,6 +233,7 @@ class TestLoadSave(unittest.TestCase):
             tfile = nib.streamlines.load('dummy.trk', lazy_load=False)
             assert_tractogram_equal(tfile.tractogram, tractogram)
 
+    @pytest.mark.thread_unsafe
     def test_save_empty_file(self):
         tractogram = Tractogram(affine_to_rasmm=np.eye(4))
         for ext in FORMATS:
@@ -241,6 +243,7 @@ class TestLoadSave(unittest.TestCase):
                 tfile = nib.streamlines.load(filename, lazy_load=False)
                 assert_tractogram_equal(tfile.tractogram, tractogram)
 
+    @pytest.mark.thread_unsafe
     def test_save_simple_file(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
         for ext in FORMATS:
@@ -250,6 +253,7 @@ class TestLoadSave(unittest.TestCase):
                 tfile = nib.streamlines.load(filename, lazy_load=False)
                 assert_tractogram_equal(tfile.tractogram, tractogram)
 
+    @pytest.mark.thread_unsafe
     def test_save_complex_file(self):
         complex_tractogram = Tractogram(
             DATA['streamlines'],
@@ -286,6 +290,7 @@ class TestLoadSave(unittest.TestCase):
                 tfile = nib.streamlines.load(filename, lazy_load=False)
                 assert_tractogram_equal(tfile.tractogram, tractogram)
 
+    @pytest.mark.thread_unsafe
     def test_save_sliced_tractogram(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
         original_tractogram = tractogram.copy()
@@ -306,6 +311,7 @@ class TestLoadSave(unittest.TestCase):
         with pytest.raises(ValueError):
             nib.streamlines.save(Tractogram(), '')
 
+    @pytest.mark.thread_unsafe
     def test_save_from_generator(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
 

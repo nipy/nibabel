@@ -66,6 +66,7 @@ test = [
   "pytest-cov >=6",
   "pytest-httpserver >=1.0.7",
   "pytest-xdist >=3.5",
+  "pytest-run-parallel >=0.8.2",
   "coverage[toml]>=7.2",
 ]
 # Development dependencies; transferred to dependency-groups, here to avoid

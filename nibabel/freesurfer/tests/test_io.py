@@ -47,6 +47,7 @@ freesurfer_test = unittest.skipUnless(
 
 
 @freesurfer_test
+@pytest.mark.thread_unsafe
 def test_geometry():
     """Test IO of .surf"""
     surf_path = pjoin(data_path, 'surf', 'lh.inflated')
@@ -114,6 +115,7 @@ def test_geometry():
 
 @freesurfer_test
 @needs_nibabel_data('nitest-freesurfer')
+@pytest.mark.thread_unsafe
 def test_quad_geometry():
     """Test IO of freesurfer quad files."""
     new_quad = pjoin(
@@ -131,6 +133,7 @@ def test_quad_geometry():
 
 
 @freesurfer_test
+@pytest.mark.thread_unsafe
 def test_morph_data():
     """Test IO of morphometry data file (eg. curvature)."""
     curv_path = pjoin(data_path, 'surf', 'lh.curv')
@@ -144,6 +147,7 @@ def test_morph_data():
         assert np.array_equal(curv2, curv)
 
 
+@pytest.mark.thread_unsafe
 def test_write_morph_data():
     """Test write_morph_data edge cases"""
     values = np.arange(20, dtype='>f4')
@@ -168,6 +172,7 @@ def test_write_morph_data():
 
 
 @freesurfer_test
+@pytest.mark.thread_unsafe
 def test_annot():
     """Test IO of .annot against freesurfer example data."""
     annots = ['aparc', 'aparc.a2005s']
@@ -211,6 +216,7 @@ def test_annot():
         assert names == names2
 
 
+@pytest.mark.thread_unsafe
 def test_read_write_annot():
     """Test generating .annot file and reading it back."""
     # This annot file will store a LUT for a mesh made of 10 vertices, with
@@ -244,6 +250,7 @@ def test_read_write_annot():
         assert names2 == names
 
 
+@pytest.mark.thread_unsafe
 def test_write_annot_fill_ctab():
     """Test the `fill_ctab` parameter to :func:`.write_annot`."""
     nvertices = 10
@@ -291,6 +298,7 @@ def test_write_annot_fill_ctab():
         assert names2 == names
 
 
+@pytest.mark.thread_unsafe
 def test_read_annot_old_format():
     """Test reading an old-style .annot file."""
 
@@ -353,6 +361,7 @@ def test_label():
     assert len(labels) == len(scalars)
 
 
+@pytest.mark.thread_unsafe
 def test_write_annot_maxstruct():
     """Test writing ANNOT files with repeated labels"""
     with InTemporaryDirectory():

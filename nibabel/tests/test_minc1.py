@@ -166,6 +166,7 @@ class _TestMincFile:
 
 
 class TestMinc1File(_TestMincFile):
+    @pytest.mark.thread_unsafe
     def test_compressed(self):
         # we can read minc compressed
         # Not so for MINC2; hence this small sub-class

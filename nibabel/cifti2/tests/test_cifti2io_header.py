@@ -78,6 +78,7 @@ def test_version():
 
 
 @needs_nibabel_data('nitest-cifti2')
+@pytest.mark.thread_unsafe
 def test_readwritedata():
     with InTemporaryDirectory():
         for name in datafiles:
@@ -101,6 +102,7 @@ def test_readwritedata():
 
 
 @needs_nibabel_data('nitest-cifti2')
+@pytest.mark.thread_unsafe
 def test_nibabel_readwritedata():
     with InTemporaryDirectory():
         for name in datafiles:
@@ -422,6 +424,7 @@ class TestCifti2SingleHeader(tn2.TestNifti2SingleHeader):
             hdr['pixdim'][i] = -1
             assert self._dxer(hdr) == self._pixdim_message
 
+    @pytest.mark.thread_unsafe
     def test_nifti_qfac_checks(self):
         # Test qfac is 1 or -1 or 0
         hdr = self.header_class()
@@ -438,6 +441,7 @@ class TestCifti2SingleHeader(tn2.TestNifti2SingleHeader):
         assert fhdr['pixdim'][0] == 1
         assert message == 'pixdim[0] (qfac) should be 1 (default) or 0 or -1; setting qfac to 1'
 
+    @pytest.mark.thread_unsafe
     def test_pixdim_log_checks(self):
         # pixdim can be zero or positive
         HC = self.header_class
