@@ -273,7 +273,7 @@ jobs:
         run: tox -e ${{ matrix.check }}
 
   publish:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     environment: "Package deployment"
     needs: [tox, pytest, test-package]
     permissions:
