@@ -48,9 +48,10 @@ jobs:
         run: uv tool install -v tox --with=tox-uv-bare
       - name: Setup tox environment
         run: tox run -vv --notest -e docs
-      - name: Run test suite
+      - name: Build docs
         run: tox -v --skip-pkg-install -e docs
-      - uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
+      - name: Push to gh-pages
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e # v4.0.0
         if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags'))
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
