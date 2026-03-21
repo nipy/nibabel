@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "gitpython>=3.1.46",
+# ]
+# ///
 import json
 from pathlib import Path
 from subprocess import PIPE, run
 
 import git
 
-skip = {'nibotmi'}
+skip = {'nibotmi', 'dependabot[bot]'}
 
 
 def decommify(name):
@@ -41,4 +47,4 @@ creators = [
 ]
 
 zenodo['creators'] = creators
-zenodo_file.write_text(json.dumps(zenodo, indent=2, sort_keys=True) + '\n')
+zenodo_file.write_text(json.dumps(zenodo, indent=2, sort_keys=True, ensure_ascii=False) + '\n')

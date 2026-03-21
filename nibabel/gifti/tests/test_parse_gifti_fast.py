@@ -229,6 +229,7 @@ def test_load_metadata():
         assert img.version == '1.0'
 
 
+@pytest.mark.thread_unsafe
 def test_load_dataarray1():
     img1 = load(DATA_FILE1)
     # Round trip
@@ -247,6 +248,7 @@ def test_load_dataarray1():
         assert xform_codes.niistring[img.darrays[0].coordsys.xformspace] == 'NIFTI_XFORM_TALAIRACH'
 
 
+@pytest.mark.thread_unsafe
 def test_load_dataarray2():
     img2 = load(DATA_FILE2)
     # Round trip
@@ -257,6 +259,7 @@ def test_load_dataarray2():
         assert_array_almost_equal(img.darrays[0].data[:10], DATA_FILE2_darr1)
 
 
+@pytest.mark.thread_unsafe
 def test_load_dataarray3():
     img3 = load(DATA_FILE3)
     with InTemporaryDirectory():
@@ -266,6 +269,7 @@ def test_load_dataarray3():
         assert_array_almost_equal(img.darrays[0].data[30:50], DATA_FILE3_darr1)
 
 
+@pytest.mark.thread_unsafe
 def test_load_dataarray4():
     img4 = load(DATA_FILE4)
     # Round trip
@@ -285,6 +289,7 @@ def test_dataarray5():
     # Round trip tested below
 
 
+@pytest.mark.thread_unsafe
 def test_base64_written():
     with InTemporaryDirectory():
         with open(DATA_FILE5, 'rb') as fobj:
@@ -314,6 +319,7 @@ def test_base64_written():
         assert_array_almost_equal(darrays[1].data, DATA_FILE5_darr2)
 
 
+@pytest.mark.thread_unsafe
 def test_readwritedata():
     img = load(DATA_FILE2)
     with InTemporaryDirectory():
@@ -357,6 +363,7 @@ def test_load_getbyintent():
     assert da == []
 
 
+@pytest.mark.thread_unsafe
 def test_load_labeltable():
     img6 = load(DATA_FILE6)
     # Round trip
@@ -376,6 +383,7 @@ def test_load_labeltable():
         assert img.labeltable.labels[1].alpha == 1
 
 
+@pytest.mark.thread_unsafe
 def test_parse_dataarrays():
     fn = 'bad_daa.gii'
     img = gi.GiftiImage()
@@ -441,6 +449,7 @@ def test_parse_with_memmap_fallback():
     assert_array_almost_equal(img2.darrays[1].data, DATA_FILE7_darr2)
 
 
+@pytest.mark.thread_unsafe
 def test_external_file_failure_cases():
     # external file cannot be found
     with InTemporaryDirectory() as tmpdir:

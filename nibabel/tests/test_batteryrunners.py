@@ -140,6 +140,7 @@ def test_report_strings():
     assert str_io.getvalue() == ''
 
 
+@pytest.mark.thread_unsafe
 def test_logging():
     rep = Report(ValueError, 20, 'msg', 'fix')
     str_io = StringIO()

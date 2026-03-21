@@ -1,0 +1,84 @@
+---
+# Runs tests suite with free threaded python.
+#
+###
+name: Multithreaded tests
+
+on:
+  push:
+    branches:
+      - ci/multithreaded
+  schedule:
+    - cron: "0 0 * * 1"
+  # Allow job to be triggered manually from GitHub interface
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+# Force tox and pytest to use color
+env:
+  FORCE_COLOR: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  multithreaded:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        python-version:
+          # Bump to latest version that we can install `[all]` on.
+          - '3.14t'
+
+    env:
+      MODE: threaded
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Install tox
+        run: uv tool install -v tox --with=tox-uv --with=tox-gh-actions
+      - name: Show tox config
+        run: tox c
+      - name: Setup test suite
+        run: tox run -vv --notest --list-dependencies
+      - name: Run test suite
+        id: pre
+        run: tox -v --skip-pkg-install --exit-and-dump-after 1200
+      - name: Create issue
+        # Workflows triggered by schedule only notify the workflow creator
+        # So let's open an issue to make sure this is visible to all
+        if: ${{ steps.pre.outcome != 'success' }}
+        uses: JasonEtco/create-an-issue@v2.9.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run_id: ${{ github.run_id }}
+          repository: ${{ github.repository }}
+          workflow_name: MULTI-THREADED TESTS
+        with:
+          filename: .github/workflow_failure.md
+          update_existing: true
+          search_existing: open
+      - name: Return failure
+        if: ${{ steps.pre.outcome != 'success' }}
+        run: exit 1

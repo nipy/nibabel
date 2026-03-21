@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "sphinx>=9.1.0",
+# ]
+# ///
 import re
 import sys
 from collections import defaultdict
@@ -16,6 +22,7 @@ RELEASE_REGEX = re.compile(r"""((?:\d+)\.(?:\d+)\.(?:\d+)) \(\w+ \d{1,2} \w+ \d{
 
 class MockConfig:
     intersphinx_timeout: int | None = None
+    intersphinx_cache_limit: int | None = None
     tls_verify = False
     tls_cacerts: str | dict[str, str] | None = None
     user_agent: str = ''

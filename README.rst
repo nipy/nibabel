@@ -15,12 +15,9 @@
       .. image:: https://img.shields.io/pypi/pyversions/nibabel.svg
          :target: https://pypi.python.org/pypi/nibabel/
          :alt: PyPI - Python Version
-      .. image:: https://img.shields.io/badge/code%20style-blue-blue.svg
-         :target: https://blue.readthedocs.io/en/latest/
-         :alt: code style: blue
-      .. image:: https://img.shields.io/badge/imports-isort-1674b1
-         :target: https://pycqa.github.io/isort/
-         :alt: imports: isort
+      .. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+         :target: https://github.com/astral-sh/ruff
+         :alt: Ruff
       .. image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
          :target: https://github.com/pre-commit/pre-commit
          :alt: pre-commit

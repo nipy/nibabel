@@ -32,6 +32,7 @@ def test_module_proxy():
     assert repr(mp) == '<module proxy for nibabel.deprecated>'
 
 
+@pytest.mark.thread_unsafe
 def test_futurewarning_mixin():
     # Test mixin for FutureWarning
     class C:

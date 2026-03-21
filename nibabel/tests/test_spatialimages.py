@@ -574,6 +574,7 @@ class MmapImageMixin:
         img.to_filename(fname)
         return img, fname, False
 
+    @pytest.mark.thread_unsafe
     def test_load_mmap(self):
         # Test memory mapping when loading images
         img_klass = self.image_class

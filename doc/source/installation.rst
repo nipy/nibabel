@@ -83,12 +83,12 @@ Requirements
 
 .. check these against pyproject.toml / tox.ini
 
-*  Python_ 3.9 or greater
-*  NumPy_ 1.22 or greater
+*  Python_ 3.10 or greater
+*  NumPy_ 1.25 or greater
 *  Packaging_ 20.0 or greater
 *  importlib-resources_ 5.12 or greater (or Python 3.12+)
-*  SciPy_ 1.8 or greater (optional, for full SPM-ANALYZE support)
-*  h5py_ 3.5 or greater (optional, for MINC2 support)
+*  SciPy_ 1.11 or greater (optional, for full SPM-ANALYZE support)
+*  h5py_ 3.8 or greater (optional, for MINC2 support)
 *  PyDICOM_ 2.3.0 or greater (optional, for DICOM support)
 *  `Python Imaging Library`_ 8.4 or greater (optional, for PNG conversion in DICOMFS)
 *  pytest_ (optional, to run the tests)

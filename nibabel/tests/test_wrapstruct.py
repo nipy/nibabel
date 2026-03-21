@@ -451,6 +451,7 @@ class TestMyWrapStruct(_TestWrapStructBase):
         hdr['a_str'] = 'My Name'
         assert self._dxer(hdr) == 'a_str should be lower case'
 
+    @pytest.mark.thread_unsafe
     def test_log_checks(self):
         # Test logging, fixing, errors for header checking
         # This is specific to the particular header type. Here we use the
@@ -470,6 +471,7 @@ class TestMyWrapStruct(_TestWrapStructBase):
         assert message == 'a_str should be lower case; set a_str to lower case'
         pytest.raises(*raiser)
 
+    @pytest.mark.thread_unsafe
     def test_logger_error(self):
         # Check that we can reset the logger and error level
         # This is again specific to this pretend header

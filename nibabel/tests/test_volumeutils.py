@@ -74,6 +74,7 @@ except ModuleNotFoundError:  # NumPy < 1.25
     from numpy import ComplexWarning
 
 
+@pytest.mark.thread_unsafe
 def test__is_compressed_fobj():
     # _is_compressed helper function
     with InTemporaryDirectory():
@@ -88,6 +89,7 @@ def test__is_compressed_fobj():
                 fobj.close()
 
 
+@pytest.mark.thread_unsafe
 def test_fobj_string_assumptions():
     # Test assumptions made in array_from_file about whether string returned
     # from file read needs a copy.
@@ -135,6 +137,7 @@ def test_fobj_string_assumptions():
             os.unlink(fname)
 
 
+@pytest.mark.thread_unsafe
 def test_array_from_file():
     shape = (2, 3, 4)
     dtype = np.dtype(np.float32)
@@ -175,6 +178,7 @@ def test_array_from_file():
         del in_buf
 
 
+@pytest.mark.thread_unsafe
 def test_array_from_file_mmap():
     # Test memory mapping
     shape = (2, 21)
@@ -229,6 +233,7 @@ def buf_chk(in_arr, out_buf, in_buf, offset):
     return np.allclose(in_arr, arr)
 
 
+@pytest.mark.thread_unsafe
 def test_array_from_file_openers():
     # Test array_from_file also works with Opener objects
     shape = (2, 3, 4)
@@ -251,6 +256,7 @@ def test_array_from_file_openers():
             del out_arr
 
 
+@pytest.mark.thread_unsafe
 def test_array_from_file_reread():
     # Check that reading, modifying, reading again returns original.
     # This is the live check for the generic checks in
@@ -907,6 +913,7 @@ def test_write_zeros():
     assert bio.getvalue() == b'\x00' * 200
 
 
+@pytest.mark.thread_unsafe
 def test_seek_tell():
     # Test seek tell routine
     bio = BytesIO()
@@ -1006,6 +1013,7 @@ def test_seek_tell_logic():
     assert bio.getvalue() == ZEROB * 20
 
 
+@pytest.mark.thread_unsafe
 def test_fname_ext_ul_case():
     # Get filename ignoring the case of the filename extension
     with InTemporaryDirectory():

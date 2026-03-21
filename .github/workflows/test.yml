@@ -39,18 +39,18 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: 3
-      - run: pip install --upgrade build twine
+          activate-environment: true
       - name: Build sdist and wheel
-        run: python -m build
-      - run: twine check dist/*
+        run: uv build
+      - run: uvx twine check dist/*
       - name: Build git archive
         run: mkdir archive && git archive -v -o archive/nibabel-archive.tgz HEAD
       - name: Upload sdist and wheel artifacts
@@ -83,32 +83,31 @@ jobs:
         with:
           name: archive
           path: archive/
-      - uses: actions/setup-python@v6
+      - name: Setup uv and Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: 3
+          activate-environment: true
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
-      - name: Update pip
-        run: pip install --upgrade pip
       - name: Install wheel
         if: matrix.package == 'wheel'
-        run: pip install dist/nibabel-*.whl
+        run: uv pip install dist/nibabel-*.whl
       - name: Install sdist
         if: matrix.package == 'sdist'
-        run: pip install dist/nibabel-*.tar.gz
+        run: uv pip install dist/nibabel-*.tar.gz
       - name: Install archive
         if: matrix.package == 'archive'
-        run: pip install archive/nibabel-archive.tgz
+        run: uv pip install archive/nibabel-archive.tgz
       - run: python -c 'import nibabel; print(nibabel.__version__)'
       - name: Install minimum test dependencies
-        run: pip install nibabel[test]
+        run: uv pip install nibabel[test]
       - name: Run tests
         run: pytest --doctest-modules --doctest-plus -v --pyargs nibabel -n auto
 
-  test:
+  tox:
     # Check each OS, all supported Python, minimum versions and latest releases
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.dependencies == 'pre' }}
     strategy:
       fail-fast: false
       matrix:
@@ -122,7 +121,7 @@ jobs:
           - "3.14"
           - "3.14t"
         architecture: ['x86', 'x64', 'arm64']
-        dependencies: ['full', 'pre']
+        dependencies: ['full']
         include:
           # Basic dependencies only
           - os: ubuntu-latest
@@ -186,16 +185,6 @@ jobs:
           - os: macos-latest
             architecture: x64
 
-          ## Reduced support
-          # Drop pre tests for macos-14
-          - os: macos-14
-            dependencies: pre
-          # Drop pre tests for SPEC-0-unsupported Python versions
-          - python-version: '3.10'
-            dependencies: pre
-          - python-version: '3.11'
-            dependencies: pre
-
     env:
       DEPENDS: ${{ matrix.dependencies }}
       ARCH: ${{ !contains(fromJSON('["none", "min"]'), matrix.dependencies) && matrix.architecture }}
@@ -205,41 +194,21 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-      - name: Install the latest version of uv
+      - name: Setup uv and Python ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@v7
-      - name: Set up Python ${{ matrix.python-version }}
-        if: "!endsWith(matrix.python-version, 't')"
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: ${{ matrix.architecture != 'x86' }}
+      - name: Setup 32-bit Python ${{ matrix.python-version }}
+        if: matrix.architecture == 'x86'
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           architecture: ${{ matrix.architecture }}
-          allow-prereleases: true
-      - name: Set up Python ${{ matrix.python-version }}
-        if: endsWith(matrix.python-version, 't')
-        run: |
-          echo "UV_PYTHON=${IMPL}-${VERSION}-${OS%-*}-${ARCH}-${LIBC}" >> $GITHUB_ENV
-          source $GITHUB_ENV
-          uv python install $UV_PYTHON
-        env:
-          IMPL: cpython
-          VERSION: ${{ matrix.python-version }}
-          # uv expects linux|macos|windows, we can drop the -* but need to rename ubuntu
-          OS: ${{ matrix.os == 'ubuntu-latest' && 'linux' ||
-                  startsWith(matrix.os, 'macos') && 'macos' ||
-                  matrix.os }}
-          # uv expects x86, x86_64, aarch64 (among others)
-          ARCH: ${{ matrix.architecture == 'x64' && 'x86_64' ||
-                    matrix.architecture == 'arm64' && 'aarch64' ||
-                    matrix.architecture }}
-          # windows and macos have no options, gnu is the only option for the archs
-          LIBC: ${{ matrix.os == 'ubuntu-latest' && 'gnu' || 'none' }}
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
       - name: Install tox
-        run: |
-          uv tool install -v tox \
-            --with=tox-uv \
-            --with=git+https://github.com/effigies/tox-gh-actions@abiflags
+        run: uv tool install -v tox --with=tox-uv --with=tox-gh-actions
       - name: Show tox config
         run: tox c
       - name: Setup test suite
@@ -258,32 +227,55 @@ jobs:
           path: test-results.xml
         if: ${{ always() }}
 
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.14']
+    steps:
+      - name: Shallow checkout
+        uses: actions/checkout@v6
+      - name: Setup uv and Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Install with pytest
+        run: uv sync --extra=test --extra=all
+      - name: Run test suite
+        run: python -m pytest
+
   checks:
-    runs-on: 'ubuntu-latest'
+    runs-on: 'ubuntu-slim'
     continue-on-error: true
     strategy:
       matrix:
-        check: ['style', 'doctest', 'typecheck', 'spellcheck']
+        check: ['doctest', 'typecheck']
 
     steps:
       - uses: actions/checkout@v6
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+      - name: Setup uv and Python
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: 3
+          activate-environment: true
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
-      - name: Show tox config
-        run: pipx run tox c
+      - name: Install tox
+        run: uv tool install -v tox --with=tox-uv-bare --with=tox-gh-actions
       - name: Show tox config (this call)
-        run: pipx run tox c -e ${{ matrix.check }}
+        run: tox c -e ${{ matrix.check }}
+      - name: Setup check environment
+        run: tox -vv --notest -e ${{ matrix.check }}
       - name: Run check
-        run: pipx run tox -e ${{ matrix.check }}
+        run: tox -e ${{ matrix.check }}
 
   publish:
     runs-on: ubuntu-latest
     environment: "Package deployment"
-    needs: [test, test-package]
+    needs: [tox, pytest, test-package]
     permissions:
       # Required for trusted publishing
       id-token: write
