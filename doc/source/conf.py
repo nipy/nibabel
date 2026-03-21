@@ -78,10 +78,16 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.inheritance_diagram',
     'sphinx.ext.autosummary',
+    'sphinx_design',
+    'sphinx_copybutton',
     'texext.math_dollar',  # has to go before numpydoc
     'numpydoc',
     'matplotlib.sphinxext.plot_directive',
 ]
+
+# Extensions configuration
+copybutton_exclude = '.linenos, .gp, .go'
+copybutton_selector = ":not(.prompt) > div.highlight pre"
 
 # Autosummary always wants to use a `generated/` directory.
 # We generate with `make api-stamp`
@@ -168,17 +174,55 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'sphinxdoc'
+html_theme = 'pydata_sphinx_theme'
 
-# The style sheet to use for HTML and HTML Help pages. A file of that name
-# must exist either in Sphinx' static/ path, or in one of the custom paths
-# given in html_static_path.
-html_style = 'nibabel.css'
+# Keep theme styling from pydata-sphinx-theme; legacy nibabel.css was tied
+# to sphinxdoc and overrides colors/layout.
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    'logo': {'text': 'NiBabel'},
+    'navbar_start': ['navbar-logo'],
+    'announcement': 'We are rolling out a new website! Check out the new features and let us know what you think.',
+    'secondary_sidebar_items': {
+        '**': ['page-toc', 'sourcelink'],
+        'index': ['page-toc', 'indexsidebar.html', 'reggie.html'],
+    },
+    'icon_links': [
+        {
+            'name': 'GitHub',
+            'url': 'https://github.com/nipy/nibabel',
+            'icon': 'fa-brands fa-github',
+            'type': 'fontawesome',
+        },
+        {
+            'name': 'PyPI',
+            'url': 'https://pypi.org/project/nibabel/',
+            'icon': 'fa-solid fa-box',
+            'type': 'fontawesome',
+        },
+        {
+            'name': 'Mailing List',
+            'url': 'https://mail.python.org/mailman/listinfo/neuroimaging',
+            'icon': 'fa-solid fa-envelope',
+            'type': 'fontawesome',
+        },
+        {
+            'name': 'License',
+            'url': 'https://github.com/nipy/nibabel/blob/main/COPYING',
+            'icon': 'fa-solid fa-file-contract',
+            'type': 'fontawesome',
+        },
+        {
+            'name': 'Community',
+            'url': 'https://nipy.org',
+            'icon': 'fa-solid fa-users',
+            'type': 'fontawesome',
+        },
+    ]
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -192,12 +236,12 @@ html_style = 'nibabel.css'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-# html_logo = None
+html_logo = '_static/nibabel-logo.svg'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-# html_favicon = None
+html_favicon = '_static/nibabel-logo.svg'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -215,16 +259,9 @@ html_index = 'index.html'
 # typographically correct entities.
 # html_use_smartypants = True
 
-# Custom sidebar templates, maps document names to template names.
+# Keep a useful left sidebar with navigation/search while staying theme-neutral.
 html_sidebars = {
-    'index': [
-        'localtoc.html',
-        'relations.html',
-        'sourcelink.html',
-        'indexsidebar.html',
-        'searchbox.html',
-        'reggie.html',
-    ]
+    "**": ["sidebar-nav-bs"],
 }
 
 # Additional templates that should be rendered to pages, maps page names to
@@ -241,7 +278,7 @@ html_sidebars = {
 # html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the

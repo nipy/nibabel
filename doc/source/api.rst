@@ -2,9 +2,9 @@
 
 .. _api:
 
-=================
-API Documentation
-=================
+***
+API
+***
 
 .. autosummary::
    :toctree: reference

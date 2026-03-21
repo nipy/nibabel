@@ -64,6 +64,9 @@ zstd = ["backports.zstd >=1.1; python_version<'3.14'"]
 # tox should use these with extras instead of duplicating
 doc = [
   "sphinx >=7.4",
+  "pydata-sphinx-theme >= 0.16.1",
+  "sphinx-design >= 0.7.0",
+  "sphinx-copybutton >= 0.5.2",
   "matplotlib>=3.5",
   "numpydoc >=1.9",
   "texext >=0.6.8",

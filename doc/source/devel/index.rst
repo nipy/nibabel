@@ -3,8 +3,8 @@
 
 .. _devindex:
 
-Developer documentation page
-============================
+Developer guide
+===============
 
 .. toctree::
     :maxdepth: 2

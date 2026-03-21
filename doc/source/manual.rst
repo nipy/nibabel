@@ -1,8 +1,8 @@
 .. _manual:
 
-**************
-NiBabel Manual
-**************
+******
+Manual
+******
 
 .. toctree::
 

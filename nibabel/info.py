@@ -80,7 +80,6 @@ and run pytest_::
 For more information, consult the `developer guidelines`_.
 
 .. _tox: https://tox.wiki
-.. _pytest: https://docs.pytest.org
 .. _developer guidelines: https://nipy.org/nibabel/devel/devguide.html
 
 Mailing List

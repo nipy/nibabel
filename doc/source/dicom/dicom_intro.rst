@@ -20,7 +20,7 @@ For example, I hope, by the time you reach the end of this document, you will
 understand the following complicated and confusing statement from section 7 of
 the DICOM standards document `PS 3.10`_:
 
-    7   DICOM File Format
+.. admonition:: 7   DICOM File Format
 
     The DICOM File Format provides a means to encapsulate in a file the Data Set
     representing a SOP Instance related to a DICOM IOD. As shown in Figure 7-1,
@@ -181,12 +181,12 @@ and can be used by manufacturers as they wish (see below).
 
 Quoting from section 7.1 of `PS 3.5`_:
 
-    Two types of Data Elements are defined:
+.. admonition:: Two types of Data Elements are defined:
 
     -- Standard Data Elements have an even Group Number that is not (0000,eeee),
     (0002,eeee), (0004,eeee), or (0006,eeee).
 
-    Note: Usage of these groups is reserved for DIMSE Commands (see PS 3.7) and
+.. admonition:: Usage of these groups is reserved for DIMSE Commands (see PS 3.7) and
     DICOM File Formats.
 
     -- Private Data Elements have an odd Group Number that is not (0001,eeee),
@@ -226,7 +226,7 @@ The odd group ``gggg`` must be greater than ``0008`` and the block reservation
 
 Here is the start of the relevant section from PS 3.5:
 
-  7.8.1 PRIVATE DATA ELEMENT TAGS
+.. admonition:: 7.8.1 PRIVATE DATA ELEMENT TAGS
 
   It is possible that multiple implementers may define Private Elements with the
   same (odd) group number.  To avoid conflicts, Private Elements shall be
@@ -344,7 +344,7 @@ tag.
 
 Quoting from section 7.1.1 of `PS 3.5`_:
 
-    Value Length:  Either:
+.. admonition:: Value Length:  Either:
 
     a 16 or 32-bit (dependent on VR and whether VR is explicit or implicit)
     unsigned integer containing the Explicit Length of the Value Field as the
@@ -426,6 +426,8 @@ Value Multiplicity in the data dictionary
 The "VM" column in the dictionary gives the Value Multiplicity for this tag.
 Quoting from PS 3.5 section 6.4:
 
+.. note::
+
     The Value Multiplicity of a Data Element specifies the number of Values that
     can be encoded in the Value Field of that Data Element. The VM of each Data
     Element is specified explicitly in PS 3.6. If the number of Values that may
@@ -452,7 +454,9 @@ A DICOM *data set* is a ordered list of data elements.  The order of the list is
 the order of the tags of the data elements.  Here is the definition from section
 3.10 of `PS 3.5`_:
 
-    DATA SET: Exchanged information consisting of a structured set of Attribute
+.. admonition:: DATA SET:
+
+    Exchanged information consisting of a structured set of Attribute
     values directly or indirectly related to Information Objects. The value of
     each Attribute in a Data Set is expressed as a Data Element.  A collection
     of Data Elements ordered by increasing Data Element Tag number that is an
@@ -493,7 +497,9 @@ Here is a selected list of real world entities compiled from section 7 of PS
 DICOM refers to its model of the entities and their relationships in the real
 world as the DICOM Application Model.  PS 3.3:
 
-    3.8.5 DICOM application model: an Entity-Relationship diagram used to model
+.. admonition:: 3.8.5 DICOM application model:
+
+    an Entity-Relationship diagram used to model
     the relationships between Real-World Objects which are within the area of
     interest of the DICOM Standard.
 
@@ -506,7 +512,9 @@ PS 3.3 gives definitions of fundamental DICOM objects called *Information Object
 Definitions* (IODs).  Here is the definition of an IOD from section 3.8.7 of PS
 3.3:
 
-    3.8.7 Information object definition (IOD): a data abstraction of a class of
+.. admonition:: 3.8.7 Information object definition (IOD):
+
+    a data abstraction of a class of
     similar Real-World Objects which defines the nature and Attributes relevant
     to the class of Real-World Objects represented.
 
@@ -518,7 +526,9 @@ A single IOD is the usual atom of data sent in a single DICOM message.
 An IOD that contains attributes (data elements) for only one object in the DICOM
 Real World is a *Normalized IOD*. From PS 3.3:
 
-    3.8.10 Normalized IOD: an Information Object Definition which represents a
+.. admonition:: 3.8.10 Normalized IOD:
+
+    an Information Object Definition which represents a
     single entity in the DICOM Application Model. Such an IOD includes
     Attributes which are only inherent in the Real-World Object that the IOD
     represents.
@@ -534,7 +544,9 @@ information relating to an image, you need a *composite IOD*.
 An IOD that contains attributes from more than one object in the DICOM Real
 World is a *Composite IOD*.  PS 3.3 again:
 
-    3.8.2 Composite IOD: an Information Object Definition which represents parts
+.. admonition:: 3.8.2 Composite IOD:
+
+    an Information Object Definition which represents parts
     of several entities in the DICOM Application Model. Such an IOD includes
     Attributes which are not inherent in the Real-World Object that the IOD
     represents but rather are inherent in related Real-World Objects
@@ -548,7 +560,9 @@ the patient, the study, the series, the frame of reference and the equipment.
 The term *Information Entity* (IE) refers to a part of a composite IOD that
 relates to a single DICOM Real World object.  PS 3.3:
 
-    3.8.6 Information entity: that portion of information defined by a Composite
+.. admonition:: 3.8.6 Information entity:
+
+    that portion of information defined by a Composite
     IOD which is related to one specific class of Real-World Object. There is a
     one-to-one correspondence between Information Entities and entities in the
     DICOM Application Model.
@@ -614,7 +628,9 @@ the IE.
 A module is a named and defined grouping of attributes (data elements) with
 related meaning.  PS 3.3:
 
-    3.8.8 Module: A set of Attributes within an Information Entity or Normalized
+.. admonition:: 3.8.8 Module:
+
+    A set of Attributes within an Information Entity or Normalized
     IOD which are logically related to each other.
 
 Grouping attributes into modules simplifies the definition of multiple composite
@@ -634,7 +650,9 @@ are very much like modules, in that they are a named group of attributes that
 often occur together in module definitions, or definitions of other macros.
 From PS 3.3:
 
-    3.11.1 Attribute Macro: a set of Attributes that are described in a single
+.. admonition:: 3.11.1 Attribute Macro:
+
+    a set of Attributes that are described in a single
     table that is referenced by multiple Modules or other tables.
 
 For example, here is the Patient Orientation Macro definition table from section
@@ -671,6 +689,8 @@ The DICOM application receiving the message is called the Service Class Provider
 (SCP).  We might also call this the server - for this particular message.
 
 Quoting from `PS 3.7`_ section 6.3:
+
+.. note::
 
     A Message is composed of a Command Set followed by a conditional Data Set
     (see PS 3.5 for the definition of a Data Set). The Command Set is used to
@@ -730,7 +750,7 @@ two elements: ["N-CREATE", "N-SET"].
 
 From PS 3.4:
 
-    6.4 DIMSE SERVICE GROUP
+.. admonition:: 6.4 DIMSE SERVICE GROUP
 
     DIMSE Service Group specifies one or more operations/notifications defined
     in PS 3.7 which are applicable to an IOD.
@@ -762,7 +782,7 @@ DICOM files
 Now let us return to the confusing definition of the DICOM file format from
 section 7 of PS 3.10:
 
-    7 DICOM File Format
+.. admonition:: 7 DICOM File Format
 
     The DICOM File Format provides a means to encapsulate in a file the Data Set
     representing a SOP Instance related to a DICOM IOD. As shown in Figure 7-1,
