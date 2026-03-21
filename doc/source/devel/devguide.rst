@@ -211,6 +211,7 @@ Other projects call these guidelines the "code of conduct".
 .. _blue: https://blue.readthedocs.io/
 .. _codespell: https://github.com/codespell-project/codespell
 .. _flake8: https://flake8.pycqa.org/
+.. _isort: https://pycqa.github.io/isort/
 .. _pipx: https://pypa.github.io/pipx/
-.. _precommit: https://pre-commit.com/
+.. _pre-commit: https://pre-commit.com/
 .. _tox: https://tox.wiki/
