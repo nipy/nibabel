@@ -74,6 +74,7 @@ def test_file_not_found():
         load('does_not_exist.nii.gz')
 
 
+@pytest.mark.thread_unsafe
 def test_load_empty_image():
     with InTemporaryDirectory():
         open('empty.nii', 'w').close()
@@ -127,6 +128,7 @@ def test_signature_matches_extension(tmp_path):
 
 
 @expires('5.0.0')
+@pytest.mark.thread_unsafe
 def test_read_img_data_nifti():
     shape = (2, 3, 4)
     data = np.random.normal(size=shape)

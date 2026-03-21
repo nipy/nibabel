@@ -1,0 +1,95 @@
+name: Prerelease tests
+
+# This file tests against pre-release versions of dependencies
+#
+# Because an upstream tool can break things so easily, this is done as a
+# weekly cron job so notifications can be seen without making every PR fail.
+
+on:
+  push:
+    branches:
+      - ci/prerelease
+  schedule:
+    - cron: '0 0 * * 1'
+  # Allow job to be triggered manually from GitHub interface
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+# Force tox and pytest to use color
+env:
+  FORCE_COLOR: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os-arch[0] }}
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os-arch:
+          - ['ubuntu-latest', 'x64']
+          - ['windows-latest', 'x64']
+          - ['macos-latest', 'arm64']
+        python-version:
+          # Oldest SPEC0-supported Python (dependencies won't release for older)
+          - "3.12"
+          # Latest Python
+          - "3.14"
+          - "3.14t"
+          # Beta Python
+          # - "3.15"
+          # - "3.15t"
+
+    env:
+      DEPENDS: pre
+      ARCH: ${{ matrix.os-arch[1] }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: Setup uv and Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Install tox
+        run: uv tool install -v tox --with=tox-uv --with=tox-gh-actions
+      - name: Show tox config
+        run: tox c
+      - name: Setup test suite
+        run: tox run -vv --notest
+      - name: Run test suite
+        id: pre
+        run: tox -v --skip-pkg-install --exit-and-dump-after 1200
+      - name: Create issue
+        # Workflows triggered by schedule only notify the workflow creator
+        # So let's open an issue to make sure this is visible to all
+        if: ${{ steps.pre.outcome != 'success' }}
+        uses: JasonEtco/create-an-issue@v2.9.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run_id: ${{ github.run_id }}
+          repository: ${{ github.repository }}
+          workflow_name: PRE-RELEASE TESTS
+        with:
+          filename: .github/workflow_failure.md
+          update_existing: true
+          search_existing: open
+      - name: Return failure
+        if: ${{ steps.pre.outcome != 'success' }}
+        run: exit 1

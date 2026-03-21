@@ -134,6 +134,7 @@ def write_raw_data(arr, hdr, fileobj):
     fileobj.write(arr.tobytes(order='F'))
 
 
+@pytest.mark.thread_unsafe
 def test_nifti1_init():
     bio = BytesIO()
     shape = (2, 3, 4)
@@ -335,6 +336,7 @@ def test_get_unscaled():
     assert_array_almost_equal(prox.get_unscaled(), arr)
 
 
+@pytest.mark.thread_unsafe
 def test_mmap():
     # Unscaled should return mmap from suitable file, this can be tuned
     hdr = FunkyHeader((2, 3, 4))

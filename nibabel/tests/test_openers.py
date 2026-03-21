@@ -64,6 +64,7 @@ def test_Opener():
         fobj = Opener(obj, mode='r')
 
 
+@pytest.mark.thread_unsafe
 def test_Opener_various():
     # Check we can do all sorts of files here
     message = b'Oh what a giveaway'
@@ -159,6 +160,7 @@ def test_Opener_gzip_type(tmp_path):
 
 
 class TestImageOpener(unittest.TestCase):
+    @pytest.mark.thread_unsafe
     def test_vanilla(self):
         # Test that ImageOpener does add '.mgz' as gzipped file type
         with InTemporaryDirectory():
@@ -205,6 +207,7 @@ def test_file_like_wrapper():
     assert fobj.name is None
 
 
+@pytest.mark.thread_unsafe
 def test_compressionlevel():
     # Check default and set compression level
     with open(__file__, 'rb') as fobj:
@@ -234,6 +237,7 @@ def test_compressionlevel():
                 assert sizes[1] > sizes[5]
 
 
+@pytest.mark.thread_unsafe
 def test_compressed_ext_case():
     # Test openers usually ignore case for compressed exts
     contents = b'palindrome of Bolton is notlob'
@@ -274,6 +278,7 @@ def test_compressed_ext_case():
                 assert isinstance(fobj.fobj, BZ2File)
 
 
+@pytest.mark.thread_unsafe
 def test_name():
     # The wrapper gives everything a name, maybe None
     sobj = BytesIO()
@@ -288,6 +293,7 @@ def test_name():
                 assert fobj.name == exp_name
 
 
+@pytest.mark.thread_unsafe
 def test_set_extensions():
     # Test that we can add extensions that are compressed
     with InTemporaryDirectory():
@@ -304,6 +310,7 @@ def test_set_extensions():
             assert hasattr(fobj.fobj, 'compress')
 
 
+@pytest.mark.thread_unsafe
 def test_close_if_mine():
     # Test that we close the file iff we opened it
     with InTemporaryDirectory():
@@ -321,6 +328,7 @@ def test_close_if_mine():
                 assert fobj.closed == is_str
 
 
+@pytest.mark.thread_unsafe
 def test_iter():
     # Check we can iterate over lines, if the underlying file object allows it
     lines = """On the
@@ -419,6 +427,7 @@ def test_DeterministicGzipFile():
         assert md5sum('filenameA.gz') == anon_chksum
 
 
+@pytest.mark.thread_unsafe
 def test_DeterministicGzipFile_fileobj():
     with InTemporaryDirectory():
         msg = b"Hello, I'd like to have an argument."

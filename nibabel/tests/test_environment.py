@@ -39,6 +39,7 @@ def test_nipy_home():
     assert nibe.get_home_dir() == os.path.expanduser('~')
 
 
+@pytest.mark.thread_unsafe
 def test_user_dir(with_environment):
     if USER_KEY in env:
         del env[USER_KEY]
