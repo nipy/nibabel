@@ -597,7 +597,38 @@ class FilterDwiIso(FrameFilter):
         return frame.MRDiffusionSequence[0].DiffusionDirectionality != 'ISOTROPIC'
 
 
-DEFAULT_FRAME_FILTERS = (FilterMultiStack(), FilterDwiIso())
+class FilterMultiOrient(FrameFilter):
+    """Filter out all but one orientation when a stack contains multiple orientations.
+
+    DICOM permits a stack to contain frames with different orientations, but
+    nibabel can only process one orientation at a time.  This filter retains
+    only the frames matching the orientation of the first frame.
+    """
+
+    def _frame_iop(self, frame):
+        try:
+            iop = frame.PlaneOrientationSequence[0].ImageOrientationPatient
+            return tuple(round(float(v), 4) for v in iop)
+        except AttributeError:
+            return None
+
+    def applies(self, dcm_wrp) -> bool:
+        iops = {self._frame_iop(f) for f in dcm_wrp.frames}
+        if None in iops or len(iops) <= 1:
+            return False
+        self._selected = self._frame_iop(dcm_wrp.frames[0])
+        warnings.warn(
+            'Multiple frame orientations found in a single stack; '
+            'nibabel can only process one orientation at a time. '
+            'Retaining only frames matching the first orientation.'
+        )
+        return True
+
+    def keep(self, frame) -> bool:
+        return self._frame_iop(frame) == self._selected
+
+
+DEFAULT_FRAME_FILTERS = (FilterMultiStack(), FilterDwiIso(), FilterMultiOrient())
 
 
 class MultiframeWrapper(Wrapper):
