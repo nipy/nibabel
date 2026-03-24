@@ -39,6 +39,11 @@ DATA_FILE_SIEMENS_TRACE = pjoin(
     'dcm_qa_xa30',
     'In/20_DWI_dir80_AP/0001_1.3.12.2.1107.5.2.43.67093.2022071112140611403312307.dcm',
 )
+DATA_FILE_XA60_MULTI_ORIENT = pjoin(
+    get_nibabel_data(),
+    'dcm_qa_xa60',
+    'In/XA60/DICOM/24100413/39280000/75739321',
+)
 
 # This affine from our converted image was shown to match our image spatially
 # with an image from SPM DICOM conversion. We checked the matching with SPM
@@ -872,6 +877,14 @@ class TestMultiFrameWrapper(TestCase):
         # Test that a standalone trace volume is found and not dropped
         dw = didw.wrapper_from_file(DATA_FILE_SIEMENS_TRACE)
         assert dw.image_shape == (72, 72, 39)
+
+    @dicom_test
+    @needs_nibabel_data('dcm_qa_xa60')
+    def test_data_multi_orient_same_stack(self):
+        # Test that a file with 3 orientations sharing the same StackID returns
+        # only one stack/orientation
+        dw = didw.wrapper_from_file(DATA_FILE_XA60_MULTI_ORIENT)
+        assert dw.image_shape == (512, 512, 7)
 
     @dicom_test
     @needs_nibabel_data('nitest-dicom')
