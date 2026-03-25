@@ -19,7 +19,7 @@ from os.path import dirname, isdir, isfile, pathsep, realpath
 from os.path import join as pjoin
 from subprocess import PIPE, Popen
 
-MY_PACKAGE = __package__
+MY_PACKAGE = __spec__.parent
 
 
 def local_script_dir(script_sdir):
