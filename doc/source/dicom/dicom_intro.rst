@@ -21,6 +21,7 @@ understand the following complicated and confusing statement from section 7 of
 the DICOM standards document `PS 3.10`_:
 
 .. admonition:: 7   DICOM File Format
+    :class: admonition-quote
 
     The DICOM File Format provides a means to encapsulate in a file the Data Set
     representing a SOP Instance related to a DICOM IOD. As shown in Figure 7-1,
@@ -181,17 +182,20 @@ and can be used by manufacturers as they wish (see below).
 
 Quoting from section 7.1 of `PS 3.5`_:
 
-.. admonition:: Two types of Data Elements are defined:
+.. admonition:: 7.1 DATA ELEMENTS
+    :class: admonition-quote
 
-    -- Standard Data Elements have an even Group Number that is not (0000,eeee),
-    (0002,eeee), (0004,eeee), or (0006,eeee).
+    Two types of Data Elements are defined:
 
-.. admonition:: Usage of these groups is reserved for DIMSE Commands (see PS 3.7) and
+    * Standard Data Elements have an even Group Number that is not (0000,eeee),
+      (0002,eeee), (0004,eeee), or (0006,eeee).
+
+    Note: Usage of these groups is reserved for DIMSE Commands (see PS 3.7) and
     DICOM File Formats.
 
-    -- Private Data Elements have an odd Group Number that is not (0001,eeee),
-    (0003,eeee), (0005,eeee), (0007,eeee), or (FFFF,eeee). Private Data Elements
-    are discussed further in Section 7.8.
+    * Private Data Elements have an odd Group Number that is not (0001,eeee),
+      (0003,eeee), (0005,eeee), (0007,eeee), or (FFFF,eeee). Private Data Elements
+      are discussed further in Section 7.8.
 
 Private attribute tags
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -227,31 +231,32 @@ The odd group ``gggg`` must be greater than ``0008`` and the block reservation
 Here is the start of the relevant section from PS 3.5:
 
 .. admonition:: 7.8.1 PRIVATE DATA ELEMENT TAGS
+    :class: admonition-quote
 
-  It is possible that multiple implementers may define Private Elements with the
-  same (odd) group number.  To avoid conflicts, Private Elements shall be
-  assigned Private Data Element Tags according to the following rules.
+    It is possible that multiple implementers may define Private Elements with the
+    same (odd) group number.  To avoid conflicts, Private Elements shall be
+    assigned Private Data Element Tags according to the following rules.
 
-  a) Private Creator Data Elements numbered (gggg,0010-00FF) (gggg is odd) shall
-  be used to reserve a block of Elements with Group Number gggg for use by an
-  individual implementer.  The implementer shall insert an identification code
-  in the first unused (unassigned) Element in this series to reserve a block of
-  Private Elements. The VR of the private identification code shall be LO (Long
-  String) and the VM shall be equal to 1.
+    a) Private Creator Data Elements numbered (gggg,0010-00FF) (gggg is odd) shall
+    be used to reserve a block of Elements with Group Number gggg for use by an
+    individual implementer.  The implementer shall insert an identification code
+    in the first unused (unassigned) Element in this series to reserve a block of
+    Private Elements. The VR of the private identification code shall be LO (Long
+    String) and the VM shall be equal to 1.
 
-  b) Private Creator Data Element (gggg,0010), is a Type 1 Data Element that
-  identifies the implementer reserving element (gggg,1000-10FF), Private Creator
-  Data Element (gggg,0011) identifies the implementer reserving elements
-  (gggg,1100-11FF), and so on, until Private Creator Data Element (gggg,00FF)
-  identifies the implementer reserving elements (gggg,FF00- FFFF).
+    b) Private Creator Data Element (gggg,0010), is a Type 1 Data Element that
+    identifies the implementer reserving element (gggg,1000-10FF), Private Creator
+    Data Element (gggg,0011) identifies the implementer reserving elements
+    (gggg,1100-11FF), and so on, until Private Creator Data Element (gggg,00FF)
+    identifies the implementer reserving elements (gggg,FF00- FFFF).
 
-  c) Encoders of Private Data Elements shall be able to dynamically assign
-  private data to any available (unreserved) block(s) within the Private group,
-  and specify this assignment through the blocks corresponding Private Creator
-  Data Element(s). Decoders of Private Data shall be able to accept reserved
-  blocks with a given Private Creator identification code at any position within
-  the Private group specified by the blocks corresponding Private Creator Data
-  Element.
+    c) Encoders of Private Data Elements shall be able to dynamically assign
+    private data to any available (unreserved) block(s) within the Private group,
+    and specify this assignment through the blocks corresponding Private Creator
+    Data Element(s). Decoders of Private Data shall be able to accept reserved
+    blocks with a given Private Creator identification code at any position within
+    the Private group specified by the blocks corresponding Private Creator Data
+    Element.
 
 Value Representation
 --------------------
@@ -344,19 +349,22 @@ tag.
 
 Quoting from section 7.1.1 of `PS 3.5`_:
 
-.. admonition:: Value Length:  Either:
+.. admonition:: 7.1.1 DATA ELEMENT FIELDS
+    :class: admonition-quote
 
-    a 16 or 32-bit (dependent on VR and whether VR is explicit or implicit)
-    unsigned integer containing the Explicit Length of the Value Field as the
-    number of bytes (even) that make up the Value. It does not include the
-    length of the Data Element Tag, Value Representation, and Value Length
-    Fields.
+    Value Length: Either:
 
-    a 32-bit Length Field set to Undefined Length (FFFFFFFFH). Undefined
-    Lengths may be used for Data Elements having the Value Representation
-    (VR) Sequence of Items (SQ) and Unknown (UN). For Data Elements with
-    Value Representation OW or OB Undefined Length may be used depending
-    on the negotiated Transfer Syntax (see Section 10 and Annex A).
+    * a 16 or 32-bit (dependent on VR and whether VR is explicit or implicit)
+      unsigned integer containing the Explicit Length of the Value Field as the
+      number of bytes (even) that make up the Value. It does not include the
+      length of the Data Element Tag, Value Representation, and Value Length
+      Fields.
+
+    * a 32-bit Length Field set to Undefined Length (FFFFFFFFH). Undefined
+      Lengths may be used for Data Elements having the Value Representation
+      (VR) Sequence of Items (SQ) and Unknown (UN). For Data Elements with
+      Value Representation OW or OB Undefined Length may be used depending
+      on the negotiated Transfer Syntax (see Section 10 and Annex A).
 
 Value field
 -----------
@@ -382,7 +390,7 @@ manufacturer.
 A data dictionary lists (Attribute tag, Attribute name, Attribute Keyword, Value
 Representation, Value Multiplicity) for all tags.
 
-For example, here is an excerpt from the table in PS 3.6 section 6:
+For example, here is an excerpt from the table in `PS 3.6`_ section 6:
 
 +-------------+------------------------------------------+-------------------------------------+----+----+
 | Tag         | Name                                     | Keyword                             | VR | VM |
@@ -424,9 +432,10 @@ Value Multiplicity in the data dictionary
 -----------------------------------------
 
 The "VM" column in the dictionary gives the Value Multiplicity for this tag.
-Quoting from PS 3.5 section 6.4:
+Quoting from `PS 3.5`_ section 6.4:
 
-.. note::
+.. admonition:: 6.4 VALUE MULTIPLICITY (VM) AND DELIMITATION
+    :class: admonition-quote
 
     The Value Multiplicity of a Data Element specifies the number of Values that
     can be encoded in the Value Field of that Data Element. The VM of each Data
@@ -454,9 +463,10 @@ A DICOM *data set* is a ordered list of data elements.  The order of the list is
 the order of the tags of the data elements.  Here is the definition from section
 3.10 of `PS 3.5`_:
 
-.. admonition:: DATA SET:
+.. admonition:: 3.10 DICOM DATA STRUCTURES AND ENCODING DEFINITIONS
+    :class: admonition-quote
 
-    Exchanged information consisting of a structured set of Attribute
+    DATA SET: Exchanged information consisting of a structured set of Attribute
     values directly or indirectly related to Information Objects. The value of
     each Attribute in a Data Set is expressed as a Data Element.  A collection
     of Data Elements ordered by increasing Data Element Tag number that is an
@@ -495,11 +505,12 @@ Here is a selected list of real world entities compiled from section 7 of PS
 * Measurements
 
 DICOM refers to its model of the entities and their relationships in the real
-world as the DICOM Application Model.  PS 3.3:
+world as the DICOM Application Model.  `PS 3.3`_:
 
-.. admonition:: 3.8.5 DICOM application model:
+.. admonition:: 3.8 DICOM INFORMATION OBJECT
+    :class: admonition-quote
 
-    an Entity-Relationship diagram used to model
+    3.8.5 DICOM application model: an Entity-Relationship diagram used to model
     the relationships between Real-World Objects which are within the area of
     interest of the DICOM Standard.
 
@@ -508,13 +519,13 @@ DICOM Entities and Information Object Definitions
 
 This is rather confusing.
 
-PS 3.3 gives definitions of fundamental DICOM objects called *Information Object
-Definitions* (IODs).  Here is the definition of an IOD from section 3.8.7 of PS
-3.3:
+`PS 3.3`_ gives definitions of fundamental DICOM objects called *Information Object
+Definitions* (IODs).  Here is the definition of an IOD from section 3.8.7 of `PS 3.3`_:
 
-.. admonition:: 3.8.7 Information object definition (IOD):
+.. admonition:: 3.8 DICOM INFORMATION OBJECT
+    :class: admonition-quote
 
-    a data abstraction of a class of
+    3.8.7 Information object definition (IOD): a data abstraction of a class of
     similar Real-World Objects which defines the nature and Attributes relevant
     to the class of Real-World Objects represented.
 
@@ -524,16 +535,17 @@ in the DICOM Real World.
 A single IOD is the usual atom of data sent in a single DICOM message.
 
 An IOD that contains attributes (data elements) for only one object in the DICOM
-Real World is a *Normalized IOD*. From PS 3.3:
+Real World is a *Normalized IOD*. From `PS 3.3`_:
 
-.. admonition:: 3.8.10 Normalized IOD:
+.. admonition:: 3.8 DICOM INFORMATION OBJECT
+    :class: admonition-quote
 
-    an Information Object Definition which represents a
+    3.8.10 Normalized IOD: an Information Object Definition which represents a
     single entity in the DICOM Application Model. Such an IOD includes
     Attributes which are only inherent in the Real-World Object that the IOD
     represents.
 
-Annex B of PS 3.3 defines the normalized IODs.
+Annex B of `PS 3.3`_ defines the normalized IODs.
 
 Many DICOM Real World objects do not have corresponding normalized IODs,
 presumably because there is no common need to send data only corresponding to -
@@ -542,27 +554,29 @@ image.  If you do want to send information relating to a patient with
 information relating to an image, you need a *composite IOD*.
 
 An IOD that contains attributes from more than one object in the DICOM Real
-World is a *Composite IOD*.  PS 3.3 again:
+World is a *Composite IOD*.  `PS 3.3`_ again:
 
-.. admonition:: 3.8.2 Composite IOD:
+.. admonition:: 3.8 DICOM INFORMATION OBJECT
+    :class: admonition-quote
 
-    an Information Object Definition which represents parts
+    3.8.2 Composite IOD: an Information Object Definition which represents parts
     of several entities in the DICOM Application Model. Such an IOD includes
     Attributes which are not inherent in the Real-World Object that the IOD
     represents but rather are inherent in related Real-World Objects
 
-Annex A of PS 3.3 defines the composite IODs.
+Annex A of `PS 3.3`_ defines the composite IODs.
 
 DICOM MR or CT image IODs are classic examples of composite IODs, because they
 contain information not just about the image itself, but also information about
 the patient, the study, the series, the frame of reference and the equipment.
 
 The term *Information Entity* (IE) refers to a part of a composite IOD that
-relates to a single DICOM Real World object.  PS 3.3:
+relates to a single DICOM Real World object.  `PS 3.3`_:
 
-.. admonition:: 3.8.6 Information entity:
+.. admonition:: 3.8 DICOM INFORMATION OBJECT
+    :class: admonition-quote
 
-    that portion of information defined by a Composite
+    3.8.6 Information entity: that portion of information defined by a Composite
     IOD which is related to one specific class of Real-World Object. There is a
     one-to-one correspondence between Information Entities and entities in the
     DICOM Application Model.
@@ -571,11 +585,11 @@ IEs are names of DICOM Real World objects that label parts of a composite IOD.
 IEs have no intrinsic content, but serve as meaningful labels for a group of
 *modules* (see below) that refer to the same Real World object.
 
-Annex A 1.2, PS 3.3 lists all the IEs used in composite IODs.
+Annex A 1.2, `PS 3.3`_ lists all the IEs used in composite IODs.
 
 For example, section A.4 in PD 3.3 defines the composite IOD for an MR Image -
 the Magnetic Resonance Image Object Definition. The definition looks like this
-(table A.4-1 of PS 3.3)
+(table A.4-1 of `PS 3.3`_)
 
 +--------------------+-------------------------+-----------+---------------------------------------------------------+
 | IE                 | Module                  | Reference | Usage                                                   |
@@ -626,18 +640,19 @@ The *module* heading defines which modules make up the information relevant to
 the IE.
 
 A module is a named and defined grouping of attributes (data elements) with
-related meaning.  PS 3.3:
+related meaning.  `PS 3.3`_:
 
-.. admonition:: 3.8.8 Module:
+.. admonition:: 3.8 DICOM INFORMATION OBJECT
+    :class: admonition-quote
 
-    A set of Attributes within an Information Entity or Normalized
+    3.8.8 Module: A set of Attributes within an Information Entity or Normalized
     IOD which are logically related to each other.
 
 Grouping attributes into modules simplifies the definition of multiple composite
 IODs.  For example, the composite IODs for a CT image and an MR Image both have
 modules for Patient, Clinical Trial Subject, etc.
 
-Annex C of PS 3.3 defines all the modules used for the IOD definitions.  For
+Annex C of `PS 3.3`_ defines all the modules used for the IOD definitions.  For
 example, from the table above, we see that the "Patient" module is at section
 C.7.1.1 of PS 3.3.  This section gives a table of all the attributes (data
 elements) in this module.
@@ -648,11 +663,12 @@ Mandatory, Conditional or User Option (defined in section A 1.3 of PS 3.3)
 Lastly module definitions may make use of *Attribute macros*.  Attribute macros
 are very much like modules, in that they are a named group of attributes that
 often occur together in module definitions, or definitions of other macros.
-From PS 3.3:
+From `PS 3.3`_:
 
-.. admonition:: 3.11.1 Attribute Macro:
+.. admonition:: 3.11 MACROS
+    :class: admonition-quote
 
-    a set of Attributes that are described in a single
+    3.11.1 Attribute Macro: a set of Attributes that are described in a single
     table that is referenced by multiple Modules or other tables.
 
 For example, here is the Patient Orientation Macro definition table from section
@@ -690,7 +706,8 @@ The DICOM application receiving the message is called the Service Class Provider
 
 Quoting from `PS 3.7`_ section 6.3:
 
-.. note::
+.. admonition:: 6.3 DICOM MESSAGE STRUCTURE AND COMMAND SET
+    :class: admonition-quote
 
     A Message is composed of a Command Set followed by a conditional Data Set
     (see PS 3.5 for the definition of a Data Set). The Command Set is used to
@@ -700,7 +717,7 @@ Quoting from `PS 3.7`_ section 6.3:
 The command set consists of command elements (elements with group number 0000).
 
 Valid sequences of command elements in the command set form valid DICOM Message
-Service Elements (DIMSEs).  Sections 9 and 10 of PS 3.7 define the valid DIMSEs.
+Service Elements (DIMSEs).  Sections 9 and 10 of `PS 3.7`_ define the valid DIMSEs.
 
 For example, there is a DIMSE service called "C-ECHO" that requests confirmation
 from the responding application that the echo message arrived.
@@ -748,9 +765,10 @@ Image Storage" SOP class has a DIMSE service group of one element ["C-STORE"].
 The "Modality Performed Procedure Step" SOP class has a DIMSE service group with
 two elements: ["N-CREATE", "N-SET"].
 
-From PS 3.4:
+From `PS 3.4`_:
 
 .. admonition:: 6.4 DIMSE SERVICE GROUP
+    :class: admonition-quote
 
     DIMSE Service Group specifies one or more operations/notifications defined
     in PS 3.7 which are applicable to an IOD.
@@ -758,7 +776,8 @@ From PS 3.4:
     DIMSE Service Groups are defined in this Part of the DICOM Standard, in the
     specification of a Service - Object Pair Class.
 
-    6.5 SERVICE-OBJECT PAIR (SOP) CLASS
+.. admonition:: 6.5 SERVICE-OBJECT PAIR (SOP) CLASS
+    :class: admonition-quote
 
     A Service-Object Pair (SOP) Class is defined by the union of an IOD and a
     DIMSE Service Group. The SOP Class definition contains the rules and
@@ -780,9 +799,10 @@ DICOM files
 ===========
 
 Now let us return to the confusing definition of the DICOM file format from
-section 7 of PS 3.10:
+section 7 of `PS 3.10`_:
 
 .. admonition:: 7 DICOM File Format
+    :class: admonition-quote
 
     The DICOM File Format provides a means to encapsulate in a file the Data Set
     representing a SOP Instance related to a DICOM IOD. As shown in Figure 7-1,

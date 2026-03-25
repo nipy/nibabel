@@ -21,7 +21,7 @@ A simple and efficient python package for processing neuroimaging data, part of 
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
       Read and write major neuroimaging formats including NIfTI_, ANALYZE_,
-      GIFTI_, MINC_, `PAR/REC`_, selected DICOM_ workflows, etc.
+      GIFTI_, MINC_, PAR/REC, selected DICOM_ workflows, etc.
 
    .. grid-item-card::
 

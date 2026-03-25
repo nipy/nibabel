@@ -176,8 +176,12 @@ todo_include_todos = True
 # Sphinx are currently 'default' and 'sphinxdoc'.
 html_theme = 'pydata_sphinx_theme'
 
-# Keep theme styling from pydata-sphinx-theme; legacy nibabel.css was tied
-# to sphinxdoc and overrides colors/layout.
+# Legacy nibabel.css was tied to sphinxdoc and overrides colors/layout.
+# Add custom css file to modify parts of theme.
+
+html_css_files = [
+    'custom.css',
+]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -205,13 +209,13 @@ html_theme_options = {
         },
         {
             'name': 'Mailing List',
-            'url': 'https://mail.python.org/mailman/listinfo/neuroimaging',
+            'url': 'https://mail.python.org/mailman3/lists/neuroimaging.python.org/',
             'icon': 'fa-solid fa-envelope',
             'type': 'fontawesome',
         },
         {
             'name': 'License',
-            'url': 'https://github.com/nipy/nibabel/blob/main/COPYING',
+            'url': 'https://github.com/nipy/nibabel/blob/master/COPYING',
             'icon': 'fa-solid fa-file-contract',
             'type': 'fontawesome',
         },
