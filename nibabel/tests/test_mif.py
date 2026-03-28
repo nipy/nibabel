@@ -11,16 +11,13 @@
 from __future__ import annotations
 
 import io
-import os
-import tempfile
 
 import numpy as np
 import pytest
 
 import nibabel as nib
-from nibabel.imageclasses import all_image_classes, KNOWN_SPATIAL_FIRST
+from nibabel.imageclasses import KNOWN_SPATIAL_FIRST, all_image_classes
 from nibabel.mif import (
-    MifArrayProxy,
     MifHeader,
     MifImage,
     _mif_apply_layout,
@@ -31,13 +28,20 @@ from nibabel.mif import (
     _mif_parse_layout,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _make_mif_bytes(shape=(3, 4, 5), dtype=np.float32, layout=None, transform=None,
-                    intensity_offset=0.0, intensity_scale=1.0, keyval=None):
+
+def _make_mif_bytes(
+    shape=(3, 4, 5),
+    dtype=np.float32,
+    layout=None,
+    transform=None,
+    intensity_offset=0.0,
+    intensity_scale=1.0,
+    keyval=None,
+):
     """Build a MIF file in memory and return the bytes."""
     data = np.arange(int(np.prod(shape)), dtype=dtype).reshape(shape)
     affine = np.eye(4)
@@ -63,19 +67,23 @@ def _make_mif_bytes(shape=(3, 4, 5), dtype=np.float32, layout=None, transform=No
 # _mif_parse_dtype / _mif_dtype_to_str
 # ---------------------------------------------------------------------------
 
+
 class TestMifDtype:
-    @pytest.mark.parametrize('mif_str, np_str', [
-        ('Int8', 'i1'),
-        ('UInt8', 'u1'),
-        ('Int16LE', '<i2'),
-        ('Int16BE', '>i2'),
-        ('UInt16LE', '<u2'),
-        ('Float32LE', '<f4'),
-        ('Float32BE', '>f4'),
-        ('Float64LE', '<f8'),
-        ('CFloat32LE', '<c8'),
-        ('CFloat64BE', '>c16'),
-    ])
+    @pytest.mark.parametrize(
+        ('mif_str', 'np_str'),
+        [
+            ('Int8', 'i1'),
+            ('UInt8', 'u1'),
+            ('Int16LE', '<i2'),
+            ('Int16BE', '>i2'),
+            ('UInt16LE', '<u2'),
+            ('Float32LE', '<f4'),
+            ('Float32BE', '>f4'),
+            ('Float64LE', '<f8'),
+            ('CFloat32LE', '<c8'),
+            ('CFloat64BE', '>c16'),
+        ],
+    )
     def test_parse(self, mif_str, np_str):
         assert _mif_parse_dtype(mif_str) == np.dtype(np_str)
 
@@ -83,12 +91,19 @@ class TestMifDtype:
         with pytest.raises(ValueError, match='Unknown MIF datatype'):
             _mif_parse_dtype('Bogus32LE')
 
-    @pytest.mark.parametrize('dtype', [
-        np.dtype('i1'), np.dtype('u1'),
-        np.dtype('<i2'), np.dtype('>i2'),
-        np.dtype('<f4'), np.dtype('<f8'),
-        np.dtype('<c8'), np.dtype('<c16'),
-    ])
+    @pytest.mark.parametrize(
+        'dtype',
+        [
+            np.dtype('i1'),
+            np.dtype('u1'),
+            np.dtype('<i2'),
+            np.dtype('>i2'),
+            np.dtype('<f4'),
+            np.dtype('<f8'),
+            np.dtype('<c8'),
+            np.dtype('<c16'),
+        ],
+    )
     def test_roundtrip(self, dtype):
         assert _mif_parse_dtype(_mif_dtype_to_str(dtype)) == dtype
 
@@ -100,6 +115,7 @@ class TestMifDtype:
 # ---------------------------------------------------------------------------
 # _mif_parse_layout / _mif_layout_to_str
 # ---------------------------------------------------------------------------
+
 
 class TestMifLayout:
     def test_parse_positive(self):
@@ -123,6 +139,7 @@ class TestMifLayout:
 # ---------------------------------------------------------------------------
 # _mif_apply_layout / _mif_apply_layout_for_write
 # ---------------------------------------------------------------------------
+
 
 class TestMifApplyLayout:
     def test_identity_layout(self):
@@ -154,6 +171,7 @@ class TestMifApplyLayout:
 # ---------------------------------------------------------------------------
 # MifHeader
 # ---------------------------------------------------------------------------
+
 
 class TestMifHeader:
     def test_default_init(self):
@@ -238,7 +256,9 @@ class TestMifHeader:
         assert hdr.get_keyval()['x'] == 'y'  # original unaffected
 
     def test_missing_dim_raises(self):
-        buf = io.BytesIO(b'mrtrix image\nvox: 1,1,1\ndatatype: Float32LE\nlayout: +0,+1,+2\nfile: . 64\nEND\n')
+        buf = io.BytesIO(
+            b'mrtrix image\nvox: 1,1,1\ndatatype: Float32LE\nlayout: +0,+1,+2\nfile: . 64\nEND\n'
+        )
         with pytest.raises(ValueError, match='Missing "dim"'):
             MifHeader.from_fileobj(buf)
 
@@ -266,6 +286,7 @@ class TestMifHeader:
 # ---------------------------------------------------------------------------
 # MifArrayProxy
 # ---------------------------------------------------------------------------
+
 
 class TestMifArrayProxy:
     def test_lazy_load(self, tmp_path):
@@ -303,8 +324,11 @@ class TestMifArrayProxy:
         """Proxy should apply intensity scaling from the header."""
         raw = np.ones((3, 3, 3), dtype=np.int16) * 10
         hdr = MifHeader(
-            shape=(3, 3, 3), zooms=(1.0, 1.0, 1.0), dtype=np.dtype('<i2'),
-            intensity_offset=5.0, intensity_scale=2.0,
+            shape=(3, 3, 3),
+            zooms=(1.0, 1.0, 1.0),
+            dtype=np.dtype('<i2'),
+            intensity_offset=5.0,
+            intensity_scale=2.0,
         )
         img = MifImage(raw, np.eye(4), header=hdr)
         fname = str(tmp_path / 'test.mif')
@@ -319,6 +343,7 @@ class TestMifArrayProxy:
 # ---------------------------------------------------------------------------
 # MifImage
 # ---------------------------------------------------------------------------
+
 
 class TestMifImage:
     def test_create_from_array(self):
@@ -344,22 +369,34 @@ class TestMifImage:
 
     def test_affine_preserved(self, tmp_path):
         data = np.ones((3, 4, 5), dtype=np.float32)
-        affine = np.array([
-            [2, 0, 0, -10],
-            [0, 2, 0, -12],
-            [0, 0, 2, -14],
-            [0, 0, 0,   1],
-        ], dtype=np.float64)
+        affine = np.array(
+            [
+                [2, 0, 0, -10],
+                [0, 2, 0, -12],
+                [0, 0, 2, -14],
+                [0, 0, 0, 1],
+            ],
+            dtype=np.float64,
+        )
         img = MifImage(data, affine)
         fname = str(tmp_path / 'test.mif')
         img.to_filename(fname)
         img2 = MifImage.load(fname)
         assert np.allclose(img2.affine, affine)
 
-    @pytest.mark.parametrize('dtype', [
-        np.int8, np.uint8, np.int16, np.uint16,
-        np.int32, np.uint32, np.float32, np.float64,
-    ])
+    @pytest.mark.parametrize(
+        'dtype',
+        [
+            np.int8,
+            np.uint8,
+            np.int16,
+            np.uint16,
+            np.int32,
+            np.uint32,
+            np.float32,
+            np.float64,
+        ],
+    )
     def test_dtypes(self, tmp_path, dtype):
         data = np.arange(60, dtype=dtype).reshape(3, 4, 5)
         img = MifImage(data, np.eye(4))
@@ -388,8 +425,11 @@ class TestMifImage:
     def test_intensity_scaling_roundtrip(self, tmp_path):
         raw = np.ones((3, 3, 3), dtype=np.int16)
         hdr = MifHeader(
-            shape=(3, 3, 3), zooms=(1.0, 1.0, 1.0), dtype=np.dtype('<i2'),
-            intensity_offset=0.5, intensity_scale=3.0,
+            shape=(3, 3, 3),
+            zooms=(1.0, 1.0, 1.0),
+            dtype=np.dtype('<i2'),
+            intensity_offset=0.5,
+            intensity_scale=3.0,
         )
         img = MifImage(raw, np.eye(4), header=hdr)
         fname = str(tmp_path / 'test.mif')
@@ -405,8 +445,11 @@ class TestMifImage:
         """Re-saving a proxy-backed image should not double-apply scaling."""
         raw = np.ones((3, 3, 3), dtype=np.int16)
         hdr = MifHeader(
-            shape=(3, 3, 3), zooms=(1.0, 1.0, 1.0), dtype=np.dtype('<i2'),
-            intensity_offset=0.0, intensity_scale=2.0,
+            shape=(3, 3, 3),
+            zooms=(1.0, 1.0, 1.0),
+            dtype=np.dtype('<i2'),
+            intensity_offset=0.0,
+            intensity_scale=2.0,
         )
         img = MifImage(raw, np.eye(4), header=hdr)
         fname1 = str(tmp_path / 'a.mif')
@@ -420,12 +463,15 @@ class TestMifImage:
         # Should still be 1*2+0=2, not 1*2*2=4
         assert np.allclose(img3.get_fdata(), 2.0)
 
-    @pytest.mark.parametrize('layout', [
-        [1, 2, 3],
-        [-1, 2, 3],
-        [3, 1, 2],
-        [-3, -2, -1],
-    ])
+    @pytest.mark.parametrize(
+        'layout',
+        [
+            [1, 2, 3],
+            [-1, 2, 3],
+            [3, 1, 2],
+            [-3, -2, -1],
+        ],
+    )
     def test_layout_roundtrip(self, tmp_path, layout):
         shape = (3, 4, 5)
         data = np.arange(int(np.prod(shape)), dtype=np.float32).reshape(shape)
@@ -445,8 +491,11 @@ class TestMifImage:
 
     def test_keyval_preserved(self, tmp_path):
         data = np.ones((2, 2, 2), dtype=np.float32)
-        hdr = MifHeader(shape=(2, 2, 2), zooms=(1.0, 1.0, 1.0),
-                        keyval={'comment': 'hello', 'mrtrix_version': '3.0'})
+        hdr = MifHeader(
+            shape=(2, 2, 2),
+            zooms=(1.0, 1.0, 1.0),
+            keyval={'comment': 'hello', 'mrtrix_version': '3.0'},
+        )
         img = MifImage(data, np.eye(4), header=hdr)
         fname = str(tmp_path / 'test.mif')
         img.to_filename(fname)
@@ -478,6 +527,7 @@ class TestMifImage:
 # ---------------------------------------------------------------------------
 # Integration / registration
 # ---------------------------------------------------------------------------
+
 
 class TestMifRegistration:
     def test_in_all_image_classes(self):

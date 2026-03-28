@@ -21,7 +21,7 @@ import numpy as np
 
 from .arrayproxy import ArrayProxy, is_proxy
 from .filebasedimages import SerializableImage
-from .spatialimages import SpatialHeader, SpatialImage
+from .spatialimages import SpatialHeader, SpatialImage, SpatialProtocol
 
 
 def _readline(fileobj) -> bytes:
@@ -227,6 +227,12 @@ class MifHeader(SpatialHeader):
             return cls()
         if type(header) is cls:
             return header.copy()
+        if isinstance(header, SpatialProtocol):
+            return cls(
+                shape=header.get_data_shape(),
+                zooms=header.get_zooms(),
+                dtype=header.get_data_dtype(),
+            )
         raise NotImplementedError(f'Cannot convert {type(header)} to {cls}')
 
     @classmethod
