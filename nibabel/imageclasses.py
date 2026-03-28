@@ -17,6 +17,7 @@ from .brikhead import AFNIImage
 from .cifti2 import Cifti2Image
 from .freesurfer import MGHImage
 from .gifti import GiftiImage
+from .mif import MifImage
 from .minc1 import Minc1Image
 from .minc2 import Minc2Image
 from .nifti1 import Nifti1Image, Nifti1Pair
@@ -39,6 +40,7 @@ all_image_classes: list[type[FileBasedImage]] = [
     Spm2AnalyzeImage,
     Spm99AnalyzeImage,
     AnalyzeImage,
+    MifImage,
     Minc1Image,
     Minc2Image,
     MGHImage,
@@ -58,6 +60,7 @@ KNOWN_SPATIAL_FIRST: tuple[type[FileBasedImage], ...] = (
     Spm2AnalyzeImage,
     Spm99AnalyzeImage,
     AnalyzeImage,
+    MifImage,
     MGHImage,
     PARRECImage,
     AFNIImage,
