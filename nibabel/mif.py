@@ -13,14 +13,15 @@ MIF is the MRtrix imaging format.
 
 from __future__ import annotations
 
+import io
 import sys
 from copy import deepcopy
 
 import numpy as np
 
 from .arrayproxy import ArrayProxy, is_proxy
-from .filebasedimages import FileBasedHeader, SerializableImage
-from .spatialimages import SpatialImage
+from .filebasedimages import SerializableImage
+from .spatialimages import SpatialHeader, SpatialImage
 
 
 def _readline(fileobj) -> bytes:
@@ -179,7 +180,7 @@ def _mif_apply_layout_for_write(data: np.ndarray, layout: list[int]) -> np.ndarr
     return np.ascontiguousarray(data)
 
 
-class MifHeader(FileBasedHeader):
+class MifHeader(SpatialHeader):
     """Header for MIF (.mif / .mif.gz) image files.
 
     The MIF format uses a text header with ``key: value`` pairs followed by
@@ -205,11 +206,12 @@ class MifHeader(FileBasedHeader):
         intensity_scale: float = 1.0,
         keyval: dict | None = None,
     ) -> None:
-        self._shape = tuple(int(s) for s in shape)
-        ndim = len(self._shape)
-        self._zooms = tuple(float(z) for z in zooms) if zooms is not None else (1.0,) * ndim
+        _shape = tuple(int(s) for s in shape)
+        ndim = len(_shape)
+        _zooms = tuple(float(z) for z in zooms) if zooms is not None else (1.0,) * ndim
+        _dtype = np.dtype(dtype) if dtype is not None else np.dtype('f4')
+        super().__init__(data_dtype=_dtype, shape=_shape, zooms=_zooms)
         self._layout = list(layout) if layout is not None else list(range(1, ndim + 1))
-        self._dtype = np.dtype(dtype) if dtype is not None else np.dtype('f4')
         if transform is not None:
             self._transform = np.array(transform, dtype=np.float64).reshape(3, 4)
         else:
@@ -326,12 +328,16 @@ class MifHeader(FileBasedHeader):
 
         return hdr
 
-    def write_to(self, fileobj, data_offset: int | None = None) -> int:
-        """Write the MIF header to *fileobj*, returning the data byte offset.
+    def write_to(self, fileobj: io.IOBase) -> None:
+        """Write the MIF header to *fileobj*.
 
         The ``file: . <offset>\\nEND\\n`` footer and any alignment padding are
         written so that the caller can immediately append the binary data.
         """
+        self._write_mif_header(fileobj)
+
+    def _write_mif_header(self, fileobj, data_offset: int | None = None) -> int:
+        """Write the MIF header, returning the data byte offset."""
         lines = ['mrtrix image']
         lines.append(f'dim: {",".join(str(s) for s in self._shape)}')
         lines.append(f'vox: {",".join(str(float(z)) for z in self._zooms)}')
@@ -379,28 +385,6 @@ class MifHeader(FileBasedHeader):
 
     def copy(self) -> MifHeader:
         return deepcopy(self)
-
-    # ------------------------------------------------------------------
-    # Nibabel SpatialHeader protocol
-    # ------------------------------------------------------------------
-
-    def get_data_shape(self) -> tuple:
-        return self._shape
-
-    def set_data_shape(self, shape) -> None:
-        self._shape = tuple(int(s) for s in shape)
-
-    def get_zooms(self) -> tuple:
-        return self._zooms
-
-    def set_zooms(self, zooms) -> None:
-        self._zooms = tuple(float(z) for z in zooms)
-
-    def get_data_dtype(self) -> np.dtype:
-        return self._dtype
-
-    def set_data_dtype(self, dtype) -> None:
-        self._dtype = np.dtype(dtype)
 
     def get_layout(self) -> list[int]:
         return list(self._layout)
@@ -458,8 +442,6 @@ class MifHeader(FileBasedHeader):
     def may_contain_header(cls, binaryblock: bytes) -> bool:
         """Return True if *binaryblock* starts with the MIF magic string."""
         return binaryblock[:13] == b'mrtrix image\n'
-
-    __hash__ = None  # required because __eq__ is defined
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, MifHeader):
