@@ -1,124 +1,532 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="../">
+
+<html lang="en" data-content_root="../" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Neuroimaging in Python &#8212; NiBabel 5.4.2 documentation</title>
+    <title>Defining the DICOM orientation &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
-    <script src="../_static/documentation_options.js?v=41d0e7f4"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=317b4947" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+
+    <script src="../_static/documentation_options.js?v=252e4b93"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=00435c62"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script defer="defer" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'dicom/dicom_orientation';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../_static/nibabel-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="DICOM fields" href="dicom_fields.html" />
     <link rel="prev" title="DICOM information" href="dicom_info.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
   <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
 
-  </head><body>
-<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
-  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
-    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">We are rolling out a new website! Check out the new features and let us know what you think.</div>
+</aside>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">NiBabel</p>
+  
+</a></div>
+    
   </div>
-  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
-    <h1>NiBabel</h1>
-    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
   </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="dicom_fields.html" title="DICOM fields"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="dicom_info.html" title="DICOM information"
-             accesskey="P">previous</a> |</li>
-  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
-  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
-  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
-  <li><a href="legal.html">License</a> |&nbsp;</li>
+    </header>
+  
 
-          <li class="nav-item nav-item-1"><a href="dicom.html" accesskey="U">DICOM concepts and implementations</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
-      </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Defining the DICOM orientation</a><ul>
-<li><a class="reference internal" href="#dicom-patient-coordinate-system">DICOM patient coordinate system</a></li>
-<li><a class="reference internal" href="#dicom-pixel-data">DICOM pixel data</a></li>
-<li><a class="reference internal" href="#pixel-spacing">Pixel spacing</a></li>
-<li><a class="reference internal" href="#dicom-voxel-to-patient-coordinate-system-mapping">DICOM voxel to patient coordinate system mapping</a></li>
-<li><a class="reference internal" href="#i-j-columns-rows-in-dicom">(i, j), columns, rows in DICOM</a></li>
-<li><a class="reference internal" href="#dicom-affines-again">DICOM affines again</a></li>
-<li><a class="reference internal" href="#dicom-affine-formula">DICOM affine formula</a></li>
-<li><a class="reference internal" href="#getting-a-3d-affine-from-a-dicom-slice-or-list-of-slices">Getting a 3D affine from a DICOM slice or list of slices</a><ul>
-<li><a class="reference internal" href="#dicom-affine-definitions">DICOM affine Definitions</a></li>
-<li><a class="reference internal" href="#derivations">Derivations</a></li>
-<li><a class="reference internal" href="#d-affine-formulae">3D affine formulae</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#working-out-the-z-coordinates-for-a-set-of-slices">Working out the Z coordinates for a set of slices</a></li>
-</ul>
-</li>
-</ul>
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
 
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="dicom_info.html"
-                          title="previous chapter">DICOM information</a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="dicom_fields.html"
-                          title="next chapter">DICOM fields</a></p>
-  </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/dicom/dicom_orientation.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
       </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dicom_info.html">DICOM information</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="dicom_intro.html">Introduction to DICOM</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Defining the DICOM orientation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dicom_fields.html">DICOM fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dicom_mosaic.html">Siemens mosaic format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="siemens_csa.html">Siemens format DICOM with CSA header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="spm_dicom.html">SPM DICOM conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dicom_niftiheader.html">DICOM Tags in the NIfTI Header</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dcm2nii_algorithms.html">dcm2nii algorithms</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="dicom.html" class="nav-link">DICOM concepts</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Defining the DICOM orientation</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section id="defining-the-dicom-orientation">
-<h1>Defining the DICOM orientation<a class="headerlink" href="#defining-the-dicom-orientation" title="Link to this heading">¶</a></h1>
+<h1>Defining the DICOM orientation<a class="headerlink" href="#defining-the-dicom-orientation" title="Link to this heading">#</a></h1>
 <section id="dicom-patient-coordinate-system">
-<span id="dicom-pcs"></span><h2>DICOM patient coordinate system<a class="headerlink" href="#dicom-patient-coordinate-system" title="Link to this heading">¶</a></h2>
+<span id="dicom-pcs"></span><h2>DICOM patient coordinate system<a class="headerlink" href="#dicom-patient-coordinate-system" title="Link to this heading">#</a></h2>
 <p>First we define the standard DICOM patient-based coordinate system.
 This is what DICOM means by x, y and z axes in its orientation
 specification.  From section C.7.6.2.1.1 of the <a class="reference external" href="ftp://medical.nema.org/medical/dicom/2011/11_03pu3.pdf">DICOM object
@@ -140,7 +548,7 @@ her index finger points down, and the middle finger points at the
 patient.</p>
 </section>
 <section id="dicom-pixel-data">
-<span id="dicom-pixel-array"></span><h2>DICOM pixel data<a class="headerlink" href="#dicom-pixel-data" title="Link to this heading">¶</a></h2>
+<span id="dicom-pixel-array"></span><h2>DICOM pixel data<a class="headerlink" href="#dicom-pixel-data" title="Link to this heading">#</a></h2>
 <dl class="simple">
 <dt>C.7.6.3.1.4 - Pixel Data</dt><dd><p>Pixel Data (7FE0,0010) for this image. The order of pixels sent for
 each image plane is left to right, top to bottom, i.e., the upper
@@ -154,7 +562,7 @@ row-major storage (rows first, then columns).  We’ll call this the DICOM
 <em>pixel array</em>.</p>
 </section>
 <section id="pixel-spacing">
-<h2>Pixel spacing<a class="headerlink" href="#pixel-spacing" title="Link to this heading">¶</a></h2>
+<h2>Pixel spacing<a class="headerlink" href="#pixel-spacing" title="Link to this heading">#</a></h2>
 <dl class="simple">
 <dt>Section 10.7.1.3:  Pixel Spacing</dt><dd><p>The first value is the row spacing in mm, that is the spacing between
 the centers of adjacent rows, or vertical spacing.  The second value
@@ -164,7 +572,7 @@ of adjacent columns, or horizontal spacing.</p>
 </dl>
 </section>
 <section id="dicom-voxel-to-patient-coordinate-system-mapping">
-<span id="dicom-orientation"></span><h2>DICOM voxel to patient coordinate system mapping<a class="headerlink" href="#dicom-voxel-to-patient-coordinate-system-mapping" title="Link to this heading">¶</a></h2>
+<span id="dicom-orientation"></span><h2>DICOM voxel to patient coordinate system mapping<a class="headerlink" href="#dicom-voxel-to-patient-coordinate-system-mapping" title="Link to this heading">#</a></h2>
 <p>See:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="http://www.dclunie.com/medical-image-faq/html/part2.html">http://www.dclunie.com/medical-image-faq/html/part2.html</a>;</p></li>
@@ -248,7 +656,7 @@ zero.</p></li>
 </div></blockquote>
 </section>
 <section id="i-j-columns-rows-in-dicom">
-<span id="ij-transpose"></span><h2>(i, j), columns, rows in DICOM<a class="headerlink" href="#i-j-columns-rows-in-dicom" title="Link to this heading">¶</a></h2>
+<span id="ij-transpose"></span><h2>(i, j), columns, rows in DICOM<a class="headerlink" href="#i-j-columns-rows-in-dicom" title="Link to this heading">#</a></h2>
 <p>We stop to ask ourselves, what does DICOM mean by voxel (i, j)?</p>
 <p>Isn’t that obvious?  Oh dear, no it isn’t.  See the
 <a class="reference internal" href="#dicom-orientation"><span class="std std-ref">DICOM voxel to patient coordinate system mapping</span></a> formula above.  In particular, you’ll see:</p>
@@ -268,7 +676,7 @@ given <span class="math notranslate nohighlight">\(M\)</span> above:</p>
 \[\begin{split}M_{pixar} = M \left(\begin{smallmatrix}0 &amp; 1 &amp; 0 &amp; 0\\1 &amp; 0 &amp; 0 &amp; 0\\0 &amp; 0 &amp; 1 &amp; 0\\0 &amp; 0 &amp; 0 &amp; 1\end{smallmatrix}\right)\end{split}\]</div>
 </section>
 <section id="dicom-affines-again">
-<span id="dicom-affines-reloaded"></span><h2>DICOM affines again<a class="headerlink" href="#dicom-affines-again" title="Link to this heading">¶</a></h2>
+<span id="dicom-affines-reloaded"></span><h2>DICOM affines again<a class="headerlink" href="#dicom-affines-again" title="Link to this heading">#</a></h2>
 <p>The <a class="reference internal" href="#ij-transpose"><span class="std std-ref">(i, j), columns, rows in DICOM</span></a> is rather confusing, so we’re going to rephrase
 the affine mapping; we’ll use <span class="math notranslate nohighlight">\(r\)</span> for the row index (instead of <span class="math notranslate nohighlight">\(j\)</span>
 above), and <span class="math notranslate nohighlight">\(c\)</span> for the column index (instead of <span class="math notranslate nohighlight">\(i\)</span>).</p>
@@ -286,7 +694,7 @@ direction cosine and the column index direction cosine.</p>
 <p>Now we can rephrase the DICOM affine mapping with:</p>
 </section>
 <section id="dicom-affine-formula">
-<span id="dicom-slice-affine"></span><h2>DICOM affine formula<a class="headerlink" href="#dicom-affine-formula" title="Link to this heading">¶</a></h2>
+<span id="dicom-slice-affine"></span><h2>DICOM affine formula<a class="headerlink" href="#dicom-affine-formula" title="Link to this heading">#</a></h2>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{bmatrix} P_x\\
                 P_y\\
@@ -330,7 +738,7 @@ attribute in units of mm.</p></li>
 </ul>
 </section>
 <section id="getting-a-3d-affine-from-a-dicom-slice-or-list-of-slices">
-<span id="dicom-3d-affines"></span><h2>Getting a 3D affine from a DICOM slice or list of slices<a class="headerlink" href="#getting-a-3d-affine-from-a-dicom-slice-or-list-of-slices" title="Link to this heading">¶</a></h2>
+<span id="dicom-3d-affines"></span><h2>Getting a 3D affine from a DICOM slice or list of slices<a class="headerlink" href="#getting-a-3d-affine-from-a-dicom-slice-or-list-of-slices" title="Link to this heading">#</a></h2>
 <p>Let us say, we have a single DICOM file, or a list of DICOM files that
 we believe to be a set of slices from the same volume.  We’ll call the
 first the <em>single slice</em> case, and the second, <em>multi slice</em>.</p>
@@ -353,7 +761,7 @@ field of the first (or only) slice.</p>
 <p>Our job then is to fill the first three rows of the third column of <span class="math notranslate nohighlight">\(A\)</span>.
 Let’s call this the vector <span class="math notranslate nohighlight">\(\mathbf{k}\)</span> with values  <span class="math notranslate nohighlight">\(k_1, k_2, k_3\)</span>.</p>
 <section id="dicom-affine-definitions">
-<span id="dicom-affine-defs"></span><h3>DICOM affine Definitions<a class="headerlink" href="#dicom-affine-definitions" title="Link to this heading">¶</a></h3>
+<span id="dicom-affine-defs"></span><h3>DICOM affine Definitions<a class="headerlink" href="#dicom-affine-definitions" title="Link to this heading">#</a></h3>
 <p>See also the definitions in <a class="reference internal" href="#dicom-slice-affine"><span class="std std-ref">DICOM affine formula</span></a>.   In addition</p>
 <ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(T^1\)</span> is the 3 element vector of the ‘ImagePositionPatient’ field of
@@ -366,7 +774,7 @@ cross product of the two columns of <span class="math notranslate nohighlight">\
 </ul>
 </section>
 <section id="derivations">
-<h3>Derivations<a class="headerlink" href="#derivations" title="Link to this heading">¶</a></h3>
+<h3>Derivations<a class="headerlink" href="#derivations" title="Link to this heading">#</a></h3>
 <p>For the single slice case we just fill <span class="math notranslate nohighlight">\(\mathbf{k}\)</span> with <span class="math notranslate nohighlight">\(\mathbf{n} \cdot
 \Delta{s}\)</span> - on the basis that the Z dimension should be
 right-handed orthogonal to the X and Y directions.</p>
@@ -381,7 +789,7 @@ first voxel in the last (slice index = <span class="math notranslate nohighlight
 <p>and therefore:</p>
 </section>
 <section id="d-affine-formulae">
-<span id="dicom-3d-affine-formulae"></span><h3>3D affine formulae<a class="headerlink" href="#d-affine-formulae" title="Link to this heading">¶</a></h3>
+<span id="dicom-3d-affine-formulae"></span><h3>3D affine formulae<a class="headerlink" href="#d-affine-formulae" title="Link to this heading">#</a></h3>
 <div class="math notranslate nohighlight">
 \[ \begin{align}\begin{aligned}\begin{split}A_{multi} = \left(\begin{smallmatrix}F_{{11}} \Delta{r} &amp; F_{{12}} \Delta{c} &amp; \frac{T^{N}_{{1}} - T^{1}_{{1}}}{N - 1} &amp; T^{1}_{{1}}\\F_{{21}} \Delta{r} &amp; F_{{22}} \Delta{c} &amp; \frac{T^{N}_{{2}} - T^{1}_{{2}}}{N - 1} &amp; T^{1}_{{2}}\\F_{{31}} \Delta{r} &amp; F_{{32}} \Delta{c} &amp; \frac{T^{N}_{{3}} - T^{1}_{{3}}}{N - 1} &amp; T^{1}_{{3}}\\0 &amp; 0 &amp; 0 &amp; 1\end{smallmatrix}\right)\end{split}\\\begin{split}A_{single} = \left(\begin{smallmatrix}F_{{11}} \Delta{r} &amp; F_{{12}} \Delta{c} &amp; \Delta{s} n_{{1}} &amp; T^{1}_{{1}}\\F_{{21}} \Delta{r} &amp; F_{{22}} \Delta{c} &amp; \Delta{s} n_{{2}} &amp; T^{1}_{{2}}\\F_{{31}} \Delta{r} &amp; F_{{32}} \Delta{c} &amp; \Delta{s} n_{{3}} &amp; T^{1}_{{3}}\\0 &amp; 0 &amp; 0 &amp; 1\end{smallmatrix}\right)\end{split}\end{aligned}\end{align} \]</div>
 <p>See <a class="reference download internal" download="" href="../_downloads/a0359552c75a1df40c301397f03c7556/spm_dicom_orient.py"><code class="xref download docutils literal notranslate"><span class="pre">derivations/spm_dicom_orient.py</span></code></a> for the derivations and
@@ -392,7 +800,7 @@ Between Slices (0018,0088) attribute in units of mm, if it exists.</p>
 </section>
 </section>
 <section id="working-out-the-z-coordinates-for-a-set-of-slices">
-<span id="dicom-z-from-slice"></span><h2>Working out the Z coordinates for a set of slices<a class="headerlink" href="#working-out-the-z-coordinates-for-a-set-of-slices" title="Link to this heading">¶</a></h2>
+<span id="dicom-z-from-slice"></span><h2>Working out the Z coordinates for a set of slices<a class="headerlink" href="#working-out-the-z-coordinates-for-a-set-of-slices" title="Link to this heading">#</a></h2>
 <p>We may have the problem (see e.g. <a class="reference internal" href="spm_dicom.html#spm-volume-sorting"><span class="std std-ref">Sorting files into volumes</span></a>) of trying
 to sort a set of slices into anatomical order.  For this we want to use
 the orientation information to tell us where the slices are in space,
@@ -447,15 +855,133 @@ plus a constant.</p>
 </section>
 
 
-            <div class="clearer"></div>
-          </div>
-        </div>
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="dicom_info.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">DICOM information</p>
       </div>
-      <div class="clearer"></div>
+    </a>
+    <a class="right-next"
+       href="dicom_fields.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">DICOM fields</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-patient-coordinate-system">DICOM patient coordinate system</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-pixel-data">DICOM pixel data</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pixel-spacing">Pixel spacing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-voxel-to-patient-coordinate-system-mapping">DICOM voxel to patient coordinate system mapping</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#i-j-columns-rows-in-dicom">(i, j), columns, rows in DICOM</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-affines-again">DICOM affines again</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-affine-formula">DICOM affine formula</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-a-3d-affine-from-a-dicom-slice-or-list-of-slices">Getting a 3D affine from a DICOM slice or list of slices</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-affine-definitions">DICOM affine Definitions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#derivations">Derivations</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#d-affine-formulae">3D affine formulae</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#working-out-the-z-coordinates-for-a-set-of-slices">Working out the Z coordinates for a set of slices</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/dicom/dicom_orientation.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
     </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
     </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
   </body>
 </html>

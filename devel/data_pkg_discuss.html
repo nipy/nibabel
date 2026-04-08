@@ -1,126 +1,504 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="../">
+
+<html lang="en" data-content_root="../" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Neuroimaging in Python &#8212; NiBabel 5.4.2 documentation</title>
+    <title>Principles of data package &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
-    <script src="../_static/documentation_options.js?v=41d0e7f4"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=317b4947" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+
+    <script src="../_static/documentation_options.js?v=252e4b93"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=00435c62"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'devel/data_pkg_discuss';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../_static/nibabel-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
   <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
 
-  </head><body>
-<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
-  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
-    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">We are rolling out a new website! Check out the new features and let us know what you think.</div>
+</aside>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">NiBabel</p>
+  
+</a></div>
+    
   </div>
-  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
-    <h1>NiBabel</h1>
-    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dicom/dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
   </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
-  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
-  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
-  <li><a href="legal.html">License</a> |&nbsp;</li>
+    </header>
+  
 
-        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
-      </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Principles of data package</a><ul>
-<li><a class="reference internal" href="#summary">Summary</a></li>
-<li><a class="reference internal" href="#motivation">Motivation</a></li>
-<li><a class="reference internal" href="#separation-of-ideas">Separation of ideas</a><ul>
-<li><a class="reference internal" href="#package">Package</a></li>
-<li><a class="reference internal" href="#package-name">Package name</a></li>
-<li><a class="reference internal" href="#package-instantiation">Package instantiation</a></li>
-<li><a class="reference internal" href="#pinstance-revision">Pinstance revision</a></li>
-<li><a class="reference internal" href="#pinstance-revision-id">Pinstance revision id</a></li>
-<li><a class="reference internal" href="#pinstance-tag">Pinstance tag</a></li>
-<li><a class="reference internal" href="#pinstance-version">Pinstance version</a></li>
-<li><a class="reference internal" href="#package-provider-bundle">Package provider bundle</a></li>
-<li><a class="reference internal" href="#provider-bundle-format">Provider bundle format</a></li>
-<li><a class="reference internal" href="#pinstance-release">Pinstance release</a></li>
-<li><a class="reference internal" href="#prundle-discovery">Prundle discovery</a></li>
-<li><a class="reference internal" href="#prundle-discovery-source">Prundle discovery source</a></li>
-<li><a class="reference internal" href="#pinstance-metadata-query">Pinstance metadata query</a></li>
-<li><a class="reference internal" href="#pinstance-metadata-query-source">Pinstance metadata query source</a></li>
-<li><a class="reference internal" href="#pinstance-installation">Pinstance installation</a></li>
-<li><a class="reference internal" href="#data-and-metadata">Data and metadata</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#comparative-terminology">Comparative terminology</a><ul>
-<li><a class="reference internal" href="#compared-to-debian-packaging">Compared to Debian packaging</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#desiderata">Desiderata</a></li>
-<li><a class="reference internal" href="#issues">Issues</a><ul>
-<li><a class="reference internal" href="#dependency-management">Dependency management</a></li>
-<li><a class="reference internal" href="#authentication-and-validation">Authentication and validation</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#differences-from-code-packages">Differences from code packages</a></li>
-<li><a class="reference internal" href="#some-usecases">Some usecases</a><ul>
-<li><a class="reference internal" href="#discovery">Discovery</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
 
-  </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/devel/data_pkg_discuss.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dicom/dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
       </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Principles of data package</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section id="principles-of-data-package">
-<span id="data-package-discuss"></span><h1>Principles of data package<a class="headerlink" href="#principles-of-data-package" title="Link to this heading">¶</a></h1>
+<span id="data-package-discuss"></span><h1>Principles of data package<a class="headerlink" href="#principles-of-data-package" title="Link to this heading">#</a></h1>
 <section id="summary">
-<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h2>
 <p>This is a discussion of data packages, as they are currently implemented in
 nibabel / nipy.</p>
 <p>This API proved to be very uncomfortable, and we intend to replace it fairly
@@ -128,7 +506,7 @@ soon.  See <code class="docutils literal notranslate"><span class="pre">data_pac
 thinking, not yet implemented.</p>
 </section>
 <section id="motivation">
-<h2>Motivation<a class="headerlink" href="#motivation" title="Link to this heading">¶</a></h2>
+<h2>Motivation<a class="headerlink" href="#motivation" title="Link to this heading">#</a></h2>
 <p>When developing or using nipy, many data files can be useful.</p>
 <ol class="arabic simple">
 <li><p><em>small test data</em> - very small data files required for routine code testing.
@@ -147,12 +525,12 @@ here defining the idea of a <em>data package</em>.  This document is a draft
 specification of what a <em>data package</em> looks like and how to use it.</p>
 </section>
 <section id="separation-of-ideas">
-<h2>Separation of ideas<a class="headerlink" href="#separation-of-ideas" title="Link to this heading">¶</a></h2>
+<h2>Separation of ideas<a class="headerlink" href="#separation-of-ideas" title="Link to this heading">#</a></h2>
 <p>This section needs some healthy beating to make the ideas clearer.  However, in
 the interests of the <a class="reference external" href="http://nipyworld.blogspot.com/2010/11/0saga-software-model.html">0SAGA</a> software model, here are some ideas that may be
 separable.</p>
 <section id="package">
-<h3>Package<a class="headerlink" href="#package" title="Link to this heading">¶</a></h3>
+<h3>Package<a class="headerlink" href="#package" title="Link to this heading">#</a></h3>
 <p>This idea is rather difficult to define, but is a bit like a data project, that
 is a set of information that the packager believed had something in common.  The
 package then is an abstract idea, and what is in the package could change
@@ -161,11 +539,11 @@ bit like a namespace, having itself no content other than a string (the package
 name) and the data it contains.</p>
 </section>
 <section id="package-name">
-<h3>Package name<a class="headerlink" href="#package-name" title="Link to this heading">¶</a></h3>
+<h3>Package name<a class="headerlink" href="#package-name" title="Link to this heading">#</a></h3>
 <p>This is a string that gives a name to the package.</p>
 </section>
 <section id="package-instantiation">
-<h3>Package instantiation<a class="headerlink" href="#package-instantiation" title="Link to this heading">¶</a></h3>
+<h3>Package instantiation<a class="headerlink" href="#package-instantiation" title="Link to this heading">#</a></h3>
 <p>By <em>instantiation</em> we mean some particular actual set of data for a particular
 package.  By actual, we mean stuff that can be read as bytes.  As we add and
 remove data from the package, the <em>instantiation</em> changes.  In version control,
@@ -174,12 +552,12 @@ moment, whether this has been committed or not.</p>
 <p>It might not be enjoyable, but we’ll call a package instantiation a <em>pinstance</em>.</p>
 </section>
 <section id="pinstance-revision">
-<h3>Pinstance revision<a class="headerlink" href="#pinstance-revision" title="Link to this heading">¶</a></h3>
+<h3>Pinstance revision<a class="headerlink" href="#pinstance-revision" title="Link to this heading">#</a></h3>
 <p>A revision is an instantiation of the working tree that has a unique label - the
 <em>revision id</em>.</p>
 </section>
 <section id="pinstance-revision-id">
-<h3>Pinstance revision id<a class="headerlink" href="#pinstance-revision-id" title="Link to this heading">¶</a></h3>
+<h3>Pinstance revision id<a class="headerlink" href="#pinstance-revision-id" title="Link to this heading">#</a></h3>
 <p>The <em>revision id</em> is a string that identifies a particular <em>pinstance</em>.  This is
 the equivalent of the revision number in <a class="reference external" href="https://subversion.apache.org">subversion</a>, or the commit hash in
 systems like <a class="reference external" href="https://git-scm.com">git</a> or <a class="reference external" href="https://mercurial.selenic.com">mercurial</a>. There is only one pinstance for any given
@@ -189,7 +567,7 @@ call this revision id ‘201’, but they might both refer to the same instantia
 of the package.  Or they might not, that’s up to you, the author of the package.</p>
 </section>
 <section id="pinstance-tag">
-<h3>Pinstance tag<a class="headerlink" href="#pinstance-tag" title="Link to this heading">¶</a></h3>
+<h3>Pinstance tag<a class="headerlink" href="#pinstance-tag" title="Link to this heading">#</a></h3>
 <p>A <em>tag</em> is a memorable string that refers to a particular pinstance.  It differs
 from a revision id only in that there is not likely to be a tag for every
 revision.  It’s possible to imagine pinstances without a revision id but with a
@@ -203,12 +581,12 @@ the revision id.  Different sources of the same package might possibly produce
 different tags <a class="footnote-reference brackets" href="#tag-sources" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
 </section>
 <section id="pinstance-version">
-<h3>Pinstance version<a class="headerlink" href="#pinstance-version" title="Link to this heading">¶</a></h3>
+<h3>Pinstance version<a class="headerlink" href="#pinstance-version" title="Link to this heading">#</a></h3>
 <p>A <em>pinstance</em> might also have a version.  A version is just a tag that can be
 compared using some algorithm.</p>
 </section>
 <section id="package-provider-bundle">
-<span id="prundle"></span><h3>Package provider bundle<a class="headerlink" href="#package-provider-bundle" title="Link to this heading">¶</a></h3>
+<span id="prundle"></span><h3>Package provider bundle<a class="headerlink" href="#package-provider-bundle" title="Link to this heading">#</a></h3>
 <p>Maybe we could call this a “prundle”.</p>
 <p>The <em>provider bundle</em> is something that can deliver the bytes of a particular
 pinstance.  For example, if you have a package named “interesting-images”, you
@@ -223,7 +601,7 @@ directory <code class="docutils literal notranslate"><span class="pre">/my/home/
 is a provider bundle.</p>
 </section>
 <section id="provider-bundle-format">
-<h3>Provider bundle format<a class="headerlink" href="#provider-bundle-format" title="Link to this heading">¶</a></h3>
+<h3>Provider bundle format<a class="headerlink" href="#provider-bundle-format" title="Link to this heading">#</a></h3>
 <p>In the example above, the zipfile, the http directory and the local path are
 three different provider bundle formats delivering the same package
 instantiation.  Let’s call those formats:</p>
@@ -234,7 +612,7 @@ instantiation.  Let’s call those formats:</p>
 </ul>
 </section>
 <section id="pinstance-release">
-<h3>Pinstance release<a class="headerlink" href="#pinstance-release" title="Link to this heading">¶</a></h3>
+<h3>Pinstance release<a class="headerlink" href="#pinstance-release" title="Link to this heading">#</a></h3>
 <p>A release might be a package instantiation that one person has:</p>
 <ol class="arabic simple">
 <li><p>tagged</p></li>
@@ -242,7 +620,7 @@ instantiation.  Let’s call those formats:</p>
 </ol>
 </section>
 <section id="prundle-discovery">
-<span id="id2"></span><h3>Prundle discovery<a class="headerlink" href="#prundle-discovery" title="Link to this heading">¶</a></h3>
+<span id="id2"></span><h3>Prundle discovery<a class="headerlink" href="#prundle-discovery" title="Link to this heading">#</a></h3>
 <p>We <em>discover</em> a package bundle when we ask a system (local or remote) whether
 they have a package bundle at a given revision, tag, or bundle format.  That
 implies two discoveries - <em>local discovery</em> (is the package bundle on my local
@@ -253,7 +631,7 @@ query for software packages.  Those would be sources for <em>remote discovery</e
 our language.</p>
 </section>
 <section id="prundle-discovery-source">
-<h3>Prundle discovery source<a class="headerlink" href="#prundle-discovery-source" title="Link to this heading">¶</a></h3>
+<h3>Prundle discovery source<a class="headerlink" href="#prundle-discovery-source" title="Link to this heading">#</a></h3>
 <p>A <em>prundle discovery source</em> is somewhere that can answer prundle discovery
 queries.</p>
 <p>One such thing might be a prundle registry, where an element in the registry
@@ -268,7 +646,7 @@ contain:</p>
 <p>Maybe it should also contain information about where the information came from.</p>
 </section>
 <section id="pinstance-metadata-query">
-<h3>Pinstance metadata query<a class="headerlink" href="#pinstance-metadata-query" title="Link to this heading">¶</a></h3>
+<h3>Pinstance metadata query<a class="headerlink" href="#pinstance-metadata-query" title="Link to this heading">#</a></h3>
 <p>We query a pinstance when we know that a particular system (local or remote) has
 a package bundle of the pinstance we want. Then we get some information about
 that pinstance.</p>
@@ -276,14 +654,14 @@ that pinstance.</p>
 metadata.</p>
 </section>
 <section id="pinstance-metadata-query-source">
-<h3>Pinstance metadata query source<a class="headerlink" href="#pinstance-metadata-query-source" title="Link to this heading">¶</a></h3>
+<h3>Pinstance metadata query source<a class="headerlink" href="#pinstance-metadata-query-source" title="Link to this heading">#</a></h3>
 <p>A <em>pinstance metadata query source</em> is somewhere that can answer pinstance
 metadata queries.</p>
 <p>Obviously a source may well be both a <em>prundle discovery source</em> and a
 <em>pinstance metadata query source</em>.</p>
 </section>
 <section id="pinstance-installation">
-<h3>Pinstance installation<a class="headerlink" href="#pinstance-installation" title="Link to this heading">¶</a></h3>
+<h3>Pinstance installation<a class="headerlink" href="#pinstance-installation" title="Link to this heading">#</a></h3>
 <p>We install a pinstance when we get some prundle containing the pinstance and
 place it on local storage, such that we can <em>discover</em> the prundle on our own
 (local) system.  That is we take some prundle and convert it to a <em>local-path</em>
@@ -291,7 +669,7 @@ format bundle <em>and</em> we register this local-path format bundle to a <em>di
 source</em>.</p>
 </section>
 <section id="data-and-metadata">
-<h3>Data and metadata<a class="headerlink" href="#data-and-metadata" title="Link to this heading">¶</a></h3>
+<h3>Data and metadata<a class="headerlink" href="#data-and-metadata" title="Link to this heading">#</a></h3>
 <dl class="simple">
 <dt>Pinstance data</dt><dd><p>is the bytes as they are arranged in a particular pinstance.</p>
 </dd>
@@ -304,11 +682,11 @@ is in the package.</p>
 </section>
 </section>
 <section id="comparative-terminology">
-<h2>Comparative terminology<a class="headerlink" href="#comparative-terminology" title="Link to this heading">¶</a></h2>
+<h2>Comparative terminology<a class="headerlink" href="#comparative-terminology" title="Link to this heading">#</a></h2>
 <p>In which we compare the package terminology above to the terminology of Debian
 packaging.</p>
 <section id="compared-to-debian-packaging">
-<h3>Compared to Debian packaging<a class="headerlink" href="#compared-to-debian-packaging" title="Link to this heading">¶</a></h3>
+<h3>Compared to Debian packaging<a class="headerlink" href="#compared-to-debian-packaging" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>A Debian distribution is a label - such as ‘unstable’ or ‘lenny’ - that refers to a
 set of package revisions that go together.  We have no equivalent.</p></li>
@@ -339,7 +717,7 @@ bundle</em>, that is in <em>bundle format</em> “deb-format”.</p></li>
 </section>
 </section>
 <section id="desiderata">
-<h2>Desiderata<a class="headerlink" href="#desiderata" title="Link to this heading">¶</a></h2>
+<h2>Desiderata<a class="headerlink" href="#desiderata" title="Link to this heading">#</a></h2>
 <p>We want to build a package system that is very simple (‘S’ in <a class="reference external" href="http://nipyworld.blogspot.com/2010/11/0saga-software-model.html">0SAGA</a>).  For the
 moment, the main problems we want to solve are: creation of a package
 instantiation, installation of package instantiations, local discovery of
@@ -352,14 +730,14 @@ Obviously we’re going to end up writing our own implementation, or adapting
 someone else’s.  <a class="reference external" href="https://pythonhosted.org/datapkg/">datapkg</a> looks like the best candidate at the moment.</p>
 </section>
 <section id="issues">
-<h2>Issues<a class="headerlink" href="#issues" title="Link to this heading">¶</a></h2>
+<h2>Issues<a class="headerlink" href="#issues" title="Link to this heading">#</a></h2>
 <p>From a brief scan of the <a class="reference external" href="https://www.debian.org/doc/manuals/debian-reference/ch02.en.html">debian package management documentation</a>.</p>
 <section id="dependency-management">
-<h3>Dependency management<a class="headerlink" href="#dependency-management" title="Link to this heading">¶</a></h3>
+<h3>Dependency management<a class="headerlink" href="#dependency-management" title="Link to this heading">#</a></h3>
 <p>(no plan at the moment)</p>
 </section>
 <section id="authentication-and-validation">
-<h3>Authentication and validation<a class="headerlink" href="#authentication-and-validation" title="Link to this heading">¶</a></h3>
+<h3>Authentication and validation<a class="headerlink" href="#authentication-and-validation" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>Authentication - using signatures to confirm that you made this package.</p></li>
 <li><p>Verification - verify that the contents have not been corrupted or changed
@@ -393,7 +771,7 @@ is very hard, if they don’t have our private key.</p></li>
 </section>
 </section>
 <section id="differences-from-code-packages">
-<h2>Differences from code packages<a class="headerlink" href="#differences-from-code-packages" title="Link to this heading">¶</a></h2>
+<h2>Differences from code packages<a class="headerlink" href="#differences-from-code-packages" title="Link to this heading">#</a></h2>
 <p>The obvious differences are:</p>
 <ol class="arabic simple">
 <li><p>Data packages can be very large</p></li>
@@ -419,9 +797,9 @@ files get larger.  So the cost for holding a full history becomes very large,
 whereas the benefit decreases a little bit (compared to code).</p>
 </section>
 <section id="some-usecases">
-<h2>Some usecases<a class="headerlink" href="#some-usecases" title="Link to this heading">¶</a></h2>
+<h2>Some usecases<a class="headerlink" href="#some-usecases" title="Link to this heading">#</a></h2>
 <section id="discovery">
-<h3>Discovery<a class="headerlink" href="#discovery" title="Link to this heading">¶</a></h3>
+<h3>Discovery<a class="headerlink" href="#discovery" title="Link to this heading">#</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ourpkg</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_registry</span>
 
 <span class="n">my_pkg_path</span> <span class="o">=</span> <span class="n">default_registry</span><span class="o">.</span><span class="n">pathfor</span><span class="p">(</span><span class="s1">&#39;mypkg&#39;</span><span class="p">,</span> <span class="s1">&#39;0.3&#39;</span><span class="p">)</span>
@@ -452,15 +830,137 @@ which the tag came.</p>
 </section>
 
 
-            <div class="clearer"></div>
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#motivation">Motivation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#separation-of-ideas">Separation of ideas</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#package">Package</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#package-name">Package name</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#package-instantiation">Package instantiation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinstance-revision">Pinstance revision</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinstance-revision-id">Pinstance revision id</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinstance-tag">Pinstance tag</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinstance-version">Pinstance version</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#package-provider-bundle">Package provider bundle</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#provider-bundle-format">Provider bundle format</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinstance-release">Pinstance release</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prundle-discovery">Prundle discovery</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prundle-discovery-source">Prundle discovery source</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinstance-metadata-query">Pinstance metadata query</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinstance-metadata-query-source">Pinstance metadata query source</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pinstance-installation">Pinstance installation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-and-metadata">Data and metadata</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#comparative-terminology">Comparative terminology</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#compared-to-debian-packaging">Compared to Debian packaging</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#desiderata">Desiderata</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#issues">Issues</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dependency-management">Dependency management</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#authentication-and-validation">Authentication and validation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#differences-from-code-packages">Differences from code packages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#some-usecases">Some usecases</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#discovery">Discovery</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/devel/data_pkg_discuss.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
           </div>
-        </div>
-      </div>
-      <div class="clearer"></div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
     </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
     </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
   </body>
 </html>

@@ -1,0 +1,13 @@
+div.admonition.admonition-quote {
+    border-color: hsl(160deg,41%,70%); /* YouTube red */
+  }
+
+  div.admonition.admonition-quote > .admonition-title {
+    background-color: hsl(190deg,100%,23%);
+    color: white;
+  }
+
+  div.admonition.admonition-quote > .admonition-title::after {
+    color: hsl(160deg,41%,70%);
+    content: "\f10d"; /* fa-solid fa-quote-left */
+  }

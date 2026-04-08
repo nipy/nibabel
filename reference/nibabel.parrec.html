@@ -1,194 +1,636 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="../">
+
+<html lang="en" data-content_root="../" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Neuroimaging in Python &#8212; NiBabel 5.4.2 documentation</title>
+    <title>parrec &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
-    <script src="../_static/documentation_options.js?v=41d0e7f4"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=317b4947" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+
+    <script src="../_static/documentation_options.js?v=252e4b93"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=00435c62"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/nibabel.parrec';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../_static/nibabel-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="streamlines" href="nibabel.streamlines.html" />
     <link rel="prev" title="ecat" href="nibabel.ecat.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
   <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
 
-  </head><body>
-<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
-  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
-    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">We are rolling out a new website! Check out the new features and let us know what you think.</div>
+</aside>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">NiBabel</p>
+  
+</a></div>
+    
   </div>
-  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
-    <h1>NiBabel</h1>
-    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dicom/dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
   </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="nibabel.streamlines.html" title="streamlines"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="nibabel.ecat.html" title="ecat"
-             accesskey="P">previous</a> |</li>
-  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
-  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
-  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
-  <li><a href="legal.html">License</a> |&nbsp;</li>
+    </header>
+  
 
-          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API Documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
-      </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></a><ul>
-<li><a class="reference internal" href="#par-file-format">PAR file format</a><ul>
-<li><a class="reference internal" href="#general-information">General information</a></li>
-<li><a class="reference internal" href="#image-information">Image information</a></li>
-<li><a class="reference internal" href="#orientation">Orientation</a></li>
-<li><a class="reference internal" href="#data-type">Data type</a></li>
-<li><a class="reference internal" href="#data-sorting">Data Sorting</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#parrecarrayproxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECArrayProxy</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy.__init__"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy.dtype"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.dtype</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy.get_unscaled"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.get_unscaled()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy.is_proxy"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.is_proxy</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy.ndim"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.ndim</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy.shape"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.shape</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#parrecerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECError</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECError"><code class="docutils literal notranslate"><span class="pre">PARRECError</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECError.__init__"><code class="docutils literal notranslate"><span class="pre">PARRECError.__init__()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#parrecheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECHeader</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader"><code class="docutils literal notranslate"><span class="pre">PARRECHeader</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.__init__"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.as_analyze_map"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.as_analyze_map()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.copy"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.copy()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.from_fileobj"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.from_fileobj()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.from_header"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.from_header()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_affine"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_affine()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_bvals_bvecs"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_bvals_bvecs()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_data_offset"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_data_offset()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_data_scaling"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_data_scaling()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_def"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_def()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_echo_train_length"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_echo_train_length()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_q_vectors"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_q_vectors()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_rec_shape"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_rec_shape()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_slice_orientation"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_slice_orientation()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_sorted_slice_indices"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_sorted_slice_indices()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_volume_labels"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_volume_labels()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.get_water_fat_shift"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_water_fat_shift()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECHeader.set_data_offset"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.set_data_offset()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#parrecimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECImage</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage"><code class="docutils literal notranslate"><span class="pre">PARRECImage</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.__init__"><code class="docutils literal notranslate"><span class="pre">PARRECImage.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.ImageArrayProxy"><code class="docutils literal notranslate"><span class="pre">PARRECImage.ImageArrayProxy</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.files_types"><code class="docutils literal notranslate"><span class="pre">PARRECImage.files_types</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.from_file_map"><code class="docutils literal notranslate"><span class="pre">PARRECImage.from_file_map()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.from_filename"><code class="docutils literal notranslate"><span class="pre">PARRECImage.from_filename()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.header_class"><code class="docutils literal notranslate"><span class="pre">PARRECImage.header_class</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.load"><code class="docutils literal notranslate"><span class="pre">PARRECImage.load()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.makeable"><code class="docutils literal notranslate"><span class="pre">PARRECImage.makeable</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.rw"><code class="docutils literal notranslate"><span class="pre">PARRECImage.rw</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.parrec.PARRECImage.valid_exts"><code class="docutils literal notranslate"><span class="pre">PARRECImage.valid_exts</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#exts2pars">exts2pars</a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.exts2pars"><code class="docutils literal notranslate"><span class="pre">exts2pars()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#one-line">one_line</a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.one_line"><code class="docutils literal notranslate"><span class="pre">one_line()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#parse-par-header">parse_PAR_header</a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.parse_PAR_header"><code class="docutils literal notranslate"><span class="pre">parse_PAR_header()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#vol-is-full">vol_is_full</a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.vol_is_full"><code class="docutils literal notranslate"><span class="pre">vol_is_full()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#vol-numbers">vol_numbers</a><ul>
-<li><a class="reference internal" href="#nibabel.parrec.vol_numbers"><code class="docutils literal notranslate"><span class="pre">vol_numbers()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
 
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="nibabel.ecat.html"
-                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="nibabel.streamlines.html"
-                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">streamlines</span></code></a></p>
-  </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/reference/nibabel.parrec.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dicom/dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
       </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel</span></code></a></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">analyze</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.spm2analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm2analyze</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.spm99analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm99analyze</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.cifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.gifti.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gifti</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.freesurfer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.minc1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc1</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.minc2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc2</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.nicom.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.nifti1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti1</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.nifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.ecat.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.streamlines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">streamlines</span></code></a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.eulerangles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eulerangles</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.funcs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">funcs</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.imageclasses.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageclasses</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.imageglobals.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageglobals</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.loadsave.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">loadsave</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.orientations.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">orientations</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.quaternions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">quaternions</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.spatialimages.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spatialimages</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.volumeutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">volumeutils</span></code></a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.arraywriters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraywriters</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.casting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">casting</span></code></a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.data.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">environment</span></code></a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.arrayproxy.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arrayproxy</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.affines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">affines</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.batteryrunners.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batteryrunners</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.data.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.dft.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dft</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.fileholders.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileholders</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.filename_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.fileslice.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.onetime.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.openers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.optpkg.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optpkg</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.rstutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rstutils</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.tmpdirs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tmpdirs</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.tripwire.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tripwire</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.wrapstruct.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wrapstruct</span></code></a></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nibabel.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel._compression.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">_compression</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel._typing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">_typing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.affines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">affines</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">analyze</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.arrayproxy.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arrayproxy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.arraywriters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraywriters</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.batteryrunners.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batteryrunners</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.benchmarks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.brikhead.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">brikhead</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.caret.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">caret</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.casting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">casting</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.cifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.cmdline.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.data.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.dataobj_images.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dataobj_images</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.deprecated.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecated</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.deprecator.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecator</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.dft.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dft</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.ecat.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">environment</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.eulerangles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eulerangles</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.filebasedimages.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filebasedimages</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.fileholders.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileholders</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.filename_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.fileslice.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.fileutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.freesurfer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.funcs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">funcs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.gifti.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gifti</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.imageclasses.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageclasses</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.imageglobals.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageglobals</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.imagestats.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imagestats</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.loadsave.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">loadsave</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.minc1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.minc2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.mriutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mriutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.nicom.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.nifti1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.nifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.onetime.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.openers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.optpkg.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optpkg</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.orientations.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">orientations</span></code></a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.pointset.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pointset</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.processing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.pydicom_compat.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pydicom_compat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.quaternions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">quaternions</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.rstutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rstutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.spaces.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spaces</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.spatialimages.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spatialimages</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.spm2analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm2analyze</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.spm99analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm99analyze</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.streamlines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">streamlines</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.tmpdirs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tmpdirs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.tripwire.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tripwire</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.viewers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">viewers</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.volumeutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">volumeutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.wrapstruct.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wrapstruct</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.xmlutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">xmlutils</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section id="module-nibabel.parrec">
-<span id="parrec"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code><a class="headerlink" href="#module-nibabel.parrec" title="Link to this heading">¶</a></h1>
+<span id="parrec"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code><a class="headerlink" href="#module-nibabel.parrec" title="Link to this heading">#</a></h1>
 <p>Read images in PAR/REC format</p>
 <p>This is yet another MRI image format generated by Philips scanners. It is an
 ASCII header (PAR) plus a binary blob (REC).</p>
@@ -198,10 +640,10 @@ against.  If you want us to support another version, and have an image we can
 add to the test suite, let us know.  You would make us very happy by submitting
 a pull request.</p>
 <section id="par-file-format">
-<h2>PAR file format<a class="headerlink" href="#par-file-format" title="Link to this heading">¶</a></h2>
+<h2>PAR file format<a class="headerlink" href="#par-file-format" title="Link to this heading">#</a></h2>
 <p>The PAR format appears to have two sections:</p>
 <section id="general-information">
-<h3>General information<a class="headerlink" href="#general-information" title="Link to this heading">¶</a></h3>
+<h3>General information<a class="headerlink" href="#general-information" title="Link to this heading">#</a></h3>
 <p>This is a set of lines each giving one key : value pair, examples:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>.    EPI factor        &lt;0,1=no EPI&gt;     :   39
 .    Dynamic scan      &lt;0=no 1=yes&gt; ?   :   1
@@ -211,7 +653,7 @@ a pull request.</p>
 <p>(from <code class="docutils literal notranslate"><span class="pre">nibabel/tests/data/phantom_EPI_asc_CLEAR_2_1.PAR</span></code>)</p>
 </section>
 <section id="image-information">
-<h3>Image information<a class="headerlink" href="#image-information" title="Link to this heading">¶</a></h3>
+<h3>Image information<a class="headerlink" href="#image-information" title="Link to this heading">#</a></h3>
 <p>There is a <code class="docutils literal notranslate"><span class="pre">#</span></code> prefixed list of fields under the heading “IMAGE INFORMATION
 DEFINITION”.  From the same file, here is the start of this list:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># === IMAGE INFORMATION DEFINITION =============================================</span>
@@ -235,7 +677,7 @@ file above:</p>
 </div>
 </section>
 <section id="orientation">
-<h3>Orientation<a class="headerlink" href="#orientation" title="Link to this heading">¶</a></h3>
+<h3>Orientation<a class="headerlink" href="#orientation" title="Link to this heading">#</a></h3>
 <p>PAR files refer to orientations “ap”, “fh” and “rl”.</p>
 <p>Nibabel’s required affine output axes are RAS (left to Right, posterior to
 Anterior, inferior to Superior). The correspondence of the PAR file’s axes to
@@ -251,7 +693,7 @@ system (right to Left, anterior to Posterior, inferior to Superior), but in a
 different order.</p>
 </section>
 <section id="data-type">
-<h3>Data type<a class="headerlink" href="#data-type" title="Link to this heading">¶</a></h3>
+<h3>Data type<a class="headerlink" href="#data-type" title="Link to this heading">#</a></h3>
 <p>It seems that everyone agrees that Philips stores REC data in little-endian
 format - see <a class="reference external" href="https://github.com/nipy/nibabel/issues/274">https://github.com/nipy/nibabel/issues/274</a></p>
 <p>Philips XML header files, and some previous experience, suggest that the REC
@@ -259,7 +701,7 @@ data is always stored as 8 or 16 bit unsigned integers - see
 <a class="reference external" href="https://github.com/nipy/nibabel/issues/275">https://github.com/nipy/nibabel/issues/275</a></p>
 </section>
 <section id="data-sorting">
-<h3>Data Sorting<a class="headerlink" href="#data-sorting" title="Link to this heading">¶</a></h3>
+<h3>Data Sorting<a class="headerlink" href="#data-sorting" title="Link to this heading">#</a></h3>
 <p>PAR/REC files have a large number of potential image dimensions.  To handle
 sorting of volumes in PAR/REC files based on these fields and not the order
 slices first appear in the PAR file, the <code class="docutils literal notranslate"><span class="pre">strict_sort</span></code> flag of
@@ -290,7 +732,7 @@ utility via the option “–strict-sort”.  The dimension info can be exported
 to a CSV file by adding the option “–volume-info”.</p>
 </section>
 </section>
-<table class="autosummary longtable docutils align-default">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy" title="nibabel.parrec.PARRECArrayProxy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PARRECArrayProxy</span></code></a>(file_like, header, *[, ...])</p></td>
 <td><p>Initialize PARREC array proxy</p></td>
@@ -321,11 +763,12 @@ to a CSV file by adding the option “–volume-info”.</p>
 </tr>
 </tbody>
 </table>
+</div>
 <section id="parrecarrayproxy">
-<h2><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy" title="nibabel.parrec.PARRECArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECArrayProxy</span></code></a><a class="headerlink" href="#parrecarrayproxy" title="Link to this heading">¶</a></h2>
+<h2><a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy" title="nibabel.parrec.PARRECArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECArrayProxy</span></code></a><a class="headerlink" href="#parrecarrayproxy" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECArrayProxy">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">PARRECArrayProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">PARRECArrayProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Initialize PARREC array proxy</p>
 <dl class="field-list simple">
@@ -351,7 +794,7 @@ file.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECArrayProxy.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_like</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.__init__" title="Link to this definition">#</a></dt>
 <dd><p>Initialize PARREC array proxy</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -378,56 +821,56 @@ file.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECArrayProxy.dtype">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.dtype" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.dtype" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECArrayProxy.get_unscaled">
-<span class="sig-name descname"><span class="pre">get_unscaled</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.get_unscaled" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_unscaled</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.get_unscaled" title="Link to this definition">#</a></dt>
 <dd><p>Read data from file</p>
 <p>This is an optional part of the proxy API</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECArrayProxy.is_proxy">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_proxy</span></span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.is_proxy" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_proxy</span></span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.is_proxy" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECArrayProxy.ndim">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ndim</span></span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.ndim" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ndim</span></span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.ndim" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECArrayProxy.shape">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.shape" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#nibabel.parrec.PARRECArrayProxy.shape" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </section>
 <section id="parrecerror">
-<h2><a class="reference internal" href="#nibabel.parrec.PARRECError" title="nibabel.parrec.PARRECError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECError</span></code></a><a class="headerlink" href="#parrecerror" title="Link to this heading">¶</a></h2>
+<h2><a class="reference internal" href="#nibabel.parrec.PARRECError" title="nibabel.parrec.PARRECError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECError</span></code></a><a class="headerlink" href="#parrecerror" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECError">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">PARRECError</span></span><a class="headerlink" href="#nibabel.parrec.PARRECError" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">PARRECError</span></span><a class="headerlink" href="#nibabel.parrec.PARRECError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
 <p>Exception for PAR/REC format related problems.</p>
 <p>To be raised whenever PAR/REC is not happy, or we are not happy with
 PAR/REC.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECError.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECError.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECError.__init__" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </section>
 <section id="parrecheader">
-<h2><a class="reference internal" href="#nibabel.parrec.PARRECHeader" title="nibabel.parrec.PARRECHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECHeader</span></code></a><a class="headerlink" href="#parrecheader" title="Link to this heading">¶</a></h2>
+<h2><a class="reference internal" href="#nibabel.parrec.PARRECHeader" title="nibabel.parrec.PARRECHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECHeader</span></code></a><a class="headerlink" href="#parrecheader" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">PARRECHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_defs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">PARRECHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_defs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.SpatialHeader" title="nibabel.spatialimages.SpatialHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialHeader</span></code></a></p>
 <p>PAR/REC header</p>
 <dl class="field-list simple">
@@ -452,7 +895,7 @@ the slices appear in the .PAR file.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_defs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_defs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.__init__" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -477,13 +920,13 @@ the slices appear in the .PAR file.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.as_analyze_map">
-<span class="sig-name descname"><span class="pre">as_analyze_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.as_analyze_map" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">as_analyze_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.as_analyze_map" title="Link to this definition">#</a></dt>
 <dd><p>Convert PAR parameters to NIFTI1 format</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.copy" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.copy" title="Link to this definition">#</a></dt>
 <dd><p>Copy object to independent representation</p>
 <p>The copy should not be affected by any changes to the original
 object.</p>
@@ -491,17 +934,17 @@ object.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.from_fileobj">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.from_fileobj" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.from_fileobj" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.from_header">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.from_header" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.from_header" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_affine">
-<span class="sig-name descname"><span class="pre">get_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scanner'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_affine" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'scanner'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_affine" title="Link to this definition">#</a></dt>
 <dd><p>Compute affine transformation into scanner space.</p>
 <p>The method only considers global rotation and offset settings in the
 header and ignores potentially deviating information in the image
@@ -541,7 +984,7 @@ PAR header “General Information”.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_bvals_bvecs">
-<span class="sig-name descname"><span class="pre">get_bvals_bvecs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_bvals_bvecs" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_bvals_bvecs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_bvals_bvecs" title="Link to this definition">#</a></dt>
 <dd><p>Get bvals and bvecs from data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -559,13 +1002,13 @@ diffusion acquisition.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_data_offset">
-<span class="sig-name descname"><span class="pre">get_data_offset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_data_offset" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_data_offset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_data_offset" title="Link to this definition">#</a></dt>
 <dd><p>PAR header always has 0 data offset (into REC file)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_data_scaling">
-<span class="sig-name descname"><span class="pre">get_data_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_data_scaling" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_data_scaling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_data_scaling" title="Link to this definition">#</a></dt>
 <dd><p>Returns scaling slope and intercept.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -597,19 +1040,19 @@ SS: scale slope</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_def">
-<span class="sig-name descname"><span class="pre">get_def</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_def" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_def</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_def" title="Link to this definition">#</a></dt>
 <dd><p>Return a single image definition field (or None if missing)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_echo_train_length">
-<span class="sig-name descname"><span class="pre">get_echo_train_length</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_echo_train_length" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_echo_train_length</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_echo_train_length" title="Link to this definition">#</a></dt>
 <dd><p>Echo train length of the recording</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_q_vectors">
-<span class="sig-name descname"><span class="pre">get_q_vectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_q_vectors" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_q_vectors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_q_vectors" title="Link to this definition">#</a></dt>
 <dd><p>Get Q vectors from the data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -624,12 +1067,12 @@ acquisition.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_rec_shape">
-<span class="sig-name descname"><span class="pre">get_rec_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_rec_shape" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_rec_shape</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_rec_shape" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_slice_orientation">
-<span class="sig-name descname"><span class="pre">get_slice_orientation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_slice_orientation" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_slice_orientation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_slice_orientation" title="Link to this definition">#</a></dt>
 <dd><p>Returns the slice orientation label.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -642,7 +1085,7 @@ acquisition.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_sorted_slice_indices">
-<span class="sig-name descname"><span class="pre">get_sorted_slice_indices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_sorted_slice_indices" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_sorted_slice_indices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_sorted_slice_indices" title="Link to this definition">#</a></dt>
 <dd><p>Return indices to sort (and maybe discard) slices in REC file.</p>
 <p>If the recording is truncated, the returned indices take care of
 discarding any slice indices from incomplete volumes.</p>
@@ -664,7 +1107,7 @@ array, and (equivalently) the only dimension of
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_volume_labels">
-<span class="sig-name descname"><span class="pre">get_volume_labels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_volume_labels" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_volume_labels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_volume_labels" title="Link to this definition">#</a></dt>
 <dd><p>Dynamic labels corresponding to the final data dimension(s).</p>
 <p>This is useful for custom data sorting.  A subset of the info in
 <code class="docutils literal notranslate"><span class="pre">self.image_defs</span></code> is returned in an order that matches the final
@@ -684,13 +1127,13 @@ ordering determined via <code class="docutils literal notranslate"><span class="
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.get_water_fat_shift">
-<span class="sig-name descname"><span class="pre">get_water_fat_shift</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_water_fat_shift" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_water_fat_shift</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.get_water_fat_shift" title="Link to this definition">#</a></dt>
 <dd><p>Water fat shift, in pixels</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECHeader.set_data_offset">
-<span class="sig-name descname"><span class="pre">set_data_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.set_data_offset" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set_data_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECHeader.set_data_offset" title="Link to this definition">#</a></dt>
 <dd><p>PAR header always has 0 data offset (into REC file)</p>
 </dd></dl>
 
@@ -698,10 +1141,10 @@ ordering determined via <code class="docutils literal notranslate"><span class="
 
 </section>
 <section id="parrecimage">
-<h2><a class="reference internal" href="#nibabel.parrec.PARRECImage" title="nibabel.parrec.PARRECImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECImage</span></code></a><a class="headerlink" href="#parrecimage" title="Link to this heading">¶</a></h2>
+<h2><a class="reference internal" href="#nibabel.parrec.PARRECImage" title="nibabel.parrec.PARRECImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECImage</span></code></a><a class="headerlink" href="#parrecimage" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">PARRECImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayLike" title="nibabel.arrayproxy.ArrayLike"><span class="pre">ArrayLike</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">PARRECImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayLike" title="nibabel.arrayproxy.ArrayLike"><span class="pre">ArrayLike</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="nibabel.spatialimages.html#nibabel.spatialimages.SpatialImage" title="nibabel.spatialimages.SpatialImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SpatialImage</span></code></a></p>
 <p>PAR/REC image</p>
 <p>Initialize image</p>
@@ -732,7 +1175,7 @@ metadata of this image type</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayLike" title="nibabel.arrayproxy.ArrayLike"><span class="pre">ArrayLike</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.arrayproxy.html#nibabel.arrayproxy.ArrayLike" title="nibabel.arrayproxy.ArrayLike"><span class="pre">ArrayLike</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nibabel.filebasedimages.html#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage.__init__" title="Link to this definition">#</a></dt>
 <dd><p>Initialize image</p>
 <p>The image is a combination of (array-like, affine matrix, header), with
 optional metadata in <cite>extra</cite>, and filename / file-like objects
@@ -763,18 +1206,18 @@ metadata of this image type</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.ImageArrayProxy">
-<span class="sig-name descname"><span class="pre">ImageArrayProxy</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.ImageArrayProxy" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">ImageArrayProxy</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.ImageArrayProxy" title="Link to this definition">#</a></dt>
 <dd><p>alias of <a class="reference internal" href="#nibabel.parrec.PARRECArrayProxy" title="nibabel.parrec.PARRECArrayProxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECArrayProxy</span></code></a></p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.files_types">
-<span class="sig-name descname"><span class="pre">files_types</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('image',</span> <span class="pre">'.rec'),</span> <span class="pre">('header',</span> <span class="pre">'.par'))</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.files_types" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">files_types</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('image',</span> <span class="pre">'.rec'),</span> <span class="pre">('header',</span> <span class="pre">'.par'))</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.files_types" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.from_file_map">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage.from_file_map" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage.from_file_map" title="Link to this definition">#</a></dt>
 <dd><p>Create PARREC image from file map <cite>file_map</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -807,7 +1250,7 @@ the slices appear in the .PAR file.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.from_filename">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage.from_filename" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage.from_filename" title="Link to this definition">#</a></dt>
 <dd><p>Create PARREC image from filename <cite>filename</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -839,13 +1282,13 @@ the slices appear in the .PAR file.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.header_class">
-<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.header_class" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.header_class" title="Link to this definition">#</a></dt>
 <dd><p>alias of <a class="reference internal" href="#nibabel.parrec.PARRECHeader" title="nibabel.parrec.PARRECHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECHeader</span></code></a></p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.load">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage.load" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permit_truncated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict_sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.PARRECImage.load" title="Link to this definition">#</a></dt>
 <dd><p>Create PARREC image from filename <cite>filename</cite></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -877,27 +1320,27 @@ the slices appear in the .PAR file.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.makeable">
-<span class="sig-name descname"><span class="pre">makeable</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.makeable" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">makeable</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.makeable" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.rw">
-<span class="sig-name descname"><span class="pre">rw</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.rw" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rw</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.rw" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.parrec.PARRECImage.valid_exts">
-<span class="sig-name descname"><span class="pre">valid_exts</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.rec',</span> <span class="pre">'.par')</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.valid_exts" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">valid_exts</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('.rec',</span> <span class="pre">'.par')</span></span><a class="headerlink" href="#nibabel.parrec.PARRECImage.valid_exts" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </section>
 <section id="exts2pars">
-<h2>exts2pars<a class="headerlink" href="#exts2pars" title="Link to this heading">¶</a></h2>
+<h2>exts2pars<a class="headerlink" href="#exts2pars" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="nibabel.parrec.exts2pars">
-<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">exts2pars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exts_source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.exts2pars" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">exts2pars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exts_source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.exts2pars" title="Link to this definition">#</a></dt>
 <dd><p>Parse, return any PAR headers from NIfTI extensions in <cite>exts_source</cite></p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -919,19 +1362,19 @@ element contains a PARRECHeader read from the contained extensions.</p>
 
 </section>
 <section id="one-line">
-<h2>one_line<a class="headerlink" href="#one-line" title="Link to this heading">¶</a></h2>
+<h2>one_line<a class="headerlink" href="#one-line" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="nibabel.parrec.one_line">
-<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">one_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">long_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.one_line" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">one_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">long_str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.one_line" title="Link to this definition">#</a></dt>
 <dd><p>Make maybe mutli-line <cite>long_str</cite> into one long line</p>
 </dd></dl>
 
 </section>
 <section id="parse-par-header">
-<h2>parse_PAR_header<a class="headerlink" href="#parse-par-header" title="Link to this heading">¶</a></h2>
+<h2>parse_PAR_header<a class="headerlink" href="#parse-par-header" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="nibabel.parrec.parse_PAR_header">
-<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">parse_PAR_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.parse_PAR_header" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">parse_PAR_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.parse_PAR_header" title="Link to this definition">#</a></dt>
 <dd><p>Parse a PAR header and aggregate all information into useful containers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -954,10 +1397,10 @@ header</p>
 
 </section>
 <section id="vol-is-full">
-<h2>vol_is_full<a class="headerlink" href="#vol-is-full" title="Link to this heading">¶</a></h2>
+<h2>vol_is_full<a class="headerlink" href="#vol-is-full" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="nibabel.parrec.vol_is_full">
-<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">vol_is_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slice_nos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.vol_is_full" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">vol_is_full</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slice_nos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slice_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.vol_is_full" title="Link to this definition">#</a></dt>
 <dd><p>Vector with True for slices in complete volume, False otherwise</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -990,10 +1433,10 @@ partial volumes.  A full volume is a volume with all slices in the
 
 </section>
 <section id="vol-numbers">
-<h2>vol_numbers<a class="headerlink" href="#vol-numbers" title="Link to this heading">¶</a></h2>
+<h2>vol_numbers<a class="headerlink" href="#vol-numbers" title="Link to this heading">#</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="nibabel.parrec.vol_numbers">
-<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">vol_numbers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slice_nos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.vol_numbers" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">nibabel.parrec.</span></span><span class="sig-name descname"><span class="pre">vol_numbers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slice_nos</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.parrec.vol_numbers" title="Link to this definition">#</a></dt>
 <dd><p>Calculate volume numbers inferred from slice numbers <cite>slice_nos</cite></p>
 <p>The volume number for each slice is the number of times this slice number
 has occurred previously in the <cite>slice_nos</cite> sequence</p>
@@ -1018,15 +1461,206 @@ each corresponding slice number.</p>
 </section>
 
 
-            <div class="clearer"></div>
-          </div>
-        </div>
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="nibabel.ecat.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></p>
       </div>
-      <div class="clearer"></div>
+    </a>
+    <a class="right-next"
+       href="nibabel.streamlines.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">streamlines</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#par-file-format">PAR file format</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-information">General information</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#image-information">Image information</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#orientation">Orientation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-type">Data type</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-sorting">Data Sorting</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parrecarrayproxy"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECArrayProxy</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECArrayProxy"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECArrayProxy.__init__"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECArrayProxy.dtype"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.dtype</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECArrayProxy.get_unscaled"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.get_unscaled()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECArrayProxy.is_proxy"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.is_proxy</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECArrayProxy.ndim"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.ndim</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECArrayProxy.shape"><code class="docutils literal notranslate"><span class="pre">PARRECArrayProxy.shape</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parrecerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECError</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECError"><code class="docutils literal notranslate"><span class="pre">PARRECError</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECError.__init__"><code class="docutils literal notranslate"><span class="pre">PARRECError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parrecheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECHeader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader"><code class="docutils literal notranslate"><span class="pre">PARRECHeader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.__init__"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.as_analyze_map"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.as_analyze_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.copy"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.copy()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.from_fileobj"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.from_fileobj()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.from_header"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.from_header()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_affine"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_affine()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_bvals_bvecs"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_bvals_bvecs()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_data_offset"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_data_offset()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_data_scaling"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_data_scaling()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_def"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_def()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_echo_train_length"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_echo_train_length()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_q_vectors"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_q_vectors()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_rec_shape"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_rec_shape()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_slice_orientation"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_slice_orientation()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_sorted_slice_indices"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_sorted_slice_indices()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_volume_labels"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_volume_labels()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.get_water_fat_shift"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.get_water_fat_shift()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECHeader.set_data_offset"><code class="docutils literal notranslate"><span class="pre">PARRECHeader.set_data_offset()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parrecimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">PARRECImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage"><code class="docutils literal notranslate"><span class="pre">PARRECImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.__init__"><code class="docutils literal notranslate"><span class="pre">PARRECImage.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.ImageArrayProxy"><code class="docutils literal notranslate"><span class="pre">PARRECImage.ImageArrayProxy</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.files_types"><code class="docutils literal notranslate"><span class="pre">PARRECImage.files_types</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.from_file_map"><code class="docutils literal notranslate"><span class="pre">PARRECImage.from_file_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.from_filename"><code class="docutils literal notranslate"><span class="pre">PARRECImage.from_filename()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.header_class"><code class="docutils literal notranslate"><span class="pre">PARRECImage.header_class</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.load"><code class="docutils literal notranslate"><span class="pre">PARRECImage.load()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.makeable"><code class="docutils literal notranslate"><span class="pre">PARRECImage.makeable</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.rw"><code class="docutils literal notranslate"><span class="pre">PARRECImage.rw</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.PARRECImage.valid_exts"><code class="docutils literal notranslate"><span class="pre">PARRECImage.valid_exts</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#exts2pars">exts2pars</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.exts2pars"><code class="docutils literal notranslate"><span class="pre">exts2pars()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#one-line">one_line</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.one_line"><code class="docutils literal notranslate"><span class="pre">one_line()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parse-par-header">parse_PAR_header</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.parse_PAR_header"><code class="docutils literal notranslate"><span class="pre">parse_PAR_header()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vol-is-full">vol_is_full</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.vol_is_full"><code class="docutils literal notranslate"><span class="pre">vol_is_full()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vol-numbers">vol_numbers</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.parrec.vol_numbers"><code class="docutils literal notranslate"><span class="pre">vol_numbers()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/reference/nibabel.parrec.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
     </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
     </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
   </body>
 </html>

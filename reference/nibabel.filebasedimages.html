@@ -1,165 +1,641 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="../">
+
+<html lang="en" data-content_root="../" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Neuroimaging in Python &#8212; NiBabel 5.4.2 documentation</title>
+    <title>filebasedimages &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
-    <script src="../_static/documentation_options.js?v=41d0e7f4"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=317b4947" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+
+    <script src="../_static/documentation_options.js?v=252e4b93"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=00435c62"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference/nibabel.filebasedimages';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../_static/nibabel-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="fileutils" href="nibabel.fileutils.html" />
     <link rel="prev" title="deprecator" href="nibabel.deprecator.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
   <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
 
-  </head><body>
-<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
-  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
-    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">We are rolling out a new website! Check out the new features and let us know what you think.</div>
+</aside>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">NiBabel</p>
+  
+</a></div>
+    
   </div>
-  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
-    <h1>NiBabel</h1>
-    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dicom/dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
   </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="nibabel.fileutils.html" title="fileutils"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="nibabel.deprecator.html" title="deprecator"
-             accesskey="P">previous</a> |</li>
-  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
-  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
-  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
-  <li><a href="legal.html">License</a> |&nbsp;</li>
+    </header>
+  
 
-          <li class="nav-item nav-item-1"><a href="../api.html" >API Documentation</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="index.html" accesskey="U">API Reference</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
-      </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filebasedimages</span></code></a><ul>
-<li><a class="reference internal" href="#filebasedheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedHeader</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader.__init__"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader.copy"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.copy()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader.from_fileobj"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.from_fileobj()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader.from_header"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.from_header()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader.write_to"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.write_to()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#filebasedimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedImage</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage"><code class="docutils literal notranslate"><span class="pre">FileBasedImage</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.__init__"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.files_types"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.files_types</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.filespec_to_file_map"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.filespec_to_file_map()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.from_file_map"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.from_file_map()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.from_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.from_filename()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.from_image"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.from_image()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.get_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.get_filename()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.header"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.header</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.header_class"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.header_class</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.instance_to_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.instance_to_filename()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.load"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.load()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.make_file_map"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.make_file_map()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.makeable"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.makeable</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.path_maybe_image"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.path_maybe_image()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.rw"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.rw</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.set_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.set_filename()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.to_file_map"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.to_file_map()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.to_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.to_filename()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage.valid_exts"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.valid_exts</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#imagefileerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageFileError</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.filebasedimages.ImageFileError"><code class="docutils literal notranslate"><span class="pre">ImageFileError</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.filebasedimages.ImageFileError.__init__"><code class="docutils literal notranslate"><span class="pre">ImageFileError.__init__()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a class="reference internal" href="#serializableimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SerializableImage</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.filebasedimages.SerializableImage"><code class="docutils literal notranslate"><span class="pre">SerializableImage</span></code></a><ul>
-<li><a class="reference internal" href="#nibabel.filebasedimages.SerializableImage.__init__"><code class="docutils literal notranslate"><span class="pre">SerializableImage.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.SerializableImage.from_bytes"><code class="docutils literal notranslate"><span class="pre">SerializableImage.from_bytes()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.SerializableImage.from_stream"><code class="docutils literal notranslate"><span class="pre">SerializableImage.from_stream()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.SerializableImage.from_url"><code class="docutils literal notranslate"><span class="pre">SerializableImage.from_url()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.SerializableImage.to_bytes"><code class="docutils literal notranslate"><span class="pre">SerializableImage.to_bytes()</span></code></a></li>
-<li><a class="reference internal" href="#nibabel.filebasedimages.SerializableImage.to_stream"><code class="docutils literal notranslate"><span class="pre">SerializableImage.to_stream()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
 
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="nibabel.deprecator.html"
-                          title="previous chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecator</span></code></a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="nibabel.fileutils.html"
-                          title="next chapter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileutils</span></code></a></p>
-  </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/reference/nibabel.filebasedimages.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../dicom/dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
       </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel</span></code></a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">analyze</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.spm2analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm2analyze</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.spm99analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm99analyze</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.cifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.gifti.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gifti</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.freesurfer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.minc1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc1</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.minc2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc2</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.nicom.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.nifti1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti1</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.nifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.ecat.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.parrec.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.streamlines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">streamlines</span></code></a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.eulerangles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eulerangles</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.funcs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">funcs</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.imageclasses.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageclasses</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.imageglobals.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageglobals</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.loadsave.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">loadsave</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.orientations.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">orientations</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.quaternions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">quaternions</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.spatialimages.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spatialimages</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.volumeutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">volumeutils</span></code></a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.arraywriters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraywriters</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.casting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">casting</span></code></a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.data.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">environment</span></code></a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="nibabel.arrayproxy.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arrayproxy</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.affines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">affines</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.batteryrunners.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batteryrunners</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.data.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.dft.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dft</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.fileholders.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileholders</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.filename_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.fileslice.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.onetime.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.openers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.optpkg.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optpkg</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.rstutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rstutils</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.tmpdirs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tmpdirs</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.tripwire.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tripwire</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="nibabel.wrapstruct.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wrapstruct</span></code></a></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="nibabel.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nibabel</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel._compression.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">_compression</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel._typing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">_typing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.affines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">affines</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">analyze</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.arrayproxy.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arrayproxy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.arraywriters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arraywriters</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.batteryrunners.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">batteryrunners</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.benchmarks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">benchmarks</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.brikhead.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">brikhead</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.caret.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">caret</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.casting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">casting</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.cifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.cmdline.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.data.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.dataobj_images.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dataobj_images</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.deprecated.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecated</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.deprecator.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecator</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.dft.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dft</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.ecat.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">environment</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.eulerangles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eulerangles</span></code></a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filebasedimages</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.fileholders.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileholders</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.filename_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filename_parser</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.fileslice.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileslice</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.fileutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.freesurfer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.funcs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">funcs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.gifti.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gifti</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.imageclasses.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageclasses</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.imageglobals.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imageglobals</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.imagestats.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">imagestats</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.loadsave.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">loadsave</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.minc1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.minc2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.mriutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mriutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.nicom.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.nifti1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti1</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.nifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.onetime.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">onetime</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.openers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">openers</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.optpkg.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optpkg</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.orientations.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">orientations</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.parrec.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.pointset.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pointset</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.processing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">processing</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.pydicom_compat.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pydicom_compat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.quaternions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">quaternions</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.rstutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rstutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.spaces.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spaces</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.spatialimages.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spatialimages</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.spm2analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm2analyze</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.spm99analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm99analyze</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.streamlines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">streamlines</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.tmpdirs.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tmpdirs</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.tripwire.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">tripwire</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.viewers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">viewers</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.volumeutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">volumeutils</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.wrapstruct.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wrapstruct</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="nibabel.xmlutils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">xmlutils</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">API Reference</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filebasedimages</span></code></span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section id="module-nibabel.filebasedimages">
-<span id="filebasedimages"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">filebasedimages</span></code><a class="headerlink" href="#module-nibabel.filebasedimages" title="Link to this heading">¶</a></h1>
+<span id="filebasedimages"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">filebasedimages</span></code><a class="headerlink" href="#module-nibabel.filebasedimages" title="Link to this heading">#</a></h1>
 <p>Common interface for any image format–volume or surface, binary or xml</p>
-<table class="autosummary longtable docutils align-default">
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FileBasedHeader</span></code></a>()</p></td>
 <td><p>Template class to implement header protocol</p></td>
@@ -175,21 +651,22 @@
 </tr>
 </tbody>
 </table>
+</div>
 <section id="filebasedheader">
-<h2><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedHeader</span></code></a><a class="headerlink" href="#filebasedheader" title="Link to this heading">¶</a></h2>
+<h2><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedHeader</span></code></a><a class="headerlink" href="#filebasedheader" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedHeader">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.filebasedimages.</span></span><span class="sig-name descname"><span class="pre">FileBasedHeader</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.filebasedimages.</span></span><span class="sig-name descname"><span class="pre">FileBasedHeader</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Template class to implement header protocol</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedHeader.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.__init__" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedHeader.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.copy" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.copy" title="Link to this definition">#</a></dt>
 <dd><p>Copy object to independent representation</p>
 <p>The copy should not be affected by any changes to the original
 object.</p>
@@ -197,27 +674,27 @@ object.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedHeader.from_fileobj">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">io.IOBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.from_fileobj" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_fileobj</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">io.IOBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.from_fileobj" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedHeader.from_header">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.from_header" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ty.Mapping</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.from_header" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedHeader.write_to">
-<span class="sig-name descname"><span class="pre">write_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">IOBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.write_to" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">write_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fileobj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">IOBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedHeader.write_to" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </section>
 <section id="filebasedimage">
-<h2><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedImage</span></code></a><a class="headerlink" href="#filebasedimage" title="Link to this heading">¶</a></h2>
+<h2><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedImage</span></code></a><a class="headerlink" href="#filebasedimage" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.filebasedimages.</span></span><span class="sig-name descname"><span class="pre">FileBasedImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.filebasedimages.</span></span><span class="sig-name descname"><span class="pre">FileBasedImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Abstract image class with interface for loading/saving images from disk.</p>
 <p>The class doesn’t define any image properties.</p>
@@ -317,7 +794,7 @@ metadata of this image type</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.__init__" title="Link to this definition">#</a></dt>
 <dd><p>Initialize image</p>
 <p>The image is a combination of (header), with
 optional metadata in <cite>extra</cite>, and filename / file-like objects
@@ -339,12 +816,12 @@ metadata of this image type</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.files_types">
-<span class="sig-name descname"><span class="pre">files_types</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ExtensionSpec</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('image',</span> <span class="pre">None),)</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.files_types" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">files_types</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ExtensionSpec</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('image',</span> <span class="pre">None),)</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.files_types" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.filespec_to_file_map">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">filespec_to_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filespec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FileMap</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.filespec_to_file_map" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">filespec_to_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filespec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FileMap</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.filespec_to_file_map" title="Link to this definition">#</a></dt>
 <dd><p>Make <cite>file_map</cite> for this class from filename <cite>filespec</cite></p>
 <p>Class method</p>
 <dl class="field-list simple">
@@ -374,17 +851,17 @@ image type.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.from_file_map">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.from_file_map" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileMap</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.from_file_map" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.from_filename">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.from_filename" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.from_filename" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.from_image">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><span class="pre">FileBasedImage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.from_image" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><span class="pre">FileBasedImage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.from_image" title="Link to this definition">#</a></dt>
 <dd><p>Class method to create new instance of own class from <cite>img</cite></p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -404,7 +881,7 @@ image type.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.get_filename">
-<span class="sig-name descname"><span class="pre">get_filename</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.get_filename" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_filename</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.get_filename" title="Link to this definition">#</a></dt>
 <dd><p>Fetch the image filename</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -426,18 +903,18 @@ filename (the <code class="docutils literal notranslate"><span class="pre">.img<
 
 <dl class="py property">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.header">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">header</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.header" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">header</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.header" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.header_class">
-<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.header_class" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">header_class</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.header_class" title="Link to this definition">#</a></dt>
 <dd><p>alias of <a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedHeader</span></code></a></p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.instance_to_filename">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">instance_to_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><span class="pre">FileBasedImage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.instance_to_filename" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">instance_to_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><span class="pre">FileBasedImage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.instance_to_filename" title="Link to this definition">#</a></dt>
 <dd><p>Save <cite>img</cite> in our own format, to name implied by <cite>filename</cite></p>
 <p>This is a class method</p>
 <dl class="field-list">
@@ -453,12 +930,12 @@ filename (the <code class="docutils literal notranslate"><span class="pre">.img<
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.load">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.load" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.load" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.make_file_map">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">make_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">IOBase</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.make_file_map" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">make_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">IOBase</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.make_file_map" title="Link to this definition">#</a></dt>
 <dd><p>Class method to make files holder for this image type</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -483,12 +960,12 @@ those given by <cite>mapping</cite></p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.makeable">
-<span class="sig-name descname"><span class="pre">makeable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.makeable" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">makeable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.makeable" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.path_maybe_image">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">path_maybe_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sniff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSniff</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sniff_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FileSniff</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.path_maybe_image" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">path_maybe_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sniff</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSniff</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sniff_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FileSniff</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.path_maybe_image" title="Link to this definition">#</a></dt>
 <dd><p>Return True if <cite>filename</cite> may be image matching this class</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -529,12 +1006,12 @@ does not appear to have useful metadata.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.rw">
-<span class="sig-name descname"><span class="pre">rw</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.rw" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rw</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.rw" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.set_filename">
-<span class="sig-name descname"><span class="pre">set_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.set_filename" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.set_filename" title="Link to this definition">#</a></dt>
 <dd><p>Sets the files in the object from a given filename</p>
 <p>The different image formats may check whether the filename has
 an extension characteristic of the format, and raise an error if
@@ -554,12 +1031,12 @@ try and guess the other filenames from this given filename.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.to_file_map">
-<span class="sig-name descname"><span class="pre">to_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.to_file_map" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">to_file_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.to_file_map" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.to_filename">
-<span class="sig-name descname"><span class="pre">to_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.to_filename" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">to_filename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">FileSpec</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.to_filename" title="Link to this definition">#</a></dt>
 <dd><p>Write image to files implied by filename string</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -582,31 +1059,31 @@ header etc.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.FileBasedImage.valid_exts">
-<span class="sig-name descname"><span class="pre">valid_exts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.valid_exts" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">valid_exts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#nibabel.filebasedimages.FileBasedImage.valid_exts" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </section>
 <section id="imagefileerror">
-<h2><a class="reference internal" href="#nibabel.filebasedimages.ImageFileError" title="nibabel.filebasedimages.ImageFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageFileError</span></code></a><a class="headerlink" href="#imagefileerror" title="Link to this heading">¶</a></h2>
+<h2><a class="reference internal" href="#nibabel.filebasedimages.ImageFileError" title="nibabel.filebasedimages.ImageFileError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageFileError</span></code></a><a class="headerlink" href="#imagefileerror" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.ImageFileError">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.filebasedimages.</span></span><span class="sig-name descname"><span class="pre">ImageFileError</span></span><a class="headerlink" href="#nibabel.filebasedimages.ImageFileError" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.filebasedimages.</span></span><span class="sig-name descname"><span class="pre">ImageFileError</span></span><a class="headerlink" href="#nibabel.filebasedimages.ImageFileError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.ImageFileError.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.ImageFileError.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.ImageFileError.__init__" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </section>
 <section id="serializableimage">
-<h2><a class="reference internal" href="#nibabel.filebasedimages.SerializableImage" title="nibabel.filebasedimages.SerializableImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SerializableImage</span></code></a><a class="headerlink" href="#serializableimage" title="Link to this heading">¶</a></h2>
+<h2><a class="reference internal" href="#nibabel.filebasedimages.SerializableImage" title="nibabel.filebasedimages.SerializableImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SerializableImage</span></code></a><a class="headerlink" href="#serializableimage" title="Link to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.SerializableImage">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.filebasedimages.</span></span><span class="sig-name descname"><span class="pre">SerializableImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.filebasedimages.</span></span><span class="sig-name descname"><span class="pre">SerializableImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#nibabel.filebasedimages.FileBasedImage" title="nibabel.filebasedimages.FileBasedImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedImage</span></code></a></p>
 <p>Abstract image class for (de)serializing images to/from byte streams/strings.</p>
 <p>The class doesn’t define any image properties.</p>
@@ -670,7 +1147,7 @@ metadata of this image type</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.SerializableImage.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#nibabel.filebasedimages.FileBasedHeader" title="nibabel.filebasedimages.FileBasedHeader"><span class="pre">FileBasedHeader</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><span class="pre">Mapping</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="nibabel.fileholders.html#nibabel.fileholders.FileHolder" title="nibabel.fileholders.FileHolder"><span class="pre">FileHolder</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.__init__" title="Link to this definition">#</a></dt>
 <dd><p>Initialize image</p>
 <p>The image is a combination of (header), with
 optional metadata in <cite>extra</cite>, and filename / file-like objects
@@ -692,7 +1169,7 @@ metadata of this image type</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.SerializableImage.from_bytes">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bytestring</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.from_bytes" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bytestring</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.from_bytes" title="Link to this definition">#</a></dt>
 <dd><p>Construct image from a byte string</p>
 <p>Class method</p>
 <dl class="field-list simple">
@@ -707,7 +1184,7 @@ metadata of this image type</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.SerializableImage.from_stream">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">io_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">io.IOBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.from_stream" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">io_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">io.IOBase</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.from_stream" title="Link to this definition">#</a></dt>
 <dd><p>Load image from readable IO stream</p>
 <p>Convert to BytesIO to enable seeking, if input stream is not seekable</p>
 <dl class="field-list simple">
@@ -722,7 +1199,7 @@ metadata of this image type</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.SerializableImage.from_url">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">request.Request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.from_url" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_url</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">request.Request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.from_url" title="Link to this definition">#</a></dt>
 <dd><p>Retrieve and load an image from a URL</p>
 <p>Class method</p>
 <dl class="field-list simple">
@@ -739,7 +1216,7 @@ metadata of this image type</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.SerializableImage.to_bytes">
-<span class="sig-name descname"><span class="pre">to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.to_bytes" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.to_bytes" title="Link to this definition">#</a></dt>
 <dd><p>Return a <code class="docutils literal notranslate"><span class="pre">bytes</span></code> object with the contents of the file that would
 be written if the image were saved.</p>
 <dl class="field-list simple">
@@ -760,7 +1237,7 @@ be written if the image were saved.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.filebasedimages.SerializableImage.to_stream">
-<span class="sig-name descname"><span class="pre">to_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">io_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">IOBase</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.to_stream" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">to_stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">io_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/io.html#io.IOBase" title="(in Python v3.14)"><span class="pre">IOBase</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.filebasedimages.SerializableImage.to_stream" title="Link to this definition">#</a></dt>
 <dd><p>Save image to writable IO stream</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -780,15 +1257,174 @@ be written if the image were saved.</p>
 </section>
 
 
-            <div class="clearer"></div>
-          </div>
-        </div>
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="nibabel.deprecator.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecator</span></code></p>
       </div>
-      <div class="clearer"></div>
+    </a>
+    <a class="right-next"
+       href="nibabel.fileutils.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fileutils</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filebasedheader"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedHeader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedHeader"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedHeader.__init__"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedHeader.copy"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.copy()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedHeader.from_fileobj"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.from_fileobj()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedHeader.from_header"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.from_header()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedHeader.write_to"><code class="docutils literal notranslate"><span class="pre">FileBasedHeader.write_to()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filebasedimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileBasedImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage"><code class="docutils literal notranslate"><span class="pre">FileBasedImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.__init__"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.files_types"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.files_types</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.filespec_to_file_map"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.filespec_to_file_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.from_file_map"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.from_file_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.from_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.from_filename()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.from_image"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.from_image()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.get_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.get_filename()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.header"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.header</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.header_class"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.header_class</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.instance_to_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.instance_to_filename()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.load"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.load()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.make_file_map"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.make_file_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.makeable"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.makeable</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.path_maybe_image"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.path_maybe_image()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.rw"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.rw</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.set_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.set_filename()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.to_file_map"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.to_file_map()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.to_filename"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.to_filename()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.FileBasedImage.valid_exts"><code class="docutils literal notranslate"><span class="pre">FileBasedImage.valid_exts</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#imagefileerror"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageFileError</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.ImageFileError"><code class="docutils literal notranslate"><span class="pre">ImageFileError</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.ImageFileError.__init__"><code class="docutils literal notranslate"><span class="pre">ImageFileError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#serializableimage"><code class="xref py py-class docutils literal notranslate"><span class="pre">SerializableImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.SerializableImage"><code class="docutils literal notranslate"><span class="pre">SerializableImage</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.SerializableImage.__init__"><code class="docutils literal notranslate"><span class="pre">SerializableImage.__init__()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.SerializableImage.from_bytes"><code class="docutils literal notranslate"><span class="pre">SerializableImage.from_bytes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.SerializableImage.from_stream"><code class="docutils literal notranslate"><span class="pre">SerializableImage.from_stream()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.SerializableImage.from_url"><code class="docutils literal notranslate"><span class="pre">SerializableImage.from_url()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.SerializableImage.to_bytes"><code class="docutils literal notranslate"><span class="pre">SerializableImage.to_bytes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel.filebasedimages.SerializableImage.to_stream"><code class="docutils literal notranslate"><span class="pre">SerializableImage.to_stream()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/reference/nibabel.filebasedimages.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
     </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
     </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
   </body>
 </html>

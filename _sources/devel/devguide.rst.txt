@@ -30,6 +30,9 @@ Code Documentation
 
 Please write documentation using Numpy documentation conventions:
 
+.. seealso::
+
+  Numpy documentation conventions:
   https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard
 
 
@@ -75,6 +78,8 @@ Please prefix all commit summaries with one (or more) of the following labels.
 This should help others to easily classify the commits into meaningful
 categories:
 
+.. admonition:: Commit labels
+
   * *BF* : bug fix
   * *RF* : refactoring
   * *NF* : new feature
@@ -89,9 +94,9 @@ Merges
 ------
 
 For easy tracking of what changes were absorbed during merge, we
-advise that you enable merge summaries within git:
+advise that you enable merge summaries within git::
 
-  git-config merge.summary true
+    git-config merge.summary true
 
 See :ref:`configure-git` for more detail.
 

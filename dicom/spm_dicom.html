@@ -1,150 +1,548 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="../">
+
+<html lang="en" data-content_root="../" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Neuroimaging in Python &#8212; NiBabel 5.4.2 documentation</title>
+    <title>SPM DICOM conversion &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
-    <script src="../_static/documentation_options.js?v=41d0e7f4"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=317b4947" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+
+    <script src="../_static/documentation_options.js?v=252e4b93"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=00435c62"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script defer="defer" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'dicom/spm_dicom';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../_static/nibabel-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="DICOM Tags in the NIfTI Header" href="dicom_niftiheader.html" />
     <link rel="prev" title="Siemens format DICOM with CSA header" href="siemens_csa.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
   <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
 
-  </head><body>
-<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
-  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
-    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">We are rolling out a new website! Check out the new features and let us know what you think.</div>
+</aside>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">NiBabel</p>
+  
+</a></div>
+    
   </div>
-  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
-    <h1>NiBabel</h1>
-    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
   </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="dicom_niftiheader.html" title="DICOM Tags in the NIfTI Header"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="siemens_csa.html" title="Siemens format DICOM with CSA header"
-             accesskey="P">previous</a> |</li>
-  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
-  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
-  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
-  <li><a href="legal.html">License</a> |&nbsp;</li>
+    </header>
+  
 
-          <li class="nav-item nav-item-1"><a href="dicom.html" accesskey="U">DICOM concepts and implementations</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
-      </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">SPM DICOM conversion</a><ul>
-<li><a class="reference internal" href="#spm-dicom-dict-mat"><code class="docutils literal notranslate"><span class="pre">spm_dicom_dict.mat</span></code></a></li>
-<li><a class="reference internal" href="#spm-dicom-headers-m"><code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code></a><ul>
-<li><a class="reference internal" href="#file-opening">File opening</a></li>
-<li><a class="reference internal" href="#tag-read-for-philips-integra">tag read for Philips Integra</a></li>
-<li><a class="reference internal" href="#tag-length">Tag length</a></li>
-<li><a class="reference internal" href="#sq-vr-type-sequence-of-items-type"><code class="docutils literal notranslate"><span class="pre">SQ</span></code> VR type (Sequence of items type)</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#spm-dicom-convert-m"><code class="docutils literal notranslate"><span class="pre">spm_dicom_convert.m</span></code></a><ul>
-<li><a class="reference internal" href="#file-categorization">File categorization</a></li>
-<li><a class="reference internal" href="#sorting-files-into-volumes">Sorting files into volumes</a><ul>
-<li><a class="reference internal" href="#first-pass">First pass</a></li>
-<li><a class="reference internal" href="#second-pass">Second pass</a></li>
-<li><a class="reference internal" href="#final-check">Final check</a></li>
-<li><a class="reference internal" href="#possible-volume-resort">Possible volume resort</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#writing-dicom-volumes">Writing DICOM volumes</a><ul>
-<li><a class="reference internal" href="#making-the-affine">Making the affine</a></li>
-<li><a class="reference internal" href="#writing-the-voxel-data">Writing the voxel data</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
 
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="siemens_csa.html"
-                          title="previous chapter">Siemens format DICOM with CSA header</a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="dicom_niftiheader.html"
-                          title="next chapter">DICOM Tags in the NIfTI Header</a></p>
-  </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/dicom/spm_dicom.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
       </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dicom_info.html">DICOM information</a></li>
+
+<li class="toctree-l1"><a class="reference internal" href="dicom_intro.html">Introduction to DICOM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dicom_orientation.html">Defining the DICOM orientation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dicom_fields.html">DICOM fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dicom_mosaic.html">Siemens mosaic format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="siemens_csa.html">Siemens format DICOM with CSA header</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">SPM DICOM conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dicom_niftiheader.html">DICOM Tags in the NIfTI Header</a></li>
+</ul>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dcm2nii_algorithms.html">dcm2nii algorithms</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="dicom.html" class="nav-link">DICOM concepts</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">SPM DICOM conversion</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section id="spm-dicom-conversion">
-<span id="spm-dicom"></span><h1>SPM DICOM conversion<a class="headerlink" href="#spm-dicom-conversion" title="Link to this heading">¶</a></h1>
+<span id="spm-dicom"></span><h1>SPM DICOM conversion<a class="headerlink" href="#spm-dicom-conversion" title="Link to this heading">#</a></h1>
 <p>These are some notes on the algorithms that <a class="reference external" href="http://www.fil.ion.ucl.ac.uk/spm">SPM</a> uses to convert from
 <a class="reference external" href="http://medical.nema.org/">DICOM</a> to <a class="reference external" href="http://nifti.nimh.nih.gov">nifti</a>.  There are other notes in <a class="reference internal" href="dicom_mosaic.html#dicom-mosaic"><span class="std std-ref">Siemens mosaic format</span></a>.</p>
 <p>The relevant SPM files are <code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code>,
 <code class="docutils literal notranslate"><span class="pre">spm_dicom_dict.mat</span></code> and <code class="docutils literal notranslate"><span class="pre">spm_dicom_convert.m</span></code>.  These notes refer
 the version in SPM8, as of around January 2010.</p>
 <section id="spm-dicom-dict-mat">
-<h2><code class="docutils literal notranslate"><span class="pre">spm_dicom_dict.mat</span></code><a class="headerlink" href="#spm-dicom-dict-mat" title="Link to this heading">¶</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">spm_dicom_dict.mat</span></code><a class="headerlink" href="#spm-dicom-dict-mat" title="Link to this heading">#</a></h2>
 <p>This is obviously a Matlab <code class="docutils literal notranslate"><span class="pre">.mat</span></code> file.  It contains variables
 <code class="docutils literal notranslate"><span class="pre">group</span></code> and <code class="docutils literal notranslate"><span class="pre">element</span></code>, and <code class="docutils literal notranslate"><span class="pre">values</span></code>, where <code class="docutils literal notranslate"><span class="pre">values</span></code> is a struct
 array, one element per (group, element) pair, with fields <code class="docutils literal notranslate"><span class="pre">name</span></code> and
 <code class="docutils literal notranslate"><span class="pre">vr</span></code> (the last a cell array).</p>
 </section>
 <section id="spm-dicom-headers-m">
-<h2><code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code><a class="headerlink" href="#spm-dicom-headers-m" title="Link to this heading">¶</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code><a class="headerlink" href="#spm-dicom-headers-m" title="Link to this heading">#</a></h2>
 <p>Reads the given DICOM files into a struct.  It looks like this was
 written by John Ahsburner (JA).  Relevant fixes are:</p>
 <section id="file-opening">
-<h3>File opening<a class="headerlink" href="#file-opening" title="Link to this heading">¶</a></h3>
+<h3>File opening<a class="headerlink" href="#file-opening" title="Link to this heading">#</a></h3>
 <p>When opening the DICOM file, SPM (subfunction <code class="docutils literal notranslate"><span class="pre">readdicomfile</span></code>)</p>
 <ol class="arabic simple">
 <li><p>opens as little endian</p></li>
@@ -168,7 +566,7 @@ documentation; set file pointer to 0 and continue read with
 </ol>
 </section>
 <section id="tag-read-for-philips-integra">
-<h3>tag read for Philips Integra<a class="headerlink" href="#tag-read-for-philips-integra" title="Link to this heading">¶</a></h3>
+<h3>tag read for Philips Integra<a class="headerlink" href="#tag-read-for-philips-integra" title="Link to this heading">#</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">read_dicom</span></code> subfunction reads a tag, then has a loop during which
 the tag is processed (by setting values into the return structure).  At
 the end of the loop, it reads the next tag.  The loop breaks when the
@@ -181,7 +579,7 @@ that he didn’t find that in the standard, but that it seemed to be
 needed for the Philips Integra.</p>
 </section>
 <section id="tag-length">
-<h3>Tag length<a class="headerlink" href="#tag-length" title="Link to this heading">¶</a></h3>
+<h3>Tag length<a class="headerlink" href="#tag-length" title="Link to this heading">#</a></h3>
 <p>Tag lengths as read in <code class="docutils literal notranslate"><span class="pre">read_tag</span></code> subfunction.  If current format is
 explicit (as in ‘explicit little endian’):</p>
 <ol class="arabic simple">
@@ -198,15 +596,15 @@ read another two bytes ahead.</p></li>
 </ol>
 </section>
 <section id="sq-vr-type-sequence-of-items-type">
-<h3><code class="docutils literal notranslate"><span class="pre">SQ</span></code> VR type (Sequence of items type)<a class="headerlink" href="#sq-vr-type-sequence-of-items-type" title="Link to this heading">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">SQ</span></code> VR type (Sequence of items type)<a class="headerlink" href="#sq-vr-type-sequence-of-items-type" title="Link to this heading">#</a></h3>
 <p>tag length of 13 set to tag length 10.</p>
 </section>
 </section>
 <section id="spm-dicom-convert-m">
-<h2><code class="docutils literal notranslate"><span class="pre">spm_dicom_convert.m</span></code><a class="headerlink" href="#spm-dicom-convert-m" title="Link to this heading">¶</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">spm_dicom_convert.m</span></code><a class="headerlink" href="#spm-dicom-convert-m" title="Link to this heading">#</a></h2>
 <p>Written by John Ashburner and Jesper Andersson.</p>
 <section id="file-categorization">
-<h3>File categorization<a class="headerlink" href="#file-categorization" title="Link to this heading">¶</a></h3>
+<h3>File categorization<a class="headerlink" href="#file-categorization" title="Link to this heading">#</a></h3>
 <p>SPM makes a special case of Siemens ‘spectroscopy images’.  These are
 images that have ‘SOPClassUID’ == ‘1.3.12.2.1107.5.9.1’ and the private
 tag of (29, 1210); for these it pulls out the affine, and writes a
@@ -236,9 +634,9 @@ rest are standard DICOM.</p>
 page refers to standard (slice by slice) DICOMs.</p>
 </section>
 <section id="sorting-files-into-volumes">
-<span id="spm-volume-sorting"></span><h3>Sorting files into volumes<a class="headerlink" href="#sorting-files-into-volumes" title="Link to this heading">¶</a></h3>
+<span id="spm-volume-sorting"></span><h3>Sorting files into volumes<a class="headerlink" href="#sorting-files-into-volumes" title="Link to this heading">#</a></h3>
 <section id="first-pass">
-<h4>First pass<a class="headerlink" href="#first-pass" title="Link to this heading">¶</a></h4>
+<h4>First pass<a class="headerlink" href="#first-pass" title="Link to this heading">#</a></h4>
 <p>Take first header, put as start of first volume.   For each subsequent header:</p>
 <ol class="arabic simple">
 <li><p>Get <code class="docutils literal notranslate"><span class="pre">ICE_Dims</span></code> if present.  Look for Siemens ‘CSAImageHeaderInfo’,
@@ -273,7 +671,7 @@ otherwise make a new volume for this header</p></li>
 </ol>
 </section>
 <section id="second-pass">
-<span id="spm-second-pass"></span><h4>Second pass<a class="headerlink" href="#second-pass" title="Link to this heading">¶</a></h4>
+<span id="spm-second-pass"></span><h4>Second pass<a class="headerlink" href="#second-pass" title="Link to this heading">#</a></h4>
 <p>We now have a list of volumes, where each volume is a list of headers
 that may match.</p>
 <p>For each volume:</p>
@@ -293,14 +691,14 @@ volume’s worth of lists.</p></li>
 </ol>
 </section>
 <section id="final-check">
-<h4>Final check<a class="headerlink" href="#final-check" title="Link to this heading">¶</a></h4>
+<h4>Final check<a class="headerlink" href="#final-check" title="Link to this heading">#</a></h4>
 <p>For each volume, recalculate z coordinate as above.  Calculate the z
 gaps.  Subtract the mean of the z gaps from all z gaps.  If the average of the
 (gap-mean(gap)) is greater than 1e-4, then print a warning that there
 are missing DICOM files.</p>
 </section>
 <section id="possible-volume-resort">
-<span id="dicom-img-resort"></span><h4>Possible volume resort<a class="headerlink" href="#possible-volume-resort" title="Link to this heading">¶</a></h4>
+<span id="dicom-img-resort"></span><h4>Possible volume resort<a class="headerlink" href="#possible-volume-resort" title="Link to this heading">#</a></h4>
 <p>This step happens if there were volumes with slices having the same z
 coordinate in the <a class="reference internal" href="#spm-second-pass"><span class="std std-ref">Second pass</span></a> step above.  The resort is on the
 set of DICOM headers that were in the volume, for which there were
@@ -348,11 +746,11 @@ warning about missing DICOM files.</p></li>
 </section>
 </section>
 <section id="writing-dicom-volumes">
-<h3>Writing DICOM volumes<a class="headerlink" href="#writing-dicom-volumes" title="Link to this heading">¶</a></h3>
+<h3>Writing DICOM volumes<a class="headerlink" href="#writing-dicom-volumes" title="Link to this heading">#</a></h3>
 <p>This means - writing DICOM volumes from standard (slice by slice) DICOM
 datasets rather than <a class="reference internal" href="dicom_mosaic.html#dicom-mosaic"><span class="std std-ref">Siemens mosaic format</span></a>.</p>
 <section id="making-the-affine">
-<h4>Making the affine<a class="headerlink" href="#making-the-affine" title="Link to this heading">¶</a></h4>
+<h4>Making the affine<a class="headerlink" href="#making-the-affine" title="Link to this heading">#</a></h4>
 <p>We need the (4,4) affine <span class="math notranslate nohighlight">\(A\)</span> going from voxel (array) coordinates in the
 DICOM pixel data, to mm coordinates in the <a class="reference internal" href="dicom_orientation.html#dicom-pcs"><span class="std std-ref">DICOM patient coordinate system</span></a>.</p>
 <p>This section tries to explain how SPM achieves this, but I don’t
@@ -386,7 +784,7 @@ slice formulae in <a class="reference internal" href="dicom_orientation.html#dic
 some explanations.</p>
 </section>
 <section id="writing-the-voxel-data">
-<h4>Writing the voxel data<a class="headerlink" href="#writing-the-voxel-data" title="Link to this heading">¶</a></h4>
+<h4>Writing the voxel data<a class="headerlink" href="#writing-the-voxel-data" title="Link to this heading">#</a></h4>
 <p>Just apply scaling and offset from ‘RescaleSlope’ and ‘RescaleIntercept’
 for each slice and write volume.</p>
 </section>
@@ -395,15 +793,143 @@ for each slice and write volume.</p>
 </section>
 
 
-            <div class="clearer"></div>
-          </div>
-        </div>
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="siemens_csa.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Siemens format DICOM with CSA header</p>
       </div>
-      <div class="clearer"></div>
+    </a>
+    <a class="right-next"
+       href="dicom_niftiheader.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">DICOM Tags in the NIfTI Header</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spm-dicom-dict-mat"><code class="docutils literal notranslate"><span class="pre">spm_dicom_dict.mat</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spm-dicom-headers-m"><code class="docutils literal notranslate"><span class="pre">spm_dicom_headers.m</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#file-opening">File opening</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tag-read-for-philips-integra">tag read for Philips Integra</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#tag-length">Tag length</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sq-vr-type-sequence-of-items-type"><code class="docutils literal notranslate"><span class="pre">SQ</span></code> VR type (Sequence of items type)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#spm-dicom-convert-m"><code class="docutils literal notranslate"><span class="pre">spm_dicom_convert.m</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#file-categorization">File categorization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sorting-files-into-volumes">Sorting files into volumes</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#first-pass">First pass</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#second-pass">Second pass</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#final-check">Final check</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#possible-volume-resort">Possible volume resort</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-dicom-volumes">Writing DICOM volumes</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#making-the-affine">Making the affine</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-the-voxel-data">Writing the voxel data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/dicom/spm_dicom.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
     </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
     </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
   </body>
 </html>

@@ -1,137 +1,520 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="../">
+
+<html lang="en" data-content_root="../" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Neuroimaging in Python &#8212; NiBabel 5.4.2 documentation</title>
+    <title>Introduction to DICOM &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="../_static/nibabel.css?v=f6107aeb" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
-    <script src="../_static/documentation_options.js?v=41d0e7f4"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=317b4947" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+
+    <script src="../_static/documentation_options.js?v=252e4b93"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=00435c62"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'dicom/dicom_intro';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../_static/nibabel-logo.svg"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Developer documentation page" href="../devel/index.html" />
+    <link rel="next" title="Developer guide" href="../devel/index.html" />
     <link rel="prev" title="Radiological vs neurological conventions" href="../neuro_radio_conventions.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
   <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
 
-  </head><body>
-<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
-  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
-    <img src="../_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">We are rolling out a new website! Check out the new features and let us know what you think.</div>
+</aside>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="../_static/nibabel-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">NiBabel</p>
+  
+</a></div>
+    
   </div>
-  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
-    <h1>NiBabel</h1>
-    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
   </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="../devel/index.html" title="Developer documentation page"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="../neuro_radio_conventions.html" title="Radiological vs neurological conventions"
-             accesskey="P">previous</a> |</li>
-  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
-  <li><a href="../index.html">NiBabel Home</a> |&nbsp;</li>
-  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
-  <li><a href="legal.html">License</a> |&nbsp;</li>
+    </header>
+  
 
-          <li class="nav-item nav-item-1"><a href="../tutorials.html" accesskey="U">General tutorials</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
-      </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="../index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Introduction to DICOM</a><ul>
-<li><a class="reference internal" href="#dicom-is-messages">DICOM is messages</a></li>
-<li><a class="reference internal" href="#the-dicom-standard">The DICOM standard</a></li>
-<li><a class="reference internal" href="#dicom-data-format">DICOM data format</a><ul>
-<li><a class="reference internal" href="#dicom-elements">DICOM elements</a><ul>
-<li><a class="reference internal" href="#attribute-tag">Attribute Tag</a><ul>
-<li><a class="reference internal" href="#standard-attribute-tags">Standard attribute tags</a></li>
-<li><a class="reference internal" href="#private-attribute-tags">Private attribute tags</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#value-representation">Value Representation</a></li>
-<li><a class="reference internal" href="#value-length">Value length</a></li>
-<li><a class="reference internal" href="#value-field">Value field</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#data-element-tags-and-data-dictionaries">Data element tags and data dictionaries</a><ul>
-<li><a class="reference internal" href="#value-representation-in-the-data-dictionary">Value Representation in the data dictionary</a></li>
-<li><a class="reference internal" href="#value-multiplicity-in-the-data-dictionary">Value Multiplicity in the data dictionary</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#dicom-data-structures">DICOM data structures</a><ul>
-<li><a class="reference internal" href="#a-data-set">A data set</a></li>
-<li><a class="reference internal" href="#background-the-dicom-world">Background - the DICOM world</a></li>
-<li><a class="reference internal" href="#dicom-entities-and-information-object-definitions">DICOM Entities and Information Object Definitions</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#dicom-services-dimse">DICOM services (DIMSE)</a></li>
-<li><a class="reference internal" href="#dicom-service-object-pairs-sops">DICOM service object pairs (SOPs)</a></li>
-<li><a class="reference internal" href="#dicom-files">DICOM files</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
 
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="../neuro_radio_conventions.html"
-                          title="previous chapter">Radiological vs neurological conventions</a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="../devel/index.html"
-                          title="next chapter">Developer documentation page</a></p>
-  </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/dicom/dicom_intro.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
       </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../coordinate_systems.html">Coordinate systems and affines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../neuro_radio_conventions.html">Radiological vs neurological conventions</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Introduction to DICOM</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../tutorials.html" class="nav-link">Tutorials</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Introduction to DICOM</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section id="introduction-to-dicom">
-<span id="dicom-intro"></span><h1>Introduction to DICOM<a class="headerlink" href="#introduction-to-dicom" title="Link to this heading">¶</a></h1>
+<span id="dicom-intro"></span><h1>Introduction to DICOM<a class="headerlink" href="#introduction-to-dicom" title="Link to this heading">#</a></h1>
 <p>DICOM defines standards for storing data in memory and on disk, and for
 communicating this data between machines over a network.</p>
 <p>We are interested here in DICOM data.  Specifically we are interested in DICOM
@@ -143,15 +526,15 @@ network to understand the terms the DICOM uses when storing data in files.</p>
 <p>For example, I hope, by the time you reach the end of this document, you will
 understand the following complicated and confusing statement from section 7 of
 the DICOM standards document <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_10pu.pdf">PS 3.10</a>:</p>
-<blockquote>
-<div><p>7   DICOM File Format</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">7   DICOM File Format</p>
 <p>The DICOM File Format provides a means to encapsulate in a file the Data Set
 representing a SOP Instance related to a DICOM IOD. As shown in Figure 7-1,
 the byte stream of the Data Set is placed into the file after the DICOM File
 Meta Information. Each file contains a single SOP Instance.</p>
-</div></blockquote>
+</div>
 <section id="dicom-is-messages">
-<h2>DICOM is messages<a class="headerlink" href="#dicom-is-messages" title="Link to this heading">¶</a></h2>
+<h2>DICOM is messages<a class="headerlink" href="#dicom-is-messages" title="Link to this heading">#</a></h2>
 <p>The fundamental task of DICOM is to allow different computers to send messages
 to one another.  These messages can contain data, and the data is very often
 medical images.</p>
@@ -180,9 +563,9 @@ consisting of DICOM elements (see below).</p>
 </ul>
 </section>
 <section id="the-dicom-standard">
-<h2>The DICOM standard<a class="headerlink" href="#the-dicom-standard" title="Link to this heading">¶</a></h2>
+<h2>The DICOM standard<a class="headerlink" href="#the-dicom-standard" title="Link to this heading">#</a></h2>
 <p>The documents defining the standard are:</p>
-<table class="docutils align-default">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Number</p></th>
 <th class="head"><p>Name</p></th>
@@ -251,19 +634,20 @@ consisting of DICOM elements (see below).</p>
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="dicom-data-format">
-<h2>DICOM data format<a class="headerlink" href="#dicom-data-format" title="Link to this heading">¶</a></h2>
+<h2>DICOM data format<a class="headerlink" href="#dicom-data-format" title="Link to this heading">#</a></h2>
 <p>DICOM data is stored in memory and on disk as a sequence of <em>DICOM elements</em>
 (section 7 of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_05pu.pdf">PS 3.5</a>).</p>
 <section id="dicom-elements">
-<h3>DICOM elements<a class="headerlink" href="#dicom-elements" title="Link to this heading">¶</a></h3>
+<h3>DICOM elements<a class="headerlink" href="#dicom-elements" title="Link to this heading">#</a></h3>
 <p>A DICOM element is made up of three or four fields.  These are (Attribute Tag,
 [Value Representation, ], Value Length, Value Field), where <em>Value
 Representation</em> may be present or absent, depending on the type of “Value
 Representation Encoding” (see below)</p>
 <section id="attribute-tag">
-<h4>Attribute Tag<a class="headerlink" href="#attribute-tag" title="Link to this heading">¶</a></h4>
+<h4>Attribute Tag<a class="headerlink" href="#attribute-tag" title="Link to this heading">#</a></h4>
 <p>The attribute tag is a pair of 16-bit unsigned integers of form (Group number,
 Element number).  The tag uniquely identifies the element.</p>
 <p>The <em>Element number</em> is badly named, because the element number does not give a
@@ -275,7 +659,7 @@ of hexadecimal 0010 is 16, so this tag refers to group number 16, element number
 16.  If you look this tag up in the DICOM data dictionary (<a class="reference external" href="http://medical.nema.org/Dicom/2011/11_06pu.pdf">PS 3.6</a>) you’ll see
 this must be the element called “PatientName”.</p>
 <p>These tag groups have special meanings:</p>
-<table class="docutils align-default">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Tag group</p></th>
 <th class="head"><p>Meaning</p></th>
@@ -296,13 +680,14 @@ this must be the element called “PatientName”.</p>
 </tr>
 </tbody>
 </table>
+</div>
 <p>See Annex E (command dictionary) of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_07pu.pdf">PS 3.7</a> for details on group 0000.  See
 sections 7 and 8 of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_06pu.pdf">PS 3.6</a> for details of groups 2 and 4 respectively.</p>
 <p>Tags in groups 0000, 0002, 0004 are therefore not <em>data</em> elements, but Command
 elements; File meta elements; directory structuring elements.</p>
 <p>Tags with groups from 0008 are <em>data</em> element tags.</p>
 <section id="standard-attribute-tags">
-<h5>Standard attribute tags<a class="headerlink" href="#standard-attribute-tags" title="Link to this heading">¶</a></h5>
+<h5>Standard attribute tags<a class="headerlink" href="#standard-attribute-tags" title="Link to this heading">#</a></h5>
 <p><em>Standard</em> tags are tags with an even group number (see below).  There is a full
 list of all <em>standard</em> data element tags in the DICOM data dictionary in section
 6 of DICOM standard <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_06pu.pdf">PS 3.6</a>.</p>
@@ -310,21 +695,24 @@ list of all <em>standard</em> data element tags in the DICOM data dictionary in 
 numbered groups are “private”, are <em>not</em> defined in the standard data dictionary
 and can be used by manufacturers as they wish (see below).</p>
 <p>Quoting from section 7.1 of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_05pu.pdf">PS 3.5</a>:</p>
-<blockquote>
-<div><p>Two types of Data Elements are defined:</p>
-<p class="attribution">—Standard Data Elements have an even Group Number that is not (0000,eeee),
-(0002,eeee), (0004,eeee), or (0006,eeee).</p>
-</div></blockquote>
-<blockquote>
-<div><p>Note: Usage of these groups is reserved for DIMSE Commands (see PS 3.7) and
+<div class="admonition-quote admonition">
+<p class="admonition-title">7.1 DATA ELEMENTS</p>
+<p>Two types of Data Elements are defined:</p>
+<ul class="simple">
+<li><p>Standard Data Elements have an even Group Number that is not (0000,eeee),
+(0002,eeee), (0004,eeee), or (0006,eeee).</p></li>
+</ul>
+<p>Note: Usage of these groups is reserved for DIMSE Commands (see PS 3.7) and
 DICOM File Formats.</p>
-<p class="attribution">—Private Data Elements have an odd Group Number that is not (0001,eeee),
+<ul class="simple">
+<li><p>Private Data Elements have an odd Group Number that is not (0001,eeee),
 (0003,eeee), (0005,eeee), (0007,eeee), or (FFFF,eeee). Private Data Elements
-are discussed further in Section 7.8.</p>
-</div></blockquote>
+are discussed further in Section 7.8.</p></li>
+</ul>
+</div>
 </section>
 <section id="private-attribute-tags">
-<h5>Private attribute tags<a class="headerlink" href="#private-attribute-tags" title="Link to this heading">¶</a></h5>
+<h5>Private attribute tags<a class="headerlink" href="#private-attribute-tags" title="Link to this heading">#</a></h5>
 <p>Private attribute tags are tags with an odd group number. A private element is
 an element with a private tag.</p>
 <p>Private elements still use the (Tag, [Value Representation, ] Value Length,
@@ -348,8 +736,8 @@ on the “SIEMENS MR HEADER”</p>
 <p>The odd group <code class="docutils literal notranslate"><span class="pre">gggg</span></code> must be greater than <code class="docutils literal notranslate"><span class="pre">0008</span></code> and the block reservation
 <code class="docutils literal notranslate"><span class="pre">xx</span></code> must be greater than or equal to <code class="docutils literal notranslate"><span class="pre">0010</span></code> and less than <code class="docutils literal notranslate"><span class="pre">0100</span></code>.</p>
 <p>Here is the start of the relevant section from PS 3.5:</p>
-<blockquote>
-<div><p>7.8.1 PRIVATE DATA ELEMENT TAGS</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">7.8.1 PRIVATE DATA ELEMENT TAGS</p>
 <p>It is possible that multiple implementers may define Private Elements with the
 same (odd) group number.  To avoid conflicts, Private Elements shall be
 assigned Private Data Element Tags according to the following rules.</p>
@@ -371,11 +759,11 @@ Data Element(s). Decoders of Private Data shall be able to accept reserved
 blocks with a given Private Creator identification code at any position within
 the Private group specified by the blocks corresponding Private Creator Data
 Element.</p>
-</div></blockquote>
+</div>
 </section>
 </section>
 <section id="value-representation">
-<h4>Value Representation<a class="headerlink" href="#value-representation" title="Link to this heading">¶</a></h4>
+<h4>Value Representation<a class="headerlink" href="#value-representation" title="Link to this heading">#</a></h4>
 <p>Value Representation is often abbreviated to VR.</p>
 <p>The VR is a two byte character string giving the code for the encoding of the
 subsequent data in the Value Field (see below).</p>
@@ -391,7 +779,7 @@ of these elements is not defined in the standard, and therefore may not be known
 to software not from that manufacturer.</p>
 <p>The VR codes have to be one of the values from this table (section 6.2 of DICOM
 standard <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_05pu.pdf">PS 3.5</a>):</p>
-<table class="docutils align-default">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Value Representation</p></th>
 <th class="head"><p>Description</p></th>
@@ -481,37 +869,41 @@ standard <a class="reference external" href="http://medical.nema.org/Dicom/2011/
 </tr>
 </tbody>
 </table>
+</div>
 </section>
 <section id="value-length">
-<h4>Value length<a class="headerlink" href="#value-length" title="Link to this heading">¶</a></h4>
+<h4>Value length<a class="headerlink" href="#value-length" title="Link to this heading">#</a></h4>
 <p>Value length gives the length of the data contained in the Value Field tag, or
 is a flag specifying the Value Field is of undefined length, and thus must be
 terminated later in the data stream with a special Item or Sequence Delimitation
 tag.</p>
 <p>Quoting from section 7.1.1 of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_05pu.pdf">PS 3.5</a>:</p>
-<blockquote>
-<div><p>Value Length:  Either:</p>
-<p>a 16 or 32-bit (dependent on VR and whether VR is explicit or implicit)
+<div class="admonition-quote admonition">
+<p class="admonition-title">7.1.1 DATA ELEMENT FIELDS</p>
+<p>Value Length: Either:</p>
+<ul class="simple">
+<li><p>a 16 or 32-bit (dependent on VR and whether VR is explicit or implicit)
 unsigned integer containing the Explicit Length of the Value Field as the
 number of bytes (even) that make up the Value. It does not include the
 length of the Data Element Tag, Value Representation, and Value Length
-Fields.</p>
-<p>a 32-bit Length Field set to Undefined Length (FFFFFFFFH). Undefined
+Fields.</p></li>
+<li><p>a 32-bit Length Field set to Undefined Length (FFFFFFFFH). Undefined
 Lengths may be used for Data Elements having the Value Representation
 (VR) Sequence of Items (SQ) and Unknown (UN). For Data Elements with
 Value Representation OW or OB Undefined Length may be used depending
-on the negotiated Transfer Syntax (see Section 10 and Annex A).</p>
-</div></blockquote>
+on the negotiated Transfer Syntax (see Section 10 and Annex A).</p></li>
+</ul>
+</div>
 </section>
 <section id="value-field">
-<h4>Value field<a class="headerlink" href="#value-field" title="Link to this heading">¶</a></h4>
+<h4>Value field<a class="headerlink" href="#value-field" title="Link to this heading">#</a></h4>
 <p>An even number of bytes storing the value(s) of the data element.  The exact
 format of this data depends on the Value Representation (see above) and the
 Value Multiplicity (see next section).</p>
 </section>
 </section>
 <section id="data-element-tags-and-data-dictionaries">
-<h3>Data element tags and data dictionaries<a class="headerlink" href="#data-element-tags-and-data-dictionaries" title="Link to this heading">¶</a></h3>
+<h3>Data element tags and data dictionaries<a class="headerlink" href="#data-element-tags-and-data-dictionaries" title="Link to this heading">#</a></h3>
 <p>We can look up data element tags in a <em>data dictionary</em>.</p>
 <p>As we’ve seen, data element tags with even group numbers are <em>standard</em> data
 element tags.  We can look these up in the standard data dictionary in section 6
@@ -522,8 +914,8 @@ manufacturer.  To look up these tags, we need the private data dictionary of the
 manufacturer.</p>
 <p>A data dictionary lists (Attribute tag, Attribute name, Attribute Keyword, Value
 Representation, Value Multiplicity) for all tags.</p>
-<p>For example, here is an excerpt from the table in PS 3.6 section 6:</p>
-<table class="docutils align-default">
+<p>For example, here is an excerpt from the table in <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_06pu.pdf">PS 3.6</a> section 6:</p>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Tag</p></th>
 <th class="head"><p>Name</p></th>
@@ -577,11 +969,12 @@ Representation, Value Multiplicity) for all tags.</p>
 </tr>
 </tbody>
 </table>
+</div>
 <p>The “Name” column gives a standard name for the tag.  “Keyword” gives a shorter
 equivalent to the name without spaces that can be used as a variable or
 attribute name in code.</p>
 <section id="value-representation-in-the-data-dictionary">
-<h4>Value Representation in the data dictionary<a class="headerlink" href="#value-representation-in-the-data-dictionary" title="Link to this heading">¶</a></h4>
+<h4>Value Representation in the data dictionary<a class="headerlink" href="#value-representation-in-the-data-dictionary" title="Link to this heading">#</a></h4>
 <p>The “VR” column in the data dictionary gives the Value Representation.  There is
 usually only one possible VR for each tag <a class="footnote-reference brackets" href="#can-be-two" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>.</p>
 <p>If a particular stream of data elements is using “Implicit Value Representation
@@ -593,17 +986,18 @@ Value Length, Value Field) and the Value Representation is therefore already
 specified along with the data.</p>
 </section>
 <section id="value-multiplicity-in-the-data-dictionary">
-<h4>Value Multiplicity in the data dictionary<a class="headerlink" href="#value-multiplicity-in-the-data-dictionary" title="Link to this heading">¶</a></h4>
+<h4>Value Multiplicity in the data dictionary<a class="headerlink" href="#value-multiplicity-in-the-data-dictionary" title="Link to this heading">#</a></h4>
 <p>The “VM” column in the dictionary gives the Value Multiplicity for this tag.
-Quoting from PS 3.5 section 6.4:</p>
-<blockquote>
-<div><p>The Value Multiplicity of a Data Element specifies the number of Values that
+Quoting from <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_05pu.pdf">PS 3.5</a> section 6.4:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">6.4 VALUE MULTIPLICITY (VM) AND DELIMITATION</p>
+<p>The Value Multiplicity of a Data Element specifies the number of Values that
 can be encoded in the Value Field of that Data Element. The VM of each Data
 Element is specified explicitly in PS 3.6. If the number of Values that may
 be encoded in an element is variable, it shall be represented by two numbers
 separated by a dash; e.g., “1-10” means that there may be 1 to 10 Values in
 the element.</p>
-</div></blockquote>
+</div>
 <p>The most common values for Value Multiplicity in the standard data dictionary
 are (in decreasing frequency) ‘1’, ‘1-n’, ‘3’, ‘2’, ‘1-2’, ‘4’ with other values
 being less common.</p>
@@ -613,22 +1007,23 @@ dictionary to know the Value Multiplicity of private attribute tags.</p>
 </section>
 </section>
 <section id="dicom-data-structures">
-<h3>DICOM data structures<a class="headerlink" href="#dicom-data-structures" title="Link to this heading">¶</a></h3>
+<h3>DICOM data structures<a class="headerlink" href="#dicom-data-structures" title="Link to this heading">#</a></h3>
 <section id="a-data-set">
-<h4>A data set<a class="headerlink" href="#a-data-set" title="Link to this heading">¶</a></h4>
+<h4>A data set<a class="headerlink" href="#a-data-set" title="Link to this heading">#</a></h4>
 <p>A DICOM <em>data set</em> is a ordered list of data elements.  The order of the list is
 the order of the tags of the data elements.  Here is the definition from section
 3.10 of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_05pu.pdf">PS 3.5</a>:</p>
-<blockquote>
-<div><p>DATA SET: Exchanged information consisting of a structured set of Attribute
+<div class="admonition-quote admonition">
+<p class="admonition-title">3.10 DICOM DATA STRUCTURES AND ENCODING DEFINITIONS</p>
+<p>DATA SET: Exchanged information consisting of a structured set of Attribute
 values directly or indirectly related to Information Objects. The value of
 each Attribute in a Data Set is expressed as a Data Element.  A collection
 of Data Elements ordered by increasing Data Element Tag number that is an
 encoding of the values of Attributes of a real world object.</p>
-</div></blockquote>
+</div>
 </section>
 <section id="background-the-dicom-world">
-<h4>Background - the DICOM world<a class="headerlink" href="#background-the-dicom-world" title="Link to this heading">¶</a></h4>
+<h4>Background - the DICOM world<a class="headerlink" href="#background-the-dicom-world" title="Link to this heading">#</a></h4>
 <p>DICOM has abstract definitions of a set of entities (objects) in the “Real
 World”.  These real world objects have relationships between them. Section 7 of
 <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a> has the title “DICOM model of the real world”.  Examples of Real World
@@ -658,69 +1053,73 @@ entities are Patient, Study, Series.</p>
 <li><p>Measurements</p></li>
 </ul>
 <p>DICOM refers to its model of the entities and their relationships in the real
-world as the DICOM Application Model.  PS 3.3:</p>
-<blockquote>
-<div><p>3.8.5 DICOM application model: an Entity-Relationship diagram used to model
+world as the DICOM Application Model.  <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a>:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">3.8 DICOM INFORMATION OBJECT</p>
+<p>3.8.5 DICOM application model: an Entity-Relationship diagram used to model
 the relationships between Real-World Objects which are within the area of
 interest of the DICOM Standard.</p>
-</div></blockquote>
+</div>
 </section>
 <section id="dicom-entities-and-information-object-definitions">
-<h4>DICOM Entities and Information Object Definitions<a class="headerlink" href="#dicom-entities-and-information-object-definitions" title="Link to this heading">¶</a></h4>
+<h4>DICOM Entities and Information Object Definitions<a class="headerlink" href="#dicom-entities-and-information-object-definitions" title="Link to this heading">#</a></h4>
 <p>This is rather confusing.</p>
-<p>PS 3.3 gives definitions of fundamental DICOM objects called <em>Information Object
-Definitions</em> (IODs).  Here is the definition of an IOD from section 3.8.7 of PS
-3.3:</p>
-<blockquote>
-<div><p>3.8.7 Information object definition (IOD): a data abstraction of a class of
+<p><a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a> gives definitions of fundamental DICOM objects called <em>Information Object
+Definitions</em> (IODs).  Here is the definition of an IOD from section 3.8.7 of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a>:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">3.8 DICOM INFORMATION OBJECT</p>
+<p>3.8.7 Information object definition (IOD): a data abstraction of a class of
 similar Real-World Objects which defines the nature and Attributes relevant
 to the class of Real-World Objects represented.</p>
-</div></blockquote>
+</div>
 <p>IODs give lists of attributes (data elements) that refer to one or more objects
 in the DICOM Real World.</p>
 <p>A single IOD is the usual atom of data sent in a single DICOM message.</p>
 <p>An IOD that contains attributes (data elements) for only one object in the DICOM
-Real World is a <em>Normalized IOD</em>. From PS 3.3:</p>
-<blockquote>
-<div><p>3.8.10 Normalized IOD: an Information Object Definition which represents a
+Real World is a <em>Normalized IOD</em>. From <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a>:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">3.8 DICOM INFORMATION OBJECT</p>
+<p>3.8.10 Normalized IOD: an Information Object Definition which represents a
 single entity in the DICOM Application Model. Such an IOD includes
 Attributes which are only inherent in the Real-World Object that the IOD
 represents.</p>
-</div></blockquote>
-<p>Annex B of PS 3.3 defines the normalized IODs.</p>
+</div>
+<p>Annex B of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a> defines the normalized IODs.</p>
 <p>Many DICOM Real World objects do not have corresponding normalized IODs,
 presumably because there is no common need to send data only corresponding to -
 say - a patient - without also sending related information like - say - an
 image.  If you do want to send information relating to a patient with
 information relating to an image, you need a <em>composite IOD</em>.</p>
 <p>An IOD that contains attributes from more than one object in the DICOM Real
-World is a <em>Composite IOD</em>.  PS 3.3 again:</p>
-<blockquote>
-<div><p>3.8.2 Composite IOD: an Information Object Definition which represents parts
+World is a <em>Composite IOD</em>.  <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a> again:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">3.8 DICOM INFORMATION OBJECT</p>
+<p>3.8.2 Composite IOD: an Information Object Definition which represents parts
 of several entities in the DICOM Application Model. Such an IOD includes
 Attributes which are not inherent in the Real-World Object that the IOD
 represents but rather are inherent in related Real-World Objects</p>
-</div></blockquote>
-<p>Annex A of PS 3.3 defines the composite IODs.</p>
+</div>
+<p>Annex A of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a> defines the composite IODs.</p>
 <p>DICOM MR or CT image IODs are classic examples of composite IODs, because they
 contain information not just about the image itself, but also information about
 the patient, the study, the series, the frame of reference and the equipment.</p>
 <p>The term <em>Information Entity</em> (IE) refers to a part of a composite IOD that
-relates to a single DICOM Real World object.  PS 3.3:</p>
-<blockquote>
-<div><p>3.8.6 Information entity: that portion of information defined by a Composite
+relates to a single DICOM Real World object.  <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a>:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">3.8 DICOM INFORMATION OBJECT</p>
+<p>3.8.6 Information entity: that portion of information defined by a Composite
 IOD which is related to one specific class of Real-World Object. There is a
 one-to-one correspondence between Information Entities and entities in the
 DICOM Application Model.</p>
-</div></blockquote>
+</div>
 <p>IEs are names of DICOM Real World objects that label parts of a composite IOD.
 IEs have no intrinsic content, but serve as meaningful labels for a group of
 <em>modules</em> (see below) that refer to the same Real World object.</p>
-<p>Annex A 1.2, PS 3.3 lists all the IEs used in composite IODs.</p>
+<p>Annex A 1.2, <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a> lists all the IEs used in composite IODs.</p>
 <p>For example, section A.4 in PD 3.3 defines the composite IOD for an MR Image -
 the Magnetic Resonance Image Object Definition. The definition looks like this
-(table A.4-1 of PS 3.3)</p>
-<table class="docutils align-default">
+(table A.4-1 of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a>)</p>
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>IE</p></th>
 <th class="head"><p>Module</p></th>
@@ -813,20 +1212,22 @@ the Magnetic Resonance Image Object Definition. The definition looks like this
 </tr>
 </tbody>
 </table>
+</div>
 <p>As you can see, the MR Image IOD is composite and composed of Patient, Study,
 Series, Frame of Reference, Equipment and Image IEs.</p>
 <p>The <em>module</em> heading defines which modules make up the information relevant to
 the IE.</p>
 <p>A module is a named and defined grouping of attributes (data elements) with
-related meaning.  PS 3.3:</p>
-<blockquote>
-<div><p>3.8.8 Module: A set of Attributes within an Information Entity or Normalized
+related meaning.  <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a>:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">3.8 DICOM INFORMATION OBJECT</p>
+<p>3.8.8 Module: A set of Attributes within an Information Entity or Normalized
 IOD which are logically related to each other.</p>
-</div></blockquote>
+</div>
 <p>Grouping attributes into modules simplifies the definition of multiple composite
 IODs.  For example, the composite IODs for a CT image and an MR Image both have
 modules for Patient, Clinical Trial Subject, etc.</p>
-<p>Annex C of PS 3.3 defines all the modules used for the IOD definitions.  For
+<p>Annex C of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a> defines all the modules used for the IOD definitions.  For
 example, from the table above, we see that the “Patient” module is at section
 C.7.1.1 of PS 3.3.  This section gives a table of all the attributes (data
 elements) in this module.</p>
@@ -835,14 +1236,15 @@ Mandatory, Conditional or User Option (defined in section A 1.3 of PS 3.3)</p>
 <p>Lastly module definitions may make use of <em>Attribute macros</em>.  Attribute macros
 are very much like modules, in that they are a named group of attributes that
 often occur together in module definitions, or definitions of other macros.
-From PS 3.3:</p>
-<blockquote>
-<div><p>3.11.1 Attribute Macro: a set of Attributes that are described in a single
+From <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_03pu.pdf">PS 3.3</a>:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">3.11 MACROS</p>
+<p>3.11.1 Attribute Macro: a set of Attributes that are described in a single
 table that is referenced by multiple Modules or other tables.</p>
-</div></blockquote>
+</div>
 <p>For example, here is the Patient Orientation Macro definition table from section
 10.12 in PS 3.3:</p>
-<table class="docutils align-default">
+<div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Attribute Name</p></th>
 <th class="head"><p>Tag</p></th>
@@ -877,27 +1279,29 @@ table that is referenced by multiple Modules or other tables.</p>
 </tr>
 </tbody>
 </table>
+</div>
 <p>As you can see, this macro specifies some tags that should appear when this
 macro is “Included” - and also includes other macros.</p>
 </section>
 </section>
 <section id="dicom-services-dimse">
-<h3>DICOM services (DIMSE)<a class="headerlink" href="#dicom-services-dimse" title="Link to this heading">¶</a></h3>
+<h3>DICOM services (DIMSE)<a class="headerlink" href="#dicom-services-dimse" title="Link to this heading">#</a></h3>
 <p>We now go back to messages.</p>
 <p>The DICOM application sending the message is called the Service Class User
 (SCU). We might also call this the client.</p>
 <p>The DICOM application receiving the message is called the Service Class Provider
 (SCP).  We might also call this the server - for this particular message.</p>
 <p>Quoting from <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_07pu.pdf">PS 3.7</a> section 6.3:</p>
-<blockquote>
-<div><p>A Message is composed of a Command Set followed by a conditional Data Set
+<div class="admonition-quote admonition">
+<p class="admonition-title">6.3 DICOM MESSAGE STRUCTURE AND COMMAND SET</p>
+<p>A Message is composed of a Command Set followed by a conditional Data Set
 (see PS 3.5 for the definition of a Data Set). The Command Set is used to
 indicate the operations/notifications to be performed on or with the Data
 Set.</p>
-</div></blockquote>
+</div>
 <p>The command set consists of command elements (elements with group number 0000).</p>
 <p>Valid sequences of command elements in the command set form valid DICOM Message
-Service Elements (DIMSEs).  Sections 9 and 10 of PS 3.7 define the valid DIMSEs.</p>
+Service Elements (DIMSEs).  Sections 9 and 10 of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_07pu.pdf">PS 3.7</a> define the valid DIMSEs.</p>
 <p>For example, there is a DIMSE service called “C-ECHO” that requests confirmation
 from the responding application that the echo message arrived.</p>
 <p>The definition of the DIMSE services specifies, for a particular DIMSE service,
@@ -908,7 +1312,7 @@ of data.</p>
 followed by a data set conforming to an image data IOD.</p>
 </section>
 <section id="dicom-service-object-pairs-sops">
-<h3>DICOM service object pairs (SOPs)<a class="headerlink" href="#dicom-service-object-pairs-sops" title="Link to this heading">¶</a></h3>
+<h3>DICOM service object pairs (SOPs)<a class="headerlink" href="#dicom-service-object-pairs-sops" title="Link to this heading">#</a></h3>
 <p>As we’ve seen, some DIMSE services should be followed by particular types of
 data.</p>
 <p>For example, the “C-STORE” DIMSE command set should be followed by an IOD of
@@ -934,19 +1338,21 @@ contains just one DIMSE service, but sometimes has more. For example, the “MR
 Image Storage” SOP class has a DIMSE service group of one element [“C-STORE”].
 The “Modality Performed Procedure Step” SOP class has a DIMSE service group with
 two elements: [“N-CREATE”, “N-SET”].</p>
-<p>From PS 3.4:</p>
-<blockquote>
-<div><p>6.4 DIMSE SERVICE GROUP</p>
+<p>From <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_04pu.pdf">PS 3.4</a>:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">6.4 DIMSE SERVICE GROUP</p>
 <p>DIMSE Service Group specifies one or more operations/notifications defined
 in PS 3.7 which are applicable to an IOD.</p>
 <p>DIMSE Service Groups are defined in this Part of the DICOM Standard, in the
 specification of a Service - Object Pair Class.</p>
-<p>6.5 SERVICE-OBJECT PAIR (SOP) CLASS</p>
+</div>
+<div class="admonition-quote admonition">
+<p class="admonition-title">6.5 SERVICE-OBJECT PAIR (SOP) CLASS</p>
 <p>A Service-Object Pair (SOP) Class is defined by the union of an IOD and a
 DIMSE Service Group. The SOP Class definition contains the rules and
 semantics which may restrict the use of the services in the DIMSE Service
 Group and/or the Attributes of the IOD.</p>
-</div></blockquote>
+</div>
 <p>The Annexes of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_04pu.pdf">PS 3.4</a> define the SOP classes.</p>
 <p>A pairing of actual data of form (DIMSE group, IOD) that conforms to the SOP
 class definition, is a SOP class instance. That is, the instance comprises the
@@ -957,16 +1363,16 @@ particular “C-STORE” request command set along with the particular “MR Ima
 IOD data set would be an <em>instance</em> of the MR Image SOP class.</p>
 </section>
 <section id="dicom-files">
-<h3>DICOM files<a class="headerlink" href="#dicom-files" title="Link to this heading">¶</a></h3>
+<h3>DICOM files<a class="headerlink" href="#dicom-files" title="Link to this heading">#</a></h3>
 <p>Now let us return to the confusing definition of the DICOM file format from
-section 7 of PS 3.10:</p>
-<blockquote>
-<div><p>7 DICOM File Format</p>
+section 7 of <a class="reference external" href="http://medical.nema.org/Dicom/2011/11_10pu.pdf">PS 3.10</a>:</p>
+<div class="admonition-quote admonition">
+<p class="admonition-title">7 DICOM File Format</p>
 <p>The DICOM File Format provides a means to encapsulate in a file the Data Set
 representing a SOP Instance related to a DICOM IOD. As shown in Figure 7-1,
 the byte stream of the Data Set is placed into the file after the DICOM File
 Meta Information. Each file contains a single SOP Instance.</p>
-</div></blockquote>
+</div>
 <p>The DICOM file Meta Information is:</p>
 <ul class="simple">
 <li><p>File preamble - 128 bytes, content unspecified</p></li>
@@ -995,15 +1401,149 @@ Representation is 1 (for signed)</p>
 </section>
 
 
-            <div class="clearer"></div>
-          </div>
-        </div>
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../neuro_radio_conventions.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Radiological vs neurological conventions</p>
       </div>
-      <div class="clearer"></div>
+    </a>
+    <a class="right-next"
+       href="../devel/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Developer guide</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-is-messages">DICOM is messages</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-dicom-standard">The DICOM standard</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-data-format">DICOM data format</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-elements">DICOM elements</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#attribute-tag">Attribute Tag</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#standard-attribute-tags">Standard attribute tags</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#private-attribute-tags">Private attribute tags</a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#value-representation">Value Representation</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#value-length">Value length</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#value-field">Value field</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data-element-tags-and-data-dictionaries">Data element tags and data dictionaries</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#value-representation-in-the-data-dictionary">Value Representation in the data dictionary</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#value-multiplicity-in-the-data-dictionary">Value Multiplicity in the data dictionary</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-data-structures">DICOM data structures</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#a-data-set">A data set</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#background-the-dicom-world">Background - the DICOM world</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-entities-and-information-object-definitions">DICOM Entities and Information Object Definitions</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-services-dimse">DICOM services (DIMSE)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-service-object-pairs-sops">DICOM service object pairs (SOPs)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dicom-files">DICOM files</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/dicom/dicom_intro.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
     </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
     </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
   </body>
 </html>

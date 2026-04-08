@@ -1,127 +1,521 @@
+
 <!DOCTYPE html>
 
-<html lang="en" data-content_root="./">
+
+<html lang="en" data-content_root="./" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Neuroimaging in Python &#8212; NiBabel 5.4.2 documentation</title>
+    <title>Coordinate systems and affines &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-    <link rel="stylesheet" type="text/css" href="_static/nibabel.css?v=f6107aeb" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
-    <script src="_static/documentation_options.js?v=41d0e7f4"></script>
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=317b4947" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+
+    <script src="_static/documentation_options.js?v=252e4b93"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=00435c62"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
     <script defer="defer" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'coordinate_systems';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="_static/nibabel-logo.svg"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Radiological vs neurological conventions" href="neuro_radio_conventions.html" />
-    <link rel="prev" title="General tutorials" href="tutorials.html" />
+    <link rel="prev" title="Tutorials" href="tutorials.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
   <meta name="keywords" content="nipy, neuroimaging, python, neuroscience">
 
-  </head><body>
-<div class="row" style="display: flex; flex-direction: row; flex-wrap: wrap; width: 100%;">
-  <div class="column" style="background-color: white; display: flex; flex-direction: column; flex: 0 0 140px; padding-left: 2px; padding-bottom:2px; padding-top:2px;">
-    <img src="_static/nibabel-logo.svg" class="logo" alt="Logo" width="130px"/>
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+<aside class="bd-header-announcement" aria-label="Announcement">
+  <div class="bd-header-announcement__content">We are rolling out a new website! Check out the new features and let us know what you think.</div>
+</aside>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/nibabel-logo.svg" class="logo__image only-light" alt=""/>
+    <img src="_static/nibabel-logo.svg" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">NiBabel</p>
+  
+</a></div>
+    
   </div>
-  <div class="column" style="background-color: white; text-align: left; padding-left: 10px; padding-bottom:50px; padding-top:20px; background-repeat: no-repeat; display: flex; flex-direction: column; flex-basis: 100%; flex: 1;">
-    <h1>NiBabel</h1>
-    <h3 style="margin-top:-5px;color:#2f83c8">Access a cacophony of neuro-imaging file formats</h3>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dicom/dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
   </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
 </div>
 
-    <div class="related" role="navigation" aria-label="Related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="neuro_radio_conventions.html" title="Radiological vs neurological conventions"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="tutorials.html" title="General tutorials"
-             accesskey="P">previous</a> |</li>
-  <li><a href="http://nipy.org/">Community</a> |&nbsp;</li>
-  <li><a href="index.html">NiBabel Home</a> |&nbsp;</li>
-  <li><a href="https://mail.python.org/mailman/listinfo/neuroimaging">Mailing list</a> |&nbsp;</li>
-  <li><a href="legal.html">License</a> |&nbsp;</li>
+    </header>
+  
 
-          <li class="nav-item nav-item-1"><a href="tutorials.html" accesskey="U">General tutorials</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Neuroimaging in Python</a></li> 
-      </ul>
-    </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="Main">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h3><a href="index.html">Table of Contents</a></h3>
-    <ul>
-<li><a class="reference internal" href="#">Coordinate systems and affines</a><ul>
-<li><a class="reference internal" href="#introducing-someone">Introducing Someone</a></li>
-<li><a class="reference internal" href="#voxel-coordinates-are-coordinates-in-the-image-data-array">Voxel coordinates are coordinates in the image data array</a></li>
-<li><a class="reference internal" href="#voxel-coordinates-and-points-in-space">Voxel coordinates and points in space</a></li>
-<li><a class="reference internal" href="#the-scanner-subject-reference-space">The scanner-subject reference space</a><ul>
-<li><a class="reference internal" href="#the-scanner-axes">The scanner axes</a></li>
-<li><a class="reference internal" href="#from-scanner-to-subject">From scanner to subject</a></li>
-<li><a class="reference internal" href="#naming-reference-spaces">Naming reference spaces</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#voxel-coordinates-are-in-voxel-space">Voxel coordinates are in voxel space</a></li>
-<li><a class="reference internal" href="#the-affine-matrix-as-a-transformation-between-spaces">The affine matrix as a transformation between spaces</a></li>
-<li><a class="reference internal" href="#the-inverse-of-the-affine-gives-the-mapping-from-scanner-to-voxel">The inverse of the affine gives the mapping from scanner to voxel</a></li>
-<li><a class="reference internal" href="#the-affine-by-example">The affine by example</a><ul>
-<li><a class="reference internal" href="#applying-the-affine">Applying the affine</a></li>
-<li><a class="reference internal" href="#the-affine-as-a-series-of-transformations">The affine as a series of transformations</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#other-reference-spaces">Other reference spaces</a></li>
-<li><a class="reference internal" href="#nibabel-always-uses-an-ras-output-space">Nibabel always uses an RAS+ output space</a></li>
-</ul>
-</li>
-</ul>
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
 
-  </div>
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="tutorials.html"
-                          title="previous chapter">General tutorials</a></p>
-  </div>
-  <div>
-    <h4>Next topic</h4>
-    <p class="topless"><a href="neuro_radio_conventions.html"
-                          title="next chapter">Radiological vs neurological conventions</a></p>
-  </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/coordinate_systems.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
-        </div>
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="manual.html">
+    Manual
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="tutorials.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="devel/index.html">
+    Developer guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dicom/dicom.html">
+    DICOM concepts
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api.html">
+    API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
       </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">PyPI</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Mailing List</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">License</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">Community</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Coordinate systems and affines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="neuro_radio_conventions.html">Radiological vs neurological conventions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dicom/dicom_intro.html">Introduction to DICOM</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="tutorials.html" class="nav-link">Tutorials</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Coordinate systems and affines</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
   <section id="coordinate-systems-and-affines">
-<h1>Coordinate systems and affines<a class="headerlink" href="#coordinate-systems-and-affines" title="Link to this heading">¶</a></h1>
+<h1>Coordinate systems and affines<a class="headerlink" href="#coordinate-systems-and-affines" title="Link to this heading">#</a></h1>
 <p>A nibabel (and nipy) image is the association of three things:</p>
 <ul class="simple">
 <li><p>The <em>image data array</em>: a 3D or 4D <em>array</em> of image data</p></li>
@@ -134,7 +528,7 @@ form of an image <em>header</em>.</p></li>
 image data in a reference space.  On the way we will define what we mean by
 reference space, and the reference spaces that Nibabel uses.</p>
 <section id="introducing-someone">
-<h2>Introducing Someone<a class="headerlink" href="#introducing-someone" title="Link to this heading">¶</a></h2>
+<h2>Introducing Someone<a class="headerlink" href="#introducing-someone" title="Link to this heading">#</a></h2>
 <p>We have scanned someone called “Someone”, and we have a two MRI images of
 their brain, a single EPI volume, and a structural scan.  In general we never
 use the person’s name in the image filenames, but we make an
@@ -186,13 +580,13 @@ and look at slices in the three axes:</p>
 <figure class="align-default" id="id2">
 <img alt="_images/coordinate_systems-3_00.png" class="plot-directive" src="_images/coordinate_systems-3_00.png" />
 <figcaption>
-<p><span class="caption-text">(<a class="reference download internal" download="" href="_downloads/f421d045ed7d77d5be5b5aa28544d030/coordinate_systems-3_00.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/dc0e6623b8086a1f47ed26af34e7c6ba/coordinate_systems-3_00.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/e6b45cf94b78c71339be16615ab48886/coordinate_systems-3_00.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+<p><span class="caption-text">(<a class="reference download internal" download="" href="_downloads/f421d045ed7d77d5be5b5aa28544d030/coordinate_systems-3_00.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/dc0e6623b8086a1f47ed26af34e7c6ba/coordinate_systems-3_00.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/e6b45cf94b78c71339be16615ab48886/coordinate_systems-3_00.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</span><a class="headerlink" href="#id2" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <figure class="align-default" id="id3">
 <img alt="_images/coordinate_systems-3_01.png" class="plot-directive" src="_images/coordinate_systems-3_01.png" />
 <figcaption>
-<p><span class="caption-text">(<a class="reference download internal" download="" href="_downloads/ce40033060c439c27eb234896af2b1e6/coordinate_systems-3_01.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/2174665309d4572bf9425c62abdb3e82/coordinate_systems-3_01.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/ea07875cb182b05530c1caaa47b509a8/coordinate_systems-3_01.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+<p><span class="caption-text">(<a class="reference download internal" download="" href="_downloads/ce40033060c439c27eb234896af2b1e6/coordinate_systems-3_01.png"><code class="xref download docutils literal notranslate"><span class="pre">png</span></code></a>, <a class="reference download internal" download="" href="_downloads/2174665309d4572bf9425c62abdb3e82/coordinate_systems-3_01.hires.png"><code class="xref download docutils literal notranslate"><span class="pre">hires.png</span></code></a>, <a class="reference download internal" download="" href="_downloads/ea07875cb182b05530c1caaa47b509a8/coordinate_systems-3_01.pdf"><code class="xref download docutils literal notranslate"><span class="pre">pdf</span></code></a>)</span><a class="headerlink" href="#id3" title="Link to this image">#</a></p>
 </figcaption>
 </figure>
 <p>As is usually the case, we had a different field of view for the anatomical
@@ -200,7 +594,7 @@ scan, and so the anatomical image has a different shape, size, and orientation
 in the magnet.</p>
 </section>
 <section id="voxel-coordinates-are-coordinates-in-the-image-data-array">
-<h2>Voxel coordinates are coordinates in the image data array<a class="headerlink" href="#voxel-coordinates-are-coordinates-in-the-image-data-array" title="Link to this heading">¶</a></h2>
+<h2>Voxel coordinates are coordinates in the image data array<a class="headerlink" href="#voxel-coordinates-are-coordinates-in-the-image-data-array" title="Link to this heading">#</a></h2>
 <p>As y’all know, a voxel is a pixel with volume.</p>
 <p>In the code above, <code class="docutils literal notranslate"><span class="pre">slice_0</span></code> from the EPI data is a 2D slice from a 3D
 image.  The plot of the EPI slices displays the slices in grayscale (graded
@@ -230,7 +624,7 @@ length <code class="docutils literal notranslate"><span class="pre">epi_img_data
 the second axis (0 to 60) and 16 is the position on the third axis (0 to 32).</p>
 </section>
 <section id="voxel-coordinates-and-points-in-space">
-<h2>Voxel coordinates and points in space<a class="headerlink" href="#voxel-coordinates-and-points-in-space" title="Link to this heading">¶</a></h2>
+<h2>Voxel coordinates and points in space<a class="headerlink" href="#voxel-coordinates-and-points-in-space" title="Link to this heading">#</a></h2>
 <p>The voxel coordinate tells us almost nothing about where the data came from
 in terms of position in the scanner.  For example, let’s say we have the voxel
 coordinate (26, 30, 16).  Without more information we have no idea whether
@@ -269,7 +663,7 @@ information to relate voxel coordinates in <code class="docutils literal notrans
 equivalent voxel coordinates in <code class="docutils literal notranslate"><span class="pre">someones_anatomy.nii.gz</span></code>.</p>
 </section>
 <section id="the-scanner-subject-reference-space">
-<h2>The scanner-subject reference space<a class="headerlink" href="#the-scanner-subject-reference-space" title="Link to this heading">¶</a></h2>
+<h2>The scanner-subject reference space<a class="headerlink" href="#the-scanner-subject-reference-space" title="Link to this heading">#</a></h2>
 <p>What does “space” mean in the phrase “reference space”?  The space is defined
 by an ordered set of axes. For our 3D spatial world, it is a set of 3
 independent axes.</p>
@@ -277,7 +671,7 @@ independent axes.</p>
 choose the origin of the axes, their direction and their units.</p>
 <p>To start with, we define a set of three orthogonal <em>scanner axes</em>.</p>
 <section id="the-scanner-axes">
-<h3>The scanner axes<a class="headerlink" href="#the-scanner-axes" title="Link to this heading">¶</a></h3>
+<h3>The scanner axes<a class="headerlink" href="#the-scanner-axes" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p>The origin of the axes is at the magnet isocenter. This is coordinate (0, 0,
 0) in our reference space. All three axes pass through the isocenter.</p></li>
@@ -307,7 +701,7 @@ It was the standard reference space for the predecessor to DICOM, called ACR /
 NEMA 2.0.</p>
 </section>
 <section id="from-scanner-to-subject">
-<h3>From scanner to subject<a class="headerlink" href="#from-scanner-to-subject" title="Link to this heading">¶</a></h3>
+<h3>From scanner to subject<a class="headerlink" href="#from-scanner-to-subject" title="Link to this heading">#</a></h3>
 <p>If the subject is lying in the usual position for a brain scan, face up
 and head first in the scanner, then scanner-left/right is also the left-right
 axis of the subject’s head, scanner-floor/ceiling is the posterior-anterior
@@ -335,7 +729,7 @@ to the right.  The second (Y) axis would be scanner-left/right
 (inferior-superior).</p>
 </section>
 <section id="naming-reference-spaces">
-<h3>Naming reference spaces<a class="headerlink" href="#naming-reference-spaces" title="Link to this heading">¶</a></h3>
+<h3>Naming reference spaces<a class="headerlink" href="#naming-reference-spaces" title="Link to this heading">#</a></h3>
 <p>Reading names of reference spaces can be confusing because of different
 meanings that authors use for the same terms, such as ‘left’ and ‘right’.</p>
 <p>We are using the term “RAS” to mean that the axes are (in terms of the
@@ -356,7 +750,7 @@ enemies in that we always use “right” to mean the subject’s right.</p>
 </section>
 </section>
 <section id="voxel-coordinates-are-in-voxel-space">
-<h2>Voxel coordinates are in voxel space<a class="headerlink" href="#voxel-coordinates-are-in-voxel-space" title="Link to this heading">¶</a></h2>
+<h2>Voxel coordinates are in voxel space<a class="headerlink" href="#voxel-coordinates-are-in-voxel-space" title="Link to this heading">#</a></h2>
 <p>We have not yet made this explicit, but voxel coordinates are also in a space.
 In this case the space is defined by the three voxel axes (first axis, second
 axis, third axis), where 0, 0, 0 is the center of the first voxel in the
@@ -364,7 +758,7 @@ array and the units on the axes are voxels.  Voxel coordinates are therefore
 defined in a reference space called <em>voxel space</em>.</p>
 </section>
 <section id="the-affine-matrix-as-a-transformation-between-spaces">
-<h2>The affine matrix as a transformation between spaces<a class="headerlink" href="#the-affine-matrix-as-a-transformation-between-spaces" title="Link to this heading">¶</a></h2>
+<h2>The affine matrix as a transformation between spaces<a class="headerlink" href="#the-affine-matrix-as-a-transformation-between-spaces" title="Link to this heading">#</a></h2>
 <p>We have voxel coordinates (in voxel space).  We want to get scanner RAS+
 coordinates corresponding to the voxel coordinates.  We need a <em>coordinate
 transform</em> to take us from voxel coordinates to scanner RAS+ coordinates.</p>
@@ -630,7 +1024,7 @@ transformations in this way is mathematically the same as using the full 4 by
 output vectors.</p>
 </section>
 <section id="the-inverse-of-the-affine-gives-the-mapping-from-scanner-to-voxel">
-<h2>The inverse of the affine gives the mapping from scanner to voxel<a class="headerlink" href="#the-inverse-of-the-affine-gives-the-mapping-from-scanner-to-voxel" title="Link to this heading">¶</a></h2>
+<h2>The inverse of the affine gives the mapping from scanner to voxel<a class="headerlink" href="#the-inverse-of-the-affine-gives-the-mapping-from-scanner-to-voxel" title="Link to this heading">#</a></h2>
 <p>The affine arrays we have described so far have another pleasant property —
 they are usually invertible.  As y’all know, the inverse of a matrix <span class="math notranslate nohighlight">\(A\)</span> is
 the matrix <span class="math notranslate nohighlight">\(A^{-1}\)</span> such that <span class="math notranslate nohighlight">\(I = A^{-1} A\)</span>, where <span class="math notranslate nohighlight">\(I\)</span> is the identity
@@ -698,7 +1092,7 @@ k\\
 \end{bmatrix}\end{split}\]</div>
 </section>
 <section id="the-affine-by-example">
-<h2>The affine by example<a class="headerlink" href="#the-affine-by-example" title="Link to this heading">¶</a></h2>
+<h2>The affine by example<a class="headerlink" href="#the-affine-by-example" title="Link to this heading">#</a></h2>
 <p>We can get the affine from the nibabel image object.  Here is the affine for
 the EPI scan:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set numpy to print 3 decimal points and suppress small values</span>
@@ -714,7 +1108,7 @@ the EPI scan:</p>
 </div>
 <p>As you see, the last row is <span class="math notranslate nohighlight">\([0, 0, 0, 1]\)</span></p>
 <section id="applying-the-affine">
-<h3>Applying the affine<a class="headerlink" href="#applying-the-affine" title="Link to this heading">¶</a></h3>
+<h3>Applying the affine<a class="headerlink" href="#applying-the-affine" title="Link to this heading">#</a></h3>
 <p>To make the affine simpler to apply, we split it into <span class="math notranslate nohighlight">\(M\)</span> and <span class="math notranslate nohighlight">\((a, b, c)\)</span>:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">M</span> <span class="o">=</span> <span class="n">epi_img</span><span class="o">.</span><span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">abc</span> <span class="o">=</span> <span class="n">epi_img</span><span class="o">.</span><span class="n">affine</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
@@ -781,7 +1175,7 @@ red EPI field of view center relates to the blue anatomical field of view
 center and the blue anatomical image field of view.</p>
 </section>
 <section id="the-affine-as-a-series-of-transformations">
-<h3>The affine as a series of transformations<a class="headerlink" href="#the-affine-as-a-series-of-transformations" title="Link to this heading">¶</a></h3>
+<h3>The affine as a series of transformations<a class="headerlink" href="#the-affine-as-a-series-of-transformations" title="Link to this heading">#</a></h3>
 <p>You can think of the image affine as a combination of a series of
 transformations to go from voxel coordinates to mm coordinates in terms of the
 magnet isocenter.  Here is the EPI affine broken down into a series of
@@ -844,7 +1238,7 @@ figure, matching the position on the <a class="reference internal" href="#locali
 </section>
 </section>
 <section id="other-reference-spaces">
-<h2>Other reference spaces<a class="headerlink" href="#other-reference-spaces" title="Link to this heading">¶</a></h2>
+<h2>Other reference spaces<a class="headerlink" href="#other-reference-spaces" title="Link to this heading">#</a></h2>
 <p>The scanner RAS+ reference space is a “real-world” space, in the sense that a
 coordinate in this space refers to a position in the real world, in a
 particular scanner in a particular room.</p>
@@ -899,7 +1293,7 @@ positive X coordinate in this space would mean the point was to the subject’s
 <em>left</em> compared to the magnet isocenter.</p>
 </section>
 <section id="nibabel-always-uses-an-ras-output-space">
-<h2>Nibabel always uses an RAS+ output space<a class="headerlink" href="#nibabel-always-uses-an-ras-output-space" title="Link to this heading">¶</a></h2>
+<h2>Nibabel always uses an RAS+ output space<a class="headerlink" href="#nibabel-always-uses-an-ras-output-space" title="Link to this heading">#</a></h2>
 <p>Nibabel images always use RAS+ output coordinates, regardless of the preferred
 output coordinates of the underlying format.  For example, we convert affines
 for DICOM images to output RAS+ coordinates instead of LPS+ coordinates. We
@@ -914,15 +1308,138 @@ each format to find which RAS+ space the affine maps to.</p>
 </section>
 
 
-            <div class="clearer"></div>
-          </div>
-        </div>
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="tutorials.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Tutorials</p>
       </div>
-      <div class="clearer"></div>
+    </a>
+    <a class="right-next"
+       href="neuro_radio_conventions.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Radiological vs neurological conventions</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#introducing-someone">Introducing Someone</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#voxel-coordinates-are-coordinates-in-the-image-data-array">Voxel coordinates are coordinates in the image data array</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#voxel-coordinates-and-points-in-space">Voxel coordinates and points in space</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-scanner-subject-reference-space">The scanner-subject reference space</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-scanner-axes">The scanner axes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-scanner-to-subject">From scanner to subject</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#naming-reference-spaces">Naming reference spaces</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#voxel-coordinates-are-in-voxel-space">Voxel coordinates are in voxel space</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-affine-matrix-as-a-transformation-between-spaces">The affine matrix as a transformation between spaces</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-inverse-of-the-affine-gives-the-mapping-from-scanner-to-voxel">The inverse of the affine gives the mapping from scanner to voxel</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-affine-by-example">The affine by example</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#applying-the-affine">Applying the affine</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-affine-as-a-series-of-transformations">The affine as a series of transformations</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#other-reference-spaces">Other reference spaces</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nibabel-always-uses-an-ras-output-space">Nibabel always uses an RAS+ output space</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="_sources/coordinate_systems.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
     </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2006, NiBabel developers &lt;neuroimaging@python.org&gt;.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
     </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
   </body>
 </html>
