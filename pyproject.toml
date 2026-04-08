@@ -86,6 +86,9 @@ dev = [
 ]
 doc = [
   "sphinx >=7.4",
+  "pydata-sphinx-theme >= 0.17.0",
+  "sphinx-design <= 0.7.0",
+  "sphinx-copybutton >= 0.5.2",
   "matplotlib>=3.5",
   "numpydoc >=1.9",
   "texext >=0.6.8",
