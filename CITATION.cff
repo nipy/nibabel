@@ -67,7 +67,8 @@ authors:
     orcid: https://orcid.org/0000-0003-4454-6171
   - family-names: Lee
     given-names: Gregory R.
-    affiliation: Deptartment of Radiology, University of Cincinnati College of Medicine, Cincinnati, OH
+    affiliation: Deptartment of Radiology, University of Cincinnati College of Medicine, Cincinnati,
+      OH
     orcid: https://orcid.org/0000-0001-8895-2740
   - family-names: Baratz
     given-names: Zvi
@@ -87,8 +88,13 @@ authors:
     orcid: https://orcid.org/0000-0002-5544-7577
   - family-names: Guidotti
     given-names: Roberto
-    affiliation: Department of Computer Science, Aalto University, Espoo, Finland and Department of Neuroscience, Imaging and Clinical Sciences, University G. D'Annunzio, Chieti, Italy
+    affiliation: Department of Computer Science, Aalto University, Espoo, Finland and Department of
+      Neuroscience, Imaging and Clinical Sciences, University G. D'Annunzio, Chieti, Italy
     orcid: https://orcid.org/0000-0002-0807-6005
+  - family-names: Gau
+    given-names: Rémi
+    affiliation: Inria, Saclay, France
+    orcid: https://orcid.org/0000-0002-1535-9767
   - family-names: Daniel
     given-names: Jonathan
   - family-names: Duek
@@ -151,6 +157,9 @@ authors:
     given-names: Krzysztof J.
     affiliation: Google
     orcid: https://orcid.org/0000-0003-3321-7583
+  - family-names: Ayala
+    given-names: Leonardo
+    orcid: https://orcid.org/0000-0002-3574-2085
   - family-names: Raamana
     given-names: Pradeep Reddy
     affiliation: Rotman Research Institute, Baycrest Health Sciences, Toronto, ON, Canada
@@ -236,9 +245,6 @@ authors:
     given-names: Lea
     affiliation: Charite Universitatsmedizin Berlin, Germany
     orcid: https://orcid.org/0000-0002-3239-6957
-  - family-names: Ayala
-    given-names: Leonardo
-    orcid: https://orcid.org/0000-0002-3574-2085
   - family-names: Hinds
     given-names: Oliver P.
   - alias: Sandro
@@ -301,7 +307,8 @@ authors:
     given-names: Justin
   - family-names: Leinweber
     given-names: Katrin
-    affiliation: TIB – Leibniz Information Centre for Science and Technology and University Library, Hannover, Germany
+    affiliation: TIB – Leibniz Information Centre for Science and Technology and University Library,
+      Hannover, Germany
     orcid: https://orcid.org/0000-0001-5135-5758
   - family-names: Raktivan
     given-names: Konstantinos
@@ -314,10 +321,6 @@ authors:
     orcid: https://orcid.org/0000-0003-3242-9867
   - family-names: Gervais
     given-names: Philippe
-  - family-names: Gau
-    given-names: Rémi
-    affiliation: Inria, Saclay, France
-    orcid: https://orcid.org/0000-0002-1535-9767
   - family-names: Gadde
     given-names: Syam
   - family-names: Ballinger
