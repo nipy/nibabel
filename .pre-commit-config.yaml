@@ -40,3 +40,7 @@ repos:
       - id: codespell
         additional_dependencies:
           - tomli
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.37.1
+    hooks:
+      - id: check-citation-file-format
