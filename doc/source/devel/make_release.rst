@@ -57,6 +57,10 @@ Release checklist
 * Use the opportunity to update the ``.mailmap`` file if there are any
   duplicate authors listed from ``git shortlog -nse``.
 
+* Refresh the ``CITATION.cff`` file::
+
+    uv run tools/prep_citation_cff.py
+
 * Refresh the ``README.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
   by running ``make refresh-readme``.
 
