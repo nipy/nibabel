@@ -4,6 +4,12 @@ message: If you use this software, please cite it as below.
 title: NiBabel
 type: software
 license: MIT
+url: https://nipy.org/nibabel
+repository-code: https://github.com/nipy/nibabel
+contact:
+  - email: neuroimaging@python.org
+    name: NeuroImaging in Python mailing list
+doi: 10.5281/zenodo.591597
 keywords:
   - neuroimaging
 authors:
