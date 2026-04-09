@@ -142,6 +142,7 @@ exclude = ["doc", "nibabel/externals", "tools", "version.py", "versioneer.py"]
 select = [
     "B",
     "C4",
+    "C90",
     "F",
     "FLY",
     "FURB",
@@ -151,6 +152,10 @@ select = [
     "PGH",
     "PIE",
     "PLE",
+    "PLR0911",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
     "PT",
     "PYI",
     "Q",
@@ -215,6 +220,19 @@ ignore = [
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 50
+
+[tool.ruff.lint.pylint]
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-args
+max-args = 10
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-branches
+max-branches = 50
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-statements
+max-statements = 200
+# https://docs.astral.sh/ruff/settings/#lint_pylint_max-returns
+max-returns = 10
 
 [tool.mypy]
 python_version = "3.11"

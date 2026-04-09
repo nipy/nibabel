@@ -1,14 +1,11 @@
 COVERAGE_REPORT=coverage
-HTML_DIR=build/html
 LATEX_DIR=build/latex
-WWW_DIR=build/website
 DOCSRC_DIR=doc
-PROJECT=nibabel
+
 #
 # The Python executable to be used
 #
 PYTHON ?= python
-NOSETESTS = $(PYTHON) $(shell which nosetests)
 
 #
 # Determine details on the Python/system
@@ -19,7 +16,6 @@ PYVER := $(shell $(PYTHON) -V 2>&1 | cut -d ' ' -f 2,2 | cut -d '.' -f 1,2)
 # Helpers for version handling.
 # Note: can't be ':='-ed since location of invocation might vary
 DEBCHANGELOG_VERSION = $(shell dpkg-parsechangelog | egrep ^Version | cut -d ' ' -f 2,2 | cut -d '-' -f 1,1)
-SETUPPY_VERSION = $(shell $(PYTHON) setup.py -V)
 #
 # Automatic development version
 #
@@ -28,17 +24,6 @@ DEV_VERSION := $(shell git describe --abbrev=4 HEAD |sed -e 's/-/+/g' |cut -d '/
 
 # By default we are releasing with setup.py version
 RELEASE_VERSION ?= $(SETUPPY_VERSION)
-
-#
-# Building
-#
-
-all: build
-
-build:
-	$(PYTHON) setup.py config --noisy
-	$(PYTHON) setup.py build
-
 
 #
 # Cleaning
@@ -72,82 +57,24 @@ distclean: clean
 # Little helpers
 #
 
-$(WWW_DIR):
-	if [ ! -d $(WWW_DIR) ]; then mkdir -p $(WWW_DIR); fi
-
 .git-blame-ignore-revs:
 	git log --grep "\[git-blame-ignore-rev\]" --pretty=format:"# %ad - %ae - %s%n%H" \
 		> .git-blame-ignore-revs
 	echo >> .git-blame-ignore-revs
 
 #
-# Tests
-#
-
-test: unittest testmanual
-
-
-ut-%: build
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) nibabel/tests/test_$*.py
-
-
-unittest: build
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) nibabel --with-doctest
-
-testmanual: build
-	@cd doc/source && PYTHONPATH=../..:$(PYTHONPATH) $(NOSETESTS) --with-doctest --doctest-extension=.rst . dicom
-
-
-coverage: build
-	@PYTHONPATH=.:$(PYTHONPATH) $(NOSETESTS) --with-coverage --cover-package=nibabel
-
-
-#
 # Documentation
 #
 
-htmldoc: build
+htmldoc:
 	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR):$(PYTHONPATH) $(MAKE) html
 
-
-pdfdoc: build
+pdfdoc:
 	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR):$(PYTHONPATH) $(MAKE) latex
 	cd $(LATEX_DIR) && $(MAKE) all-pdf
 
-
-gitwash-update: build
+gitwash-update:
 	cd $(DOCSRC_DIR) && PYTHONPATH=$(CURDIR):$(PYTHONPATH) $(MAKE) gitwash-update
-
-#
-# Website
-#
-
-html: html-stamp
-html-stamp: $(WWW_DIR) htmldoc
-	cp -r $(HTML_DIR)/* $(WWW_DIR)
-	touch $@
-
-pdf: pdf-stamp
-pdf-stamp: $(WWW_DIR) pdfdoc
-	cp $(LATEX_DIR)/*.pdf $(WWW_DIR)
-	touch $@
-
-website: website-stamp
-website-stamp: $(WWW_DIR) html-stamp pdf-stamp
-	cp -r $(HTML_DIR)/* $(WWW_DIR)
-	touch $@
-
-upload-html: html-stamp
-	./tools/upload-gh-pages.sh $(WWW_DIR) $(PROJECT)
-
-#
-# Sources
-#
-
-pylint: distclean
-	# do distclean first to silence SWIG's sins
-	PYTHONPATH=.:$(PYTHONPATH) pylint --rcfile doc/misc/pylintrc nibabel
-
 
 #
 # Distributions
@@ -163,16 +90,6 @@ check-debian:
 	# Need to run in a Debian packaging branch
 	[ -d debian ]
 
-check-debian-version: check-debian
-	# Does debian version correspond to setup.py version?
-	[ "$(DEBCHANGELOG_VERSION)" = "$(SETUPPY_VERSION)" ]
-
-embed-dev-version: check-nodirty
-	# change upstream version
-	sed -i -e "s/$(SETUPPY_VERSION)/$(DEV_VERSION)/g" setup.py nibabel/__init__.py
-	# change package name
-	sed -i -e "s/= 'nibabel',/= 'nibabel-snapshot',/g" setup.py
-
 deb-dev-autochangelog: check-debian
 	# removed -snapshot from pkg name for now
 	$(MAKE) check-debian-version || \
@@ -181,18 +98,6 @@ deb-dev-autochangelog: check-debian
 
 deb-mergedev:
 	git merge --no-commit origin/dist/debian/dev
-
-orig-src: distclean distclean
-	# clean existing dist dir first to have a single source tarball to process
-	-rm -rf dist
-	# let python create the source tarball
-	$(PYTHON) setup.py sdist --formats=gztar
-	# rename to proper Debian orig source tarball and move upwards
-	# to keep it out of the Debian diff
-	tbname=$$(basename $$(ls -1 dist/*tar.gz)) ; ln -s $${tbname} ../nibabel-snapshot_$(DEV_VERSION).orig.tar.gz
-	mv dist/*tar.gz ..
-	# clean leftover
-	rm MANIFEST
 
 devel-src: check-nodirty
 	-rm -rf dist
@@ -219,17 +124,6 @@ deb-src: check-debian distclean
 	cd .. && dpkg-source -i'\.(gbp.conf|git\.*)' -b $(CURDIR)
 
 
-bdist_rpm:
-	$(PYTHON) setup.py bdist_rpm \
-	  --doc-files "doc" \
-	  --packager "nibabel authors <http://mail.python.org/mailman/listinfo/neuroimaging>"
-	  --vendor "nibabel authors <http://mail.python.org/mailman/listinfo/neuroimaging>"
-
-
-# build MacOS installer -- depends on patched bdist_mpkg for Leopard
-bdist_mpkg:
-	$(PYTHON) tools/mpkg_wrapper.py setup.py install
-
 sdist-venv: clean
 	rm -rf dist venv
 	unset PYTHONPATH && $(PYTHON) setup.py sdist --formats=zip
@@ -243,23 +137,10 @@ sdist-venv: clean
 source-release:
 	uv build --sdist
 
-venv-tests:
-	# I use this for python2.5 because the sdist-tests target doesn't work
-	# (the tester routine uses a 2.6 feature)
-	make distclean
-	- rm -rf $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
-	$(PYTHON) setup.py install
-	cd .. && nosetests $(VIRTUAL_ENV)/lib/python$(PYVER)/site-packages/nibabel
-
 tox-fresh:
 	# tox tests with fresh-installed virtualenvs.  Needs network.  And
 	# pytox, obviously.
 	tox -c tox.ini
-
-tox-stale:
-	# tox tests with MB's already-installed virtualenvs (numpy and nose
-	# installed)
-	tox -e python25,python26,python27,python32,np-1.2.1
 
 refresh-readme:
 	$(PYTHON) tools/refresh_readme.py
@@ -268,4 +149,4 @@ rm-orig:
 	# Remove .orig temporary diff files generated by git
 	find . -name "*.orig" -print | grep -v "fsaverage" | xargs rm
 
-.PHONY: orig-src pylint all build .git-blame-ignore-revs
+.PHONY: orig-src .git-blame-ignore-revs
