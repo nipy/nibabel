@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
+from ...openers import ImageOpener
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...volumeutils import endian_codes
 from .. import dicomreaders as didr
@@ -885,6 +886,17 @@ class TestMultiFrameWrapper(TestCase):
         # only one stack/orientation
         dw = didw.wrapper_from_file(DATA_FILE_XA60_MULTI_ORIENT)
         assert dw.image_shape == (512, 512, 7)
+
+    @dicom_test
+    @needs_nibabel_data('dcm_qa_xa60')
+    def test_data_multi_orient_extract_all(self):
+        with ImageOpener(DATA_FILE_XA60_MULTI_ORIENT) as fobj:
+            dcm_data = pydicom.dcmread(fobj)
+        for keep_group, nslices in enumerate([7, 3, 3]):
+            dw = didw.wrapper_from_data(
+                dcm_data, frame_filters=[didw.FilterMultiOrient(keep_group=keep_group)]
+            )
+            assert dw.image_shape == (512, 512, nslices)
 
     @dicom_test
     @needs_nibabel_data('nitest-dicom')
