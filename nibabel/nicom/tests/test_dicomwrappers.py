@@ -899,6 +899,38 @@ class TestMultiFrameWrapper(TestCase):
             assert dw.image_shape == (512, 512, nslices)
 
     @dicom_test
+    def test_filter_multi_orient_unit(self):
+        iop_a = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+        iop_b = [0.0, 1.0, 0.0, 1.0, 0.0, 0.0]
+
+        class FakeFrame(pydicom.Dataset):
+            def __init__(self, iop=None):
+                super().__init__()
+                if iop is not None:
+                    elem = pydicom.Dataset()
+                    elem.ImageOrientationPatient = iop
+                    self.PlaneOrientationSequence = [elem]
+
+        class FakeWrp:
+            def __init__(self, frames):
+                self.frames = frames
+
+        filt = didw.FilterMultiOrient()
+        # Single orientation -> does not apply
+        assert not filt.applies(FakeWrp([FakeFrame(iop_a), FakeFrame(iop_a)]))
+        # Frame missing PlaneOrientationSequence -> does not apply
+        assert not filt.applies(FakeWrp([FakeFrame(), FakeFrame()]))
+        # Mixed orientations -> applies, keeps first group
+        wrp = FakeWrp([FakeFrame(iop_a), FakeFrame(iop_b)])
+        with pytest.warns(UserWarning, match='Multiple frame orientations'):
+            assert filt.applies(wrp)
+        assert filt.keep(wrp.frames[0])
+        assert not filt.keep(wrp.frames[1])
+        # Out-of-range group index
+        with pytest.raises(didw.WrapperError):
+            didw.FilterMultiOrient(keep_group=5).applies(wrp)
+
+    @dicom_test
     @needs_nibabel_data('nitest-dicom')
     def test_data_unreadable_private_headers(self):
         # Test CT image with unreadable CSA tags
