@@ -622,7 +622,7 @@ class FilterMultiOrient(FrameFilter):
         if None in iops or len(iops) <= 1:
             return False
         if self._keep_group >= len(iops) or self._keep_group < 0:
-            raise WrapperError(f"MultiOrientation group index must be in [0,{len(iops)-1}]")
+            raise WrapperError(f'MultiOrientation group index must be in [0,{len(iops) - 1}]')
         self._selected = list(iops.keys())[self._keep_group]
         if self._implicit:
             warnings.warn(
