@@ -26,6 +26,7 @@ File Formats
    cifti2
    gifti
    freesurfer
+   mif
    minc1
    minc2
    nicom

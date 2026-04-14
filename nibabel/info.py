@@ -14,7 +14,7 @@ relative imports.
 long_description = """
 Read and write access to common neuroimaging file formats, including:
 ANALYZE_ (plain, SPM99, SPM2 and later), GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_,
-MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_ and Philips PAR/REC.
+MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_, Philips PAR/REC and `MRtrix MIF`_.
 In addition, NiBabel also supports FreeSurfer_'s MGH_, geometry, annotation and
 morphometry files, and provides some limited support for DICOM_.
 
@@ -36,6 +36,7 @@ NiBabel's `documentation site`_ and `API reference`_.
     https://en.wikibooks.org/wiki/MINC/Reference/MINC1_File_Format_Reference
 .. _MINC2:
     https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference
+.. _MRtrix MIF: https://mrtrix.readthedocs.io/en/latest/getting_started/image_data.html
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
 .. _NIfTI2: http://nifti.nimh.nih.gov/nifti-2/
 
