@@ -597,7 +597,7 @@ class FilterDwiIso(FrameFilter):
         return frame.MRDiffusionSequence[0].DiffusionDirectionality != 'ISOTROPIC'
 
 
-DEFUALT_FRAME_FILTERS = (FilterMultiStack(), FilterDwiIso())
+DEFAULT_FRAME_FILTERS = (FilterMultiStack(), FilterDwiIso())
 
 
 class MultiframeWrapper(Wrapper):
@@ -668,7 +668,7 @@ class MultiframeWrapper(Wrapper):
             raise WrapperError('SharedFunctionalGroupsSequence is empty.')
         # Apply frame filters one at a time in the order provided
         if frame_filters is None:
-            frame_filters = DEFUALT_FRAME_FILTERS
+            frame_filters = DEFAULT_FRAME_FILTERS
         frame_filters = [filt for filt in frame_filters if filt.applies(self)]
         for filt in frame_filters:
             self.frames = [f for f in self.frames if filt.keep(f)]

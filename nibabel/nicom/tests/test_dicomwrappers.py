@@ -1066,7 +1066,7 @@ class TestMultiFrameWrapper(TestCase):
         # If the units are defined they take precedence over private scaling
         fake_mf.RescaleType = 'mrad'
         assert_array_equal(data * 2 - 1, MFW(fake_mf)._scale_data(data))
-        # A RWV scale factor with defined units takes precdence
+        # A RWV scale factor with defined units takes precedence
         shared = pydicom.Dataset()
         fake_mf.SharedFunctionalGroupsSequence = [shared]
         rwv_map = pydicom.Dataset()

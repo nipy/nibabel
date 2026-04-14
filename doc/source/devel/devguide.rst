@@ -127,7 +127,7 @@ Or in any environment with::
 This will run the tests in several configurations, with multiple sets of
 optional dependencies.
 If you have multiple versions of Python installed in your path, it will
-repeat the process for each version of Python iin our supported range.
+repeat the process for each version of Python in our supported range.
 It may be useful to pick a particular version for rapid development::
 
     tox -e py311-full-x64
