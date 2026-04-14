@@ -630,7 +630,7 @@ def test_truncations():
     hdr = PARRECHeader(gen_info, slice_info)
 
 
-def test__get_uniqe_image_defs():
+def test__get_unique_image_prop():
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS.copy())
     uip = hdr._get_unique_image_prop
     assert uip('image pixel size') == 16

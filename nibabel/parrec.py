@@ -215,7 +215,7 @@ _hdr_key_dict = {
     # Line below added for par / rec version > 4.1
     'Number of label types   <0=no ASL>': ('nr_label_types', int),
     # The following are duplicates of the above fields, but with slightly
-    # different abbreviation, spelling, or capatilization.  Both variants have
+    # different abbreviation, spelling, or capitalization.  Both variants have
     # been observed in the wild in V4.2 PAR files:
     # https://github.com/nipy/nibabel/issues/505
     'Series_data_type': ('series_type',),
@@ -491,7 +491,7 @@ def _truncation_checks(general_info, image_defs, permit_truncated):
 
 
 def one_line(long_str):
-    """Make maybe mutli-line `long_str` into one long line"""
+    """Make maybe multi-line `long_str` into one long line"""
     return ' '.join(line.strip() for line in long_str.splitlines())
 
 

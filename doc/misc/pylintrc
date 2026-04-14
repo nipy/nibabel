@@ -46,7 +46,7 @@ indent-string='    '
 [DESIGN]
 
 # We are capable to follow that many, yes!
-max-branchs = 20
+max-branches = 20
 
 # some base class constructors have quite a few arguments
 max-args = 14

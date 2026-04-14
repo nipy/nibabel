@@ -169,7 +169,7 @@ def test_closest_canonical():
     img = Nifti1Image(arr, aff)
     xyz_img = as_closest_canonical(img)
     assert img is xyz_img
-    # it's still not diagnonal
+    # it's still not diagonal
     with pytest.raises(OrientationError):
         as_closest_canonical(img, True)
 

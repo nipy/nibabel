@@ -112,7 +112,7 @@ class VersionedDatasource(Datasource):
         ----------
         base_path : str
            path to prepend to all relative paths
-        config_filaname : None or str
+        config_filename : None or str
            relative path to configuration file containing version
 
         """

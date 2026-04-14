@@ -104,7 +104,7 @@ For images that are not spectroscopy:
 * Discards images that do not have any of ('MR', 'PT', 'CT') in 'Modality' field.
 * Discards images lacking any of 'StartOfPixelData', 'SamplesperPixel',
   'Rows', 'Columns', 'BitsAllocated', 'BitsStored', 'HighBit',
-  'PixelRespresentation'
+  'PixelRepresentation'
 * Discards images lacking any of 'PixelSpacing', 'ImagePositionPatient',
   'ImageOrientationPatient' - presumably on the basis that SPM cannot
   reconstruct the affine.

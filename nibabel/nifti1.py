@@ -277,7 +277,7 @@ intent_codes = Recoder(
             (),
             'NIFTI_INTENT_TIME_SERIES',
             'NIFTI_INTENT_TIMESERIES',
-        ),  # this mis-spell occurs in the wild
+        ),  # this misspelling occurs in the wild
         (2002, 'node index', (), 'NIFTI_INTENT_NODE_INDEX'),
         (2003, 'rgb vector', (), 'NIFTI_INTENT_RGB_VECTOR'),
         (2004, 'rgba vector', (), 'NIFTI_INTENT_RGBA_VECTOR'),
