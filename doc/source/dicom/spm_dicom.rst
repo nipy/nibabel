@@ -24,7 +24,7 @@ array, one element per (group, element) pair, with fields ``name`` and
 =======================
 
 Reads the given DICOM files into a struct.  It looks like this was
-written by John Ahsburner (JA).  Relevant fixes are:
+written by John Ashburner (JA).  Relevant fixes are:
 
 File opening
 ------------
