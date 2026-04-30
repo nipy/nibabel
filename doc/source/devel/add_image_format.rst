@@ -127,7 +127,7 @@ image class.  See :class:`.PARRECImage` for an example.
 A recipe for writing a new image format
 ***************************************
 
-#. Find one or more examples images;
+#. Find one or more example images;
 #. Put them in ``nibabel/tests/data`` or a data submodule (see
    :doc:`add_test_data`);
 #. Create a file ``nibabel/tests/test_my_format_name_here.py``;
@@ -144,7 +144,7 @@ A recipe for writing a new image format
    your new test file, testing these functions in
    ``test_my_format_name_here.py``.  See :mod:`.parrec` for examples;
 #. When that is working, try sub-classing :class:`.Header`, and working out how
-   to make the ``__init__`` and ``from_fileboj`` methods for that class.  Test
+   to make the ``__init__`` and ``from_fileobj`` methods for that class.  Test
    in ``test_my_format_name_here.py``;
 #. When that is working, try sub-classing :class:`.SpatialImage` and working
    out how to load the file with the ``from_file_map`` class;

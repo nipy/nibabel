@@ -45,7 +45,7 @@ As we will see in the next section, radiological and neurological are
 sometimes used to refer to particular alignments of the voxel input axes to
 scanner RAS+ output axes. If we look at the affine mapping between voxel space
 and scanner RAS+, we may find that moving along the first voxel axis by one
-unit results in a equivalent scanner RAS+ movement that is mainly left to
+unit results in an equivalent scanner RAS+ movement that is mainly left to
 right.  This can happen with a diagonal 3x3 part of the affine mapping to
 scanner RAS+ (see :doc:`coordinate_systems`):
 
@@ -131,7 +131,7 @@ as a mapping between them.
     array value for a given voxel coordinate.  The relationship of the values
     on disk to the coordinate values in the array has no bearing on the fact
     that the voxel axes align to the output axes.  In practice the terms RAS /
-    neurological and LAS / radiogical as applied to voxel layout appear to
+    neurological and LAS / radiological as applied to voxel layout appear to
     refer exclusively to the situation where image arrays are stored in
     "Fortran array layout" on disk.  Imagine an image array of shape $(I, J,
     K)$ with values of length $v$. For an image of 64-bit floating point

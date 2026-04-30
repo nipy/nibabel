@@ -65,7 +65,7 @@ When you are ready to make some changes to the code, you should start a new
 branch.  Branches that are for a collection of related edits are often called
 'feature branches'.
 
-Making an new branch for each set of related changes will make it easier for
+Making a new branch for each set of related changes will make it easier for
 someone reviewing your branch to see what you are doing.
 
 Choose an informative name for the branch to remind yourself and the rest of us
@@ -118,7 +118,7 @@ In more detail
 #. See which files have changed with ``git status`` (see `git status`_).
    You'll see a listing like this one::
 
-     # On branch ny-new-feature
+     # On branch my-new-feature
      # Changed but not updated:
      #   (use "git add <file>..." to update what will be committed)
      #   (use "git checkout -- <file>..." to discard changes in working directory)
@@ -134,7 +134,7 @@ In more detail
 #. Check what the actual changes are with ``git diff`` (`git diff`_).
 #. Add any new files to version control ``git add new_file_name`` (see
    `git add`_).
-#. To commit all modified files into the local copy of your repo,, do
+#. To commit all modified files into the local copy of your repo, do
    ``git commit -am 'A commit message'``.  Note the ``-am`` options to
    ``commit``. The ``m`` flag just signals that you're going to type a
    message on the command line.  The ``a`` flag |emdash| you can just take on
@@ -204,7 +204,7 @@ collaborator:
 
 Now all those people can do::
 
-    git clone git@githhub.com:your-user-name/nibabel.git
+    git clone git@github.com:your-user-name/nibabel.git
 
 Remember that links starting with ``git@`` use the ssh protocol and are
 read-write; links starting with ``git://`` are read-only.

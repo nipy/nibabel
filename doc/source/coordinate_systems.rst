@@ -18,7 +18,7 @@ reference space, and the reference spaces that Nibabel uses.
 Introducing Someone
 *******************
 
-We have scanned someone called "Someone", and we have a two MRI images of
+We have scanned someone called "Someone", and we have two MRI images of
 their brain, a single EPI volume, and a structural scan.  In general we never
 use the person's name in the image filenames, but we make an
 exception in this case:
@@ -251,14 +251,14 @@ We are using the term "RAS" to mean that the axes are (in terms of the
 subject): left to Right; posterior to Anterior; and inferior to Superior,
 respectively.  Although it is common to call this convention "RAS", it is not
 quite universal, because some use "R", "A" and "S" in "RAS" to mean that the
-axes *starts* on the right, anterior, superior of the subject, rather than
+axes *start* on the right, anterior, superior of the subject, rather than
 *ending* on the right, anterior, superior.  In other words, they would use
 "RAS" to refer to a coordinate system we would call "LPI".  To be safe, we'll
 call our interpretation of the RAS convention "RAS+", meaning that Right,
 Anterior, Superior are all positive values on these axes.
 
 Some people also use "right" to mean the right hand side when an observer
-looks at the front of the scanner, from the foot the scanner bed.
+looks at the front of the scanner, from the foot of the scanner bed.
 Unfortunately, this means that you have to read coordinate system definitions
 carefully if you are not familiar with a particular convention. We nibabel /
 nipy folks agree with most of our brain imaging friends and many of our
@@ -932,7 +932,7 @@ brain.  The origin is the AC point, but the Y axis passes through the point
 that the posterior commissure crosses the midline (the PC point), giving a
 slightly different trajectory from the MNI Y axis.  Like the MNI RAS+ space,
 the Talairach axes also run left to right, posterior to anterior and inferior
-superior, so this is the Talairach RAS+ space.
+to superior, so this is the Talairach RAS+ space.
 
 There are conventions other than RAS+ for the reference space.  For example,
 DICOM files map input voxel coordinates to coordinates in scanner LPS+ space.

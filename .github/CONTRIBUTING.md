@@ -4,7 +4,7 @@ Welcome to the NiBabel repository!
 We're excited you're here and want to contribute.
 
 Please see the [NiBabel Developer Guidelines][link_devguide] on our
-on our [documentation website][link_docs].
+[documentation website][link_docs].
 
 These guidelines are designed to make it as easy as possible to get involved.
 If you have any questions that aren't discussed in our documentation, or it's

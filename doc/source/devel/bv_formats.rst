@@ -23,7 +23,7 @@ See :
 BV internal format axes
 ***********************
 
-BV files have a internal format that has axes named `X`, `Y` and `Z`.  Quoting
+BV files have an internal format that has axes named `X`, `Y` and `Z`.  Quoting
 from the `VMR format definition`_::
 
     BV X front -> back = Y in Tal space
