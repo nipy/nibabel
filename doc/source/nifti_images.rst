@@ -182,7 +182,7 @@ Unlike other formats, the NIfTI header format can specify this affine in one
 of three ways |--| the *sform* affine, the *qform* affine and the *fall-back
 header* affine.
 
-Nibabel uses an :ref:`algorithm <choosing-image-affine>` to chose which of
+Nibabel uses an :ref:`algorithm <choosing-image-affine>` to choose which of
 these three it will use for the overall image ``affine``.
 
 The sform affine
@@ -306,7 +306,7 @@ Choosing the image affine
 =========================
 
 Given there are three possible affines defined in the NIfTI header, nibabel
-has to chose which of these to use for the image ``affine``.
+has to choose which of these to use for the image ``affine``.
 
 The algorithm is defined in the ``get_best_affine()`` method.  It is:
 
@@ -393,7 +393,7 @@ The output data from a NIfTI image comes from:
 #. Reshaping to the output image shape;
 #. Multiplying the result by the header ``scl_slope`` value, if
    both of ``scl_slope`` and ``scl_inter`` are defined;
-#. Adding the value header ``scl_inter`` value to the result, if both of
+#. Adding the header ``scl_inter`` value to the result, if both of
    ``scl_slope`` and ``scl_inter`` are defined;
 
 'Defined' means, the value is not NaN (not a number).

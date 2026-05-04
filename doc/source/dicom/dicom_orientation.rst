@@ -17,7 +17,7 @@ definitions`_ (2009):
    patient. The y-axis is increasing to the posterior side of the
    patient. The z-axis is increasing toward the head of the patient.
 
-(we'll ignore the quadupeds for now).
+(we'll ignore the quadrupeds for now).
 
 In a way it's funny to call this the 'patient-based' coordinate system.
 'Doctor-based coordinate system' is a better name.  Think of a doctor
@@ -365,7 +365,7 @@ affine for this slice from the calculations above, for a single slice
 Now let's say we have another slice $j$ from the same volume.  It will
 have the same affine, except that the 'ImagePositionPatient' field will
 change to reflect the different position of this slice in space. Let us
-say that there a translation of $d$ slices between $i$ and $j$.  If
+say that there is a translation of $d$ slices between $i$ and $j$.  If
 $A_i$ ($A$ for slice $i$) is $A_{single}$ then $A_j$ for $j$ is given
 by:
 

@@ -183,7 +183,7 @@ Images with an array proxy object like this one are called *proxy images*
 because the image data is not yet an array, but the array proxy points to
 (proxies) the array data on disk.
 
-You can test if the image has a array proxy like this:
+You can test if the image has an array proxy like this:
 
 >>> nib.is_proxy(img.dataobj)
 True

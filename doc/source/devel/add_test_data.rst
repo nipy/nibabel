@@ -59,7 +59,7 @@ need to be distributed with nibabel.
 Adding the file to ``nibabel/tests/data``
 *****************************************
 
-If the file is less then about 50K compressed, and the license is open, then
+If the file is less than about 50K compressed, and the license is open, then
 you might want to commit the file under ``nibabel/tests/data``.
 
 Put the license for any new files in the COPYING file at the top level of the

@@ -102,7 +102,7 @@ Release checklist
 
 * Set up maintenance / development branches
 
-  If this is this is a full release you need to set up two branches, one for
+  If this is a full release you need to set up two branches, one for
   further substantial development (often called 'trunk') and another for
   maintenance releases.
 

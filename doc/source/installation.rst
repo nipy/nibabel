@@ -32,7 +32,7 @@ Installer and packages
 pip and the Python package index
 --------------------------------
 
-If you are not using a Linux package manager, then best way to install NiBabel
+If you are not using a Linux package manager, then the best way to install NiBabel
 is via pip_.  If you don't have pip already, follow the `pip install
 instructions`_.
 
@@ -131,7 +131,7 @@ module to see if everything is fine.  It should look something like this::
 
 To run the nibabel test suite, from the terminal run
 ``pytest --pyargs nibabel`` or
-``python -c "import nibabel; nibabel.test()``.
+``python -c "import nibabel; nibabel.test()"``.
 
 To run an extended test suite that validates ``nibabel`` for long-running and
 resource-intensive cases, please see :ref:`advanced_testing`.

@@ -131,7 +131,6 @@ contributed code and discussion (in rough order of appearance):
 * Syam Gadde
 * Robert D. Vincent
 * Ivan Gonzalez
-* Demian Wassermann
 * Paul McCarthy
 * Fernando Pérez García
 * Venky Reddy
