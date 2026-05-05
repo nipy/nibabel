@@ -114,7 +114,7 @@ def test_filebased_header():
     assert hdr2.a_list == hdr.a_list
     hdr2.a_list[0] = 42
     assert hdr2.a_list != hdr.a_list
-    # Default header input to from_heder gives new empty header
+    # Default header input to from_header gives new empty header
     hdr3 = H.from_header()
     assert isinstance(hdr3, H)
     assert hdr3.a_list == []
