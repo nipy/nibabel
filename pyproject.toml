@@ -29,7 +29,7 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering",
 ]
-# Version from setuptools_scm
+# Version from hatch-vcs
 dynamic = ["version"]
 
 [project.urls]
