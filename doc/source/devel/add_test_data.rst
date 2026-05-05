@@ -108,9 +108,8 @@ like::
 Using submodules for tests
 ==========================
 
-Tests run via `nibabel on travis`_ start with an automatic checkout of all
-submodules in the project, so all test data submodules get checked out by
-default.
+Tests run on GitHub start with an automatic checkout of all submodules
+in the project, so all test data submodules get checked out by default.
 
 If you are running the tests locally, you may well want to do::
 
@@ -122,7 +121,7 @@ repositories.
 How much data should go in a single submodule?
 ==============================================
 
-The limiting factor is how long it takes travis-ci_ to checkout the data for
+The limiting factor is how long it takes GitHub to checkout the data for
 the tests.  Up to a hundred megabytes in one repository should be OK.  The joy
 of submodules is we can always drop a submodule, split the repository into two
 and add only one back, so you aren't committing us to anything awful if you
