@@ -33,8 +33,8 @@ classifiers = [
 dynamic = ["version"]
 
 [project.urls]
-"Homepage" = "https://nipy.org/nibabel"
-"Development" = "https://github.com/nipy/nibabel"
+homepage = "https://nipy.org/nibabel"
+source = "https://github.com/nipy/nibabel"
 
 [project.scripts]
 nib-conform = "nibabel.cmdline.conform:main"
