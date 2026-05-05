@@ -79,9 +79,8 @@ Release checklist
 
     tox
 
-* Make sure you have travis-ci_ building set up for your own repo. Make a new
-  ``release-check`` (or similar) branch, and push the code in its current
-  state to a branch that will build, e.g::
+* Make a new ``release-check`` (or similar) branch, and push the code in
+  its current state to a branch that will build, e.g::
 
     git branch -D release-check # in case branch already exists
     git co -b release-check

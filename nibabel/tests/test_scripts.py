@@ -204,7 +204,7 @@ def test_help():
         assert_re_in(f'.*{cmd}', stdout)
         assert_re_in('.*[uU]sage', stdout)
         # Some third party modules might like to announce some Deprecation
-        # etc warnings, see e.g. https://travis-ci.org/nipy/nibabel/jobs/370353602
+        # etc warnings
         if 'warning' not in stderr.lower():
             assert stderr == ''
 
