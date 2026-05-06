@@ -22,3 +22,6 @@
 [submodule "nibabel-data/dcm_qa_xa30"]
 	path = nibabel-data/dcm_qa_xa30
 	url = https://github.com/neurolabusc/dcm_qa_xa30.git
+[submodule "nibabel-data/dcm_qa_xa60"]
+	path = nibabel-data/dcm_qa_xa60
+	url = https://github.com/neurolabusc/dcm_qa_xa60.git

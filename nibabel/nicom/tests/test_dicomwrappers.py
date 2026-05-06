@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
+from ...openers import ImageOpener
 from ...tests.nibabel_data import get_nibabel_data, needs_nibabel_data
 from ...volumeutils import endian_codes
 from .. import dicomreaders as didr
@@ -38,6 +39,11 @@ DATA_FILE_SIEMENS_TRACE = pjoin(
     get_nibabel_data(),
     'dcm_qa_xa30',
     'In/20_DWI_dir80_AP/0001_1.3.12.2.1107.5.2.43.67093.2022071112140611403312307.dcm',
+)
+DATA_FILE_XA60_MULTI_ORIENT = pjoin(
+    get_nibabel_data(),
+    'dcm_qa_xa60',
+    'In/XA60/DICOM/24100413/39280000/75739321',
 )
 
 # This affine from our converted image was shown to match our image spatially
@@ -872,6 +878,57 @@ class TestMultiFrameWrapper(TestCase):
         # Test that a standalone trace volume is found and not dropped
         dw = didw.wrapper_from_file(DATA_FILE_SIEMENS_TRACE)
         assert dw.image_shape == (72, 72, 39)
+
+    @dicom_test
+    @needs_nibabel_data('dcm_qa_xa60')
+    def test_data_multi_orient_same_stack(self):
+        # Test that a file with 3 orientations sharing the same StackID returns
+        # only one stack/orientation
+        dw = didw.wrapper_from_file(DATA_FILE_XA60_MULTI_ORIENT)
+        assert dw.image_shape == (512, 512, 7)
+
+    @dicom_test
+    @needs_nibabel_data('dcm_qa_xa60')
+    def test_data_multi_orient_extract_all(self):
+        with ImageOpener(DATA_FILE_XA60_MULTI_ORIENT) as fobj:
+            dcm_data = pydicom.dcmread(fobj)
+        for keep_group, nslices in enumerate([7, 3, 3]):
+            dw = didw.wrapper_from_data(
+                dcm_data, frame_filters=[didw.FilterMultiOrient(keep_group=keep_group)]
+            )
+            assert dw.image_shape == (512, 512, nslices)
+
+    @dicom_test
+    def test_filter_multi_orient_unit(self):
+        iop_a = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+        iop_b = [0.0, 1.0, 0.0, 1.0, 0.0, 0.0]
+
+        class FakeFrame(pydicom.Dataset):
+            def __init__(self, iop=None):
+                super().__init__()
+                if iop is not None:
+                    elem = pydicom.Dataset()
+                    elem.ImageOrientationPatient = iop
+                    self.PlaneOrientationSequence = [elem]
+
+        class FakeWrp:
+            def __init__(self, frames):
+                self.frames = frames
+
+        filt = didw.FilterMultiOrient()
+        # Single orientation -> does not apply
+        assert not filt.applies(FakeWrp([FakeFrame(iop_a), FakeFrame(iop_a)]))
+        # Frame missing PlaneOrientationSequence -> does not apply
+        assert not filt.applies(FakeWrp([FakeFrame(), FakeFrame()]))
+        # Mixed orientations -> applies, keeps first group
+        wrp = FakeWrp([FakeFrame(iop_a), FakeFrame(iop_b)])
+        with pytest.warns(UserWarning, match='Multiple frame orientations'):
+            assert filt.applies(wrp)
+        assert filt.keep(wrp.frames[0])
+        assert not filt.keep(wrp.frames[1])
+        # Out-of-range group index
+        with pytest.raises(didw.WrapperError):
+            didw.FilterMultiOrient(keep_group=5).applies(wrp)
 
     @dicom_test
     @needs_nibabel_data('nitest-dicom')
