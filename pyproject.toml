@@ -29,12 +29,12 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering",
 ]
-# Version from setuptools_scm
+# Version from hatch-vcs
 dynamic = ["version"]
 
 [project.urls]
-"Homepage" = "https://nipy.org/nibabel"
-"Development" = "https://github.com/nipy/nibabel"
+homepage = "https://nipy.org/nibabel"
+source = "https://github.com/nipy/nibabel"
 
 [project.scripts]
 nib-conform = "nibabel.cmdline.conform:main"
