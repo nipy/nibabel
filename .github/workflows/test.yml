@@ -113,67 +113,34 @@ jobs:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest', 'macos-15-intel', 'ubuntu-24.04-arm']
         # Cover oldest and newest supported on all arches
-        python-version:
-          - "3.10"
-          - "3.14"
-          - "3.14t"
+        python-version: ['3.10', '3.14', '3.14t']
         architecture: ['x86', 'x64', 'arm64']
         dependencies: ['full']
         include:
           # Basic dependencies only
-          - os: ubuntu-latest
-            python-version: "3.10"
-            architecture: 'x64'
-            dependencies: 'none'
-          # Absolute minimum dependencies
-          - os: ubuntu-latest
-            python-version: "3.10"
-            architecture: 'x64'
-            dependencies: 'min'
-          - os: ubuntu-latest
-            python-version: "3.11"
-            architecture: 'x64'
-            dependencies: 'min'
+          - {python-version: '3.10',  dependencies: none, os: ubuntu-latest, architecture: x64}
+          # Absolute minimum dependencies on old Python
+          - {python-version: '3.10',  dependencies: min,  os: ubuntu-latest, architecture: x64}
+          - {python-version: '3.11',  dependencies: min,  os: ubuntu-latest, architecture: x64}
           # Full Python span
-          - os: ubuntu-latest
-            python-version: "3.11"
-            architecture: 'x64'
-            dependencies: 'full'
-          - os: ubuntu-latest
-            python-version: "3.12"
-            architecture: 'x64'
-            dependencies: 'full'
-          - os: ubuntu-latest
-            python-version: "3.13"
-            architecture: 'x64'
-            dependencies: 'full'
-          - os: ubuntu-latest
-            python-version: "3.13t"
-            architecture: 'x64'
-            dependencies: 'full'
+          - {python-version: '3.11',  dependencies: full, os: ubuntu-latest, architecture: x64}
+          - {python-version: '3.12',  dependencies: full, os: ubuntu-latest, architecture: x64}
+          - {python-version: '3.13',  dependencies: full, os: ubuntu-latest, architecture: x64}
+          - {python-version: '3.13t', dependencies: full, os: ubuntu-latest, architecture: x64}
         exclude:
           ## Unavailable architectures
           # x86 is only available for Windows
-          - os: ubuntu-latest
-            architecture: x86
-          - os: ubuntu-24.04-arm
-            architecture: x86
-          - os: macos-latest
-            architecture: x86
-          - os: macos-15-intel
-            architecture: x86
-          # arm64 is only available for macos-latest and ubuntu-*-arm64
-          - os: ubuntu-latest
-            architecture: arm64
-          - os: windows-latest
-            architecture: arm64
-          - os: macos-15-intel
-            architecture: arm64
-          # x64 is not available for arm64 platforms
-          - os: macos-latest
-            architecture: x64
-          - os: ubuntu-24.04-arm
-            architecture: x64
+          - {architecture: x86, os: ubuntu-latest}
+          - {architecture: x86, os: ubuntu-24.04-arm}
+          - {architecture: x86, os: macos-latest}
+          - {architecture: x86, os: macos-15-intel}
+          # x64 is not available for arm64 runners
+          - {architecture: x64, os: macos-latest}
+          - {architecture: x64, os: ubuntu-24.04-arm}
+          # arm64 is only available for macos-latest and ubuntu-*-arm
+          - {architecture: arm64, os: ubuntu-latest}
+          - {architecture: arm64, os: windows-latest}
+          - {architecture: arm64, os: macos-15-intel}
 
     env:
       DEPENDS: ${{ matrix.dependencies }}
