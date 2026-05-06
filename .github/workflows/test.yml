@@ -111,7 +111,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-latest', 'windows-latest', 'macos-latest', 'macos-15-intel', 'ubuntu-24.04-arm', 'ubuntu-22.04-arm']
+        os: ['ubuntu-latest', 'windows-latest', 'macos-latest', 'macos-15-intel', 'ubuntu-24.04-arm']
         python-version:
           - "3.10"
           - "3.11"
@@ -167,31 +167,26 @@ jobs:
             python-version: "3.13t"
 
           ## Unavailable architectures
-          # x86 is available for Windows and Mac
+          # x86 is only available for Windows
           - os: ubuntu-latest
+            architecture: x86
+          - os: ubuntu-24.04-arm
             architecture: x86
           - os: macos-latest
             architecture: x86
           - os: macos-15-intel
             architecture: x86
-          # arm64 is available for macos-14+
+          # arm64 is only available for macos-latest and ubuntu-*-arm64
           - os: ubuntu-latest
             architecture: arm64
           - os: windows-latest
             architecture: arm64
           - os: macos-15-intel
             architecture: arm64
-          # x64 is not available for macos-15
+          # x64 is not available for arm64 platforms
           - os: macos-latest
             architecture: x64
-          # ubuntu-<version>-arm only available in arm64 architectures
           - os: ubuntu-24.04-arm
-            architecture: x86
-          - os: ubuntu-24.04-arm
-            architecture: x64
-          - os: ubuntu-22.04-arm
-            architecture: x86
-          - os: ubuntu-22.04-arm
             architecture: x64
 
     env:
