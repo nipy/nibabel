@@ -82,7 +82,7 @@ class DeterministicGzipFile(gzip.GzipFile):
         self,
         filename: str | None = None,
         mode: Mode | None = None,
-        compresslevel: int = 9,
+        compresslevel: int | None = None,
         fileobj: io.FileIO | None = None,
         mtime: int = 0,
     ):
@@ -99,19 +99,23 @@ class DeterministicGzipFile(gzip.GzipFile):
                 raise TypeError('Must define either fileobj or filename')
             # Cast because GzipFile.myfileobj has type io.FileIO while open returns ty.IO
             fileobj = self.myfileobj = ty.cast('io.FileIO', open(filename, modestr))
+        # Only forward compresslevel when explicitly set; None defers to Python's runtime default
+        compress_kwargs: dict[str, int] = {}
+        if compresslevel is not None:
+            compress_kwargs['compresslevel'] = compresslevel
         super().__init__(
             filename='',
             mode=modestr,
-            compresslevel=compresslevel,
             fileobj=fileobj,
             mtime=mtime,
+            **compress_kwargs,
         )
 
 
 def gzip_open(
     filename: str,
     mode: Mode = 'rb',
-    compresslevel: int = 9,
+    compresslevel: int | None = None,
     mtime: int = 0,
     keep_open: bool = False,
 ) -> gzip.GzipFile:
@@ -130,8 +134,8 @@ def gzip_open(
         Path of file to open.
     mode : str
         Opening mode - either ``rb`` or ``wb``.
-    compresslevel: int
-        Compression level when writing.
+    compresslevel: int | None
+        Compression level when writing. If None, the running Python's default is used.
     mtime: int
         Modification time used when writing a file - passed to the
         ``DetemrinisticGzipFile``. Ignored when reading.
