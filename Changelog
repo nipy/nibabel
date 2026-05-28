@@ -25,6 +25,17 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+Next release
+============
+
+New features
+------------
+* Add read/write support for the MRtrix Image Format (MIF / .mif, .mif.gz),
+  including lazy loading via ``MifArrayProxy``, intensity scaling, arbitrary
+  axis layouts, gzip/bzip2/zstd compression, and serialization via
+  ``to_bytes()`` / ``from_bytes()``. ``nibabel.load()`` auto-detects ``.mif``
+  files. (pr/TODO) (Taylor Salo)
+
 5.4.2 (Wednesday 11 March 2026)
 ===============================
 
