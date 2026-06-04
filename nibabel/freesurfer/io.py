@@ -57,7 +57,7 @@ def _read_volume_info(fobj):
     head = np.fromfile(fobj, '>i4', 1)
     if not np.array_equal(head, [20]):  # Read two bytes more
         head = np.concatenate([head, np.fromfile(fobj, '>i4', 2)])
-        if not np.array_equal(head, [2, 0, 20]):
+        if not (np.array_equal(head, [2, 0, 20]) or np.array_equal(head, [2, 1, 20])):
             warnings.warn('Unknown extension code.')
             return volume_info
 
@@ -604,6 +604,7 @@ def _serialize_volume_info(volume_info):
             if not (
                 np.array_equal(volume_info[key], [20])
                 or np.array_equal(volume_info[key], [2, 0, 20])
+                or np.array_equal(volume_info[key], [2, 1, 20])
             ):
                 warnings.warn('Unknown extension code.')
             strings.append(np.array(volume_info[key], dtype='>i4').tobytes())
