@@ -1808,7 +1808,7 @@ wheels = [
 
 [[package]]
 name = "pydata-sphinx-theme"
-version = "0.17.1"
+version = "0.19.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "accessible-pygments" },
@@ -1822,9 +1822,9 @@ dependencies = [
     { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ce/f7/c74c7100a7f4c0f77b5dcacb7dfdb8fee774fb70e487dd97acba2b930774/pydata_sphinx_theme-0.17.1.tar.gz", hash = "sha256:2cfc1d926c753c77039b7ee53f0ccebcbee5e81f0db61432b01cbb10ad7fd0af", size = 4991415, upload-time = "2026-04-21T13:00:34.263Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/39/7e/e3defb93f30557ae825a3b3fbc2c6728301e5e9505a85e00d8503345c42c/pydata_sphinx_theme-0.19.0.tar.gz", hash = "sha256:148ba092bd6937b3321385dc482cc69a29ad2ede36547b4f010ade782bc6a062", size = 5004933, upload-time = "2026-06-15T09:31:02.268Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/bc/2cb8c78300ce1ace4eeac3b3522218cea2c2053bfa6b4e32cc972a477f9a/pydata_sphinx_theme-0.17.1-py3-none-any.whl", hash = "sha256:320b022d7808bdf5920d9a28e573f27aace9b23e1af6ca103eecc752411df492", size = 6823346, upload-time = "2026-04-21T13:00:31.978Z" },
+    { url = "https://files.pythonhosted.org/packages/54/77/bdb5a4c0e8e33c08f31fd175a5af0bc5e29f1b43ffa9e963f4c4f9bfbc97/pydata_sphinx_theme-0.19.0-py3-none-any.whl", hash = "sha256:5d7dfe3beb0facc88b5d78ff4a4c948f214cc0e03aae27e7fc58286e963b588b", size = 6201132, upload-time = "2026-06-15T09:30:59.966Z" },
 ]
 
 [[package]]
@@ -1869,7 +1869,7 @@ wheels = [
 
 [[package]]
 name = "pytest"
-version = "9.0.3"
+version = "9.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
@@ -1880,9 +1880,9 @@ dependencies = [
     { name = "pygments" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7d/0d/549bd94f1a0a402dc8cf64563a117c0f3765662e2e668477624baeec44d5/pytest-9.0.3.tar.gz", hash = "sha256:b86ada508af81d19edeb213c681b1d48246c1a91d304c6c81a427674c17eb91c", size = 1572165, upload-time = "2026-04-07T17:16:18.027Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/0e/b5858858d74958632c49b72cb25a3976ff9f632397626715be71c89d3971/pytest-9.1.0.tar.gz", hash = "sha256:41dd9148c08072446394cefd3d79701701335a9f4cae69ba92e39f6c7f5c061c", size = 1634181, upload-time = "2026-06-13T18:52:45.983Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d4/24/a372aaf5c9b7208e7112038812994107bc65a84cd00e0354a88c2c77a617/pytest-9.0.3-py3-none-any.whl", hash = "sha256:2c5efc453d45394fdd706ade797c0a81091eccd1d6e4bccfcd476e2b8e0ab5d9", size = 375249, upload-time = "2026-04-07T17:16:16.13Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/5a/ba30a81239b909821b3153e303e7def45178bf353da4f72380e6c5e8793b/pytest-9.1.0-py3-none-any.whl", hash = "sha256:8ebb0e7888bdf2bdfc602ec51f8f62d50200af37356c74e503c79a94f5c81f32", size = 386453, upload-time = "2026-06-13T18:52:44.045Z" },
 ]
 
 [[package]]
@@ -1926,14 +1926,14 @@ wheels = [
 
 [[package]]
 name = "pytest-run-parallel"
-version = "0.8.2"
+version = "0.9.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ff/91/14b1403b47f595d360af67624ee50eae2129f04f56e354ce6c04dbda9d93/pytest_run_parallel-0.8.2.tar.gz", hash = "sha256:ccc625bb79b3759a8c280a635a2332371af183020289c9215d04631b55ecfe3e", size = 66369, upload-time = "2026-01-14T09:55:33.797Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e9/c2/e94d5db442c975425ec7da0f66d29e191371a3aad4f4d9872bfeaf506cf7/pytest_run_parallel-0.9.1.tar.gz", hash = "sha256:9972ad8e66340a83819abae9cb3cefd7b3ca7b69b884d19521137767c6a69b58", size = 66001, upload-time = "2026-06-03T20:14:11.678Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ae/ae/48c9c65807ecdfdd47abe8de308d805e2f3fd782838a0a54ed5505dae627/pytest_run_parallel-0.8.2-py3-none-any.whl", hash = "sha256:2a61aba89f56013859ca5c1efb660755bb6b0349ccfd1dbbef27a94b8c04fe4b", size = 19242, upload-time = "2026-01-14T09:55:32.742Z" },
+    { url = "https://files.pythonhosted.org/packages/19/88/b09e7e1be1847e61f0602fe691cefb3363dc45bb08564568999a23e484c4/pytest_run_parallel-0.9.1-py3-none-any.whl", hash = "sha256:623d1fc7f7a2bec5487addf791f559e7814de5b135c43434e1740fd63eff3c7f", size = 19506, upload-time = "2026-06-03T20:14:10.328Z" },
 ]
 
 [[package]]
@@ -2497,7 +2497,7 @@ wheels = [
 
 [[package]]
 name = "tox"
-version = "4.54.0"
+version = "4.55.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
@@ -2513,9 +2513,9 @@ dependencies = [
     { name = "typing-extensions", marker = "python_full_version < '3.11'" },
     { name = "virtualenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/17/2c/7ca5edb5ecd6bcc5cc926fe87e62a84dcd3cbd03a32f9d0bee98d2bee7cf/tox-4.54.0.tar.gz", hash = "sha256:21e36fd8256590379620848d0b03b52f4d541b65b749de1a17c3e616978dad58", size = 279256, upload-time = "2026-05-12T19:13:05.937Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/79/5b/4f09156a3f7bf3c4fa23212717f097c59126d81e2c557e6fd872a62db38a/tox-4.55.1.tar.gz", hash = "sha256:0678fbf26dd5b559b1ef128fa4388325920219322ebc8cc5f3497627c00f4472", size = 280676, upload-time = "2026-06-03T20:01:03.487Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/18/20cf56a76c5d6117547179db9b5d31cc56e3e90507d1b0b748da74aa95c5/tox-4.54.0-py3-none-any.whl", hash = "sha256:a2d7c1177242ae9c3d9e404039e9f945ce16a3e5dfc66972c643e27d7e764f4b", size = 214527, upload-time = "2026-05-12T19:13:04.334Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/fd/394f00f3d3e23d87eb7b20276d88fe835e48780d3eb30e6f362428bb80c8/tox-4.55.1-py3-none-any.whl", hash = "sha256:e2084be6dfdef96ba1bed4948e6a1f73613d6952e1477be5dca45653d4c053c8", size = 215360, upload-time = "2026-06-03T20:01:01.967Z" },
 ]
 
 [[package]]
