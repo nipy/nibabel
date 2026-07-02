@@ -77,7 +77,9 @@ class TestEcatHeader(tws._TestWrapStructBase):
         # patient_birth_date is a time_t (seconds since the Unix epoch) and
         # must be signed so that pre-1970 birth dates survive as negative
         # values rather than wrapping to a far-future unsigned value (gh-1434).
-        assert np.issubdtype(self.header_class.template_dtype['patient_birth_date'], np.signedinteger)
+        assert np.issubdtype(
+            self.header_class.template_dtype['patient_birth_date'], np.signedinteger
+        )
         hdr = self.header_class()
         # 19 Dec 1915, i.e. -1704153600 seconds from the epoch
         hdr['patient_birth_date'] = -1704153600
