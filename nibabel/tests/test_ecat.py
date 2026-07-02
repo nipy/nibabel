@@ -73,6 +73,16 @@ class TestEcatHeader(tws._TestWrapStructBase):
         hdr['num_frames'] = 2
         assert hdr['num_frames'] == 2
 
+    def test_patient_birth_date_signed(self):
+        # patient_birth_date is a time_t (seconds since the Unix epoch) and
+        # must be signed so that pre-1970 birth dates survive as negative
+        # values rather than wrapping to a far-future unsigned value (gh-1434).
+        assert np.issubdtype(self.header_class.template_dtype['patient_birth_date'], np.signedinteger)
+        hdr = self.header_class()
+        # 19 Dec 1915, i.e. -1704153600 seconds from the epoch
+        hdr['patient_birth_date'] = -1704153600
+        assert hdr['patient_birth_date'] == -1704153600
+
     def test_from_eg_file(self):
         # Example header is big-endian
         with Opener(self.example_file) as fileobj:
