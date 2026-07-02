@@ -90,7 +90,9 @@ main_header_dtd = [
     ('patient_age', np.float32),
     ('patient_height', np.float32),
     ('patient_weight', np.float32),
-    ('patient_birth_date', np.uint32),
+    # time_t (seconds since the Unix epoch); signed so that birth dates
+    # before 1970 are representable as negative values (see gh-1434)
+    ('patient_birth_date', np.int32),
     ('physician_name', '32S'),
     ('operator_name', '32S'),
     ('study_description', '32S'),
