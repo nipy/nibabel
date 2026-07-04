@@ -4,9 +4,12 @@ from collections import OrderedDict
 from os.path import dirname
 from os.path import join as pjoin
 
+import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from .. import ascconv
+from .. import ascconv, csareader
+from . import dicom_test
+from .test_dicomwrappers import DATA
 
 DATA_PATH = pjoin(dirname(__file__), 'data')
 ASCCONV_INPUT = pjoin(DATA_PATH, 'ascconv_sample.txt')
@@ -65,3 +68,40 @@ def test_ascconv_w_attrs():
     assert attrs['version'] == '41340006'
     assert attrs['converter'] == '%MEASCONST%/ConverterList/Prot_Converter.txt'
     assert ascconv_dict['test'] == 'hello'
+
+
+def test_ascconv_integer_attributes():
+    # Newer Siemens protocols index some lists with an integer attribute
+    # (``sComment.0``) where older ones use a subscript (``sComment[0]``)
+    in_str = (
+        '### ASCCONV BEGIN ###\n'
+        "sDiffusion.sFreeDiffusionData.sComment.0             = 0x55    # 'U'\n"
+        "sDiffusion.sFreeDiffusionData.sComment.1             = 0x73    # 's'\n"
+        'sDiffusion.dThickness                                = -8.109375\n'
+        'sDiffusion.tName                                     = "a.1 = b"\n'
+        '### ASCCONV END ###'
+    )
+    ascconv_dict, _ = ascconv.parse_ascconv(in_str, '"')
+    diffusion = ascconv_dict['sDiffusion']
+    assert diffusion['sFreeDiffusionData']['sComment'] == [0x55, 0x73]
+    # Values to the right of the assignment are left alone
+    assert diffusion['dThickness'] == -8.109375
+    assert diffusion['tName'] == 'a.1 = b'
+
+
+@dicom_test
+def test_ascconv_from_csa_header():
+    # The ``MrPhoenixProtocol`` element of the CSA series header holds an
+    # XProtocol preamble before the ASCCONV section
+    csa_header = csareader.get_csa_header(DATA, 'series')
+    protocol = csa_header['tags']['MrPhoenixProtocol']['items'][0]
+    assert not protocol.startswith('### ASCCONV BEGIN')
+    with open(ASCCONV_INPUT) as fobj:
+        expected = ascconv.parse_ascconv(fobj.read(), str_delim='""')
+    assert ascconv.parse_ascconv(protocol, str_delim='""') == expected
+
+
+def test_ascconv_no_section():
+    # Input with no ASCCONV section used to fail with an AttributeError
+    with pytest.raises(ascconv.AscconvParseError):
+        ascconv.parse_ascconv('not an ascconv block', '"')
