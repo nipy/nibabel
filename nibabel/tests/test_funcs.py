@@ -14,7 +14,7 @@ from numpy.testing import assert_array_equal
 
 from ..analyze import AnalyzeImage
 from ..funcs import OrientationError, as_closest_canonical, concat_images
-from ..loadsave import save
+from ..loadsave import load, save
 from ..nifti1 import Nifti1Image
 from ..tmpdirs import InTemporaryDirectory
 
@@ -192,3 +192,24 @@ def test_closest_canonical():
     img.header.set_dim_info(None, None, 2)
     xyz_img = as_closest_canonical(img)
     assert xyz_img.header.get_dim_info() == (None, None, 1)
+
+
+def test_concat_integer_roundtrip():
+    # Regression test for gh-986: concatenating integer images with the default
+    # ``axis=None`` must preserve the input dtype rather than upcasting to float64,
+    # so the saved-and-reloaded data equals the in-memory data instead of being
+    # quantized back to the integer storage dtype on save.
+    arr0 = np.arange(24, dtype=np.uint16).reshape(2, 3, 4)
+    arr1 = arr0 + 1000
+    img0 = Nifti1Image(arr0, np.eye(4))
+    img1 = Nifti1Image(arr1, np.eye(4))
+
+    concat = concat_images([img0, img1])
+    assert concat.get_data_dtype() == np.dtype(np.uint16)
+    in_memory = np.asarray(concat.dataobj)
+    assert in_memory.dtype == np.uint16
+
+    with InTemporaryDirectory():
+        save(concat, 'concat.nii')
+        reloaded = np.asarray(load('concat.nii').dataobj)
+    assert_array_equal(in_memory, reloaded)
