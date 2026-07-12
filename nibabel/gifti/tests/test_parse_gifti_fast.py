@@ -20,7 +20,7 @@ from numpy.testing import assert_array_almost_equal
 
 from ...loadsave import load, save
 from ...nifti1 import xform_codes
-from ...testing import clear_and_catch_warnings, suppress_warnings
+from ...testing import suppress_warnings
 from ...tmpdirs import InTemporaryDirectory
 from .. import gifti as gi
 from ..parse_gifti_fast import GiftiImageParser, GiftiParseError
@@ -397,11 +397,9 @@ def test_parse_dataarrays():
         with open(fn, 'w') as fp:
             fp.write(txt)
 
-        with clear_and_catch_warnings() as w:
-            warnings.filterwarnings('once', category=UserWarning)
+        with pytest.warns(UserWarning):
             load(fn)
-            assert len(w) == 1
-            assert img.numDA == 0
+        assert img.numDA == 0
 
 
 def test_parse_with_buffersize():
