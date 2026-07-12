@@ -211,5 +211,8 @@ def test_concat_integer_roundtrip():
 
     with InTemporaryDirectory():
         save(concat, 'concat.nii')
-        reloaded = np.asarray(load('concat.nii').dataobj)
+        # Load with mmap=False so the file handle is released before the
+        # temporary directory is torn down; Windows cannot delete a file
+        # that is still memory-mapped, which otherwise fails cleanup here.
+        reloaded = np.asarray(load('concat.nii', mmap=False).dataobj)
     assert_array_equal(in_memory, reloaded)
