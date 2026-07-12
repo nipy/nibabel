@@ -9,7 +9,6 @@
 
 import shutil
 import sys
-import warnings
 from os.path import basename, dirname
 from os.path import join as pjoin
 from unittest import mock
