@@ -814,3 +814,61 @@ class TestAFNIAPI(LoadImageAPI):
     loader = brikhead.load
     klass = image_maker = brikhead.AFNIImage
     example_images = AFNI_EXAMPLE_IMAGES
+
+
+@pytest.mark.parametrize('dtype', (np.complex64, np.complex128))
+def test_get_fdata_complex(dtype):
+    # get_fdata() preserves complex data by default (gh-975), while still
+    # respecting an explicit ``dtype`` argument.
+    real = np.arange(24).reshape(2, 3, 4)
+    imag = np.arange(24, 48).reshape(2, 3, 4)
+    arr = (real + 1j * imag).astype(dtype)
+    img = Nifti1Image(arr, np.eye(4))
+    # Test both array images and proxy images (loaded from disk)
+    for cimg in (img, bytesio_round_trip(img)):
+        # Default: preserve the imaginary part, returning complex128
+        fdata = cimg.get_fdata()
+        assert fdata.dtype == np.complex128
+        assert_array_equal(fdata, arr)
+        assert np.any(fdata.imag != 0)
+        # An explicit complex dtype is respected exactly
+        narrow = cimg.get_fdata(caching='unchanged', dtype=dtype)
+        assert narrow.dtype == dtype
+        assert_array_equal(narrow, arr)
+        # An explicit floating point dtype is respected (imaginary part dropped)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            fdata_real = cimg.get_fdata(caching='unchanged', dtype=np.float64)
+        assert fdata_real.dtype == np.float64
+        assert_array_equal(fdata_real, real)
+
+
+@pytest.mark.parametrize('dtype', (np.uint8, np.int16, np.float32, np.float64))
+def test_get_fdata_real_unchanged(dtype):
+    # Real-valued images are unaffected by the complex handling (gh-975):
+    # the default remains float64.
+    arr = np.arange(24).reshape(2, 3, 4).astype(dtype)
+    img = Nifti1Image(arr, np.eye(4))
+    for cimg in (img, bytesio_round_trip(img)):
+        fdata = cimg.get_fdata()
+        assert fdata.dtype == np.float64
+        assert not np.iscomplexobj(fdata)
+        assert_array_equal(fdata, arr)
+
+
+@pytest.mark.skipif(
+    np.dtype(np.clongdouble) == np.dtype(np.complex128),
+    reason='clongdouble == complex128 on this platform',
+)
+def test_get_fdata_complex256():
+    # The default must not silently downcast complex data wider than
+    # complex128 (e.g. complex256 on Linux/x86); it floors at complex128 but
+    # preserves wider complex types (gh-975).
+    real = np.arange(24).reshape(2, 3, 4)
+    imag = np.arange(24, 48).reshape(2, 3, 4)
+    arr = (real + 1j * imag).astype(np.clongdouble)
+    img = Nifti1Image(arr, np.eye(4))
+    fdata = img.get_fdata()
+    assert fdata.dtype == np.dtype(np.clongdouble)
+    assert_array_equal(fdata, arr)
+    assert np.any(fdata.imag != 0)
