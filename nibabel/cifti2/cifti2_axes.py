@@ -479,7 +479,7 @@ class BrainModelAxis(Axis):
         tuple with 3 elements:
         - CIFTI-2 brain structure name
         - slice to select the data associated with the brain structure from the tensor
-        - brain model covering that specific brain structure
+        - BrainModelAxis covering that specific brain structure
         """
         idx_start = 0
         start_name = self.name[idx_start]
