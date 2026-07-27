@@ -423,6 +423,8 @@ class TestSpatialImage:
             (slice(-2, None), slice(None, None, -1), slice(-1, None, -1)),
         ):
             sliced_img = img.slicer[sliceobj]
+            # Cover the affine calculator directly, not only through the slicer
+            assert np.array_equal(img.slicer.slice_affine(sliceobj), sliced_img.affine)
             sliced_data = np.asanyarray(sliced_img.dataobj)
             assert np.array_equal(sliced_data, in_data[sliceobj])
             for ijk, value in np.ndenumerate(sliced_data):
