@@ -87,8 +87,8 @@ def load(filename: FileSpec, **kwargs) -> FileBasedImage:
 
     Parameters
     ----------
-    filename : str or os.PathLike
-       specification of file to load
+   filename : str, bytes, or os.PathLike
+        filename, path object, or file-like object of image to load
     \*\*kwargs : keyword arguments
         Keyword arguments to format-specific load
 
