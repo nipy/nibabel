@@ -85,17 +85,17 @@ def _signature_matches_extension(filename: FileSpec) -> tuple[bool, str]:
 def load(filename: FileSpec, **kwargs) -> FileBasedImage:
     r"""Load file given filename, guessing at file type
 
-    Parameters
-    ----------
-   filename : str, bytes, or os.PathLike
-        filename, path object, or file-like object of image to load
-    \*\*kwargs : keyword arguments
-        Keyword arguments to format-specific load
+     Parameters
+     ----------
+    filename : str, bytes, or os.PathLike
+         filename, path object, or file-like object of image to load
+     \*\*kwargs : keyword arguments
+         Keyword arguments to format-specific load
 
-    Returns
-    -------
-    img : ``SpatialImage``
-       Image of guessed type
+     Returns
+     -------
+     img : ``SpatialImage``
+        Image of guessed type
     """
     filename = _stringify_path(filename)
 
