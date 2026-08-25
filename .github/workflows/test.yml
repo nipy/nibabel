@@ -52,7 +52,7 @@ jobs:
         run: uv build
       - run: uvx twine check dist/*
       - name: Build git archive
-        run: mkdir archive && git archive -v -o archive/nibabel-archive.tgz HEAD
+        run: mkdir archive && git archive -v -o archive/nibabel-archive.tar.gz HEAD
       - name: Upload sdist and wheel artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -98,7 +98,7 @@ jobs:
         run: uv pip install dist/nibabel-*.tar.gz
       - name: Install archive
         if: matrix.package == 'archive'
-        run: uv pip install archive/nibabel-archive.tgz
+        run: uv pip install archive/nibabel-archive.tar.gz
       - run: python -c 'import nibabel; print(nibabel.__version__)'
       - name: Install minimum test dependencies
         run: uv pip install nibabel[test]
