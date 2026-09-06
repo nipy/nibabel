@@ -11,6 +11,7 @@
 import contextlib
 import gzip
 import pickle
+import warnings
 from io import BytesIO
 from unittest import mock
 
@@ -606,3 +607,28 @@ def test_copy_with_indexed_gzip_handle(tmp_path):
         assert proxy.file_like is copied.file_like
         assert np.array_equal(proxy[0, 0, 0], copied[0, 0, 0])
         assert np.array_equal(proxy[-1, -1, -1], copied[-1, -1, -1])
+
+
+def test_array_copy_keyword():
+    # gh-1318: numpy 2 passes copy= to __array__ and deprecates implementations
+    # that do not accept it.  The data is read from file and scaled, so there is
+    # never an array to share, and copy=False has to raise rather than quietly
+    # hand back a copy.
+    shape = (2, 3, 4)
+    arr = np.arange(24, dtype=np.int16).reshape(shape)
+    bio = BytesIO()
+    hdr = Nifti1Header()
+    hdr.set_data_shape(shape)
+    hdr.set_data_dtype(np.int16)
+    bio.write(b'\x00' * hdr.get_data_offset())
+    bio.write(arr.tobytes(order='F'))
+    prox = ArrayProxy(bio, hdr)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', DeprecationWarning)
+        assert_array_equal(np.asarray(prox), arr)
+        assert_array_equal(np.array(prox, copy=True), arr)
+        assert_array_equal(np.array(prox, copy=None), arr)
+
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        np.array(prox, copy=False)
