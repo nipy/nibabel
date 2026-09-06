@@ -30,6 +30,8 @@ from ..tmpdirs import InTemporaryDirectory
 from .test_fileslice import slicer_samples
 from .test_openers import patch_indexed_gzip
 
+NUMPY_LT_2 = Version(np.__version__) < Version('2.0.0.dev0')
+
 
 class FunkyHeader:
     def __init__(self, shape):
@@ -624,10 +626,23 @@ def test_array_copy_keyword():
     bio.write(arr.tobytes(order='F'))
     prox = ArrayProxy(bio, hdr)
 
+    # The guard is ours, so it holds on every numpy we support.
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        prox.__array__(copy=False)
+
     with warnings.catch_warnings():
         warnings.simplefilter('error', DeprecationWarning)
         assert_array_equal(np.asarray(prox), arr)
         assert_array_equal(np.array(prox, copy=True), arr)
+
+    # numpy 1 never forwards copy= to __array__: it rejects copy=None outright
+    # and implements copy=False itself, so only on numpy 2 does np.array()
+    # reach the guard.
+    if NUMPY_LT_2:
+        return
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', DeprecationWarning)
         assert_array_equal(np.array(prox, copy=None), arr)
 
     with pytest.raises(ValueError, match='Unable to avoid copy'):
