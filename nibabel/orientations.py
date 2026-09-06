@@ -59,6 +59,14 @@ def io_orientation(affine, tol=None):
     # we can leave them as they are
     zooms[zooms == 0] = 1
     RS = RZS / zooms
+    # np.linalg only handles single and double precision.  A half or extended
+    # precision affine reaches the SVD below as-is and raises TypeError, and on
+    # Windows extended precision is 64 bits wide, so the message names it
+    # float64 and reads like nonsense.  Widen (or narrow) to a dtype the SVD
+    # accepts; the orientation is a comparison of column directions, so the
+    # extra mantissa bits could not have changed the answer.
+    if RS.dtype.kind == 'f' and RS.dtype not in (np.dtype(np.float32), np.dtype(np.float64)):
+        RS = RS.astype(np.float64)
     # Transform below is polar decomposition, returning the closest
     # shearless matrix R to RS
     P, S, Qs = npl.svd(RS, full_matrices=False)

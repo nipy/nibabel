@@ -323,7 +323,7 @@ def test_io_orientation_collinear_columns_are_stable():
     # Two collinear columns, differing only in a term far below the tolerance.
     # Whichever way the SVD rounds, the first axis must win and the second must
     # be the one dropped.
-    eps = np.finfo(float).eps
+    eps = np.finfo(np.float64).eps
     for y_val in (0, eps, eps * 10, eps * 100):
         affine = np.array(
             [
@@ -331,7 +331,8 @@ def test_io_orientation_collinear_columns_are_stable():
                 [0, y_val, 0, 0],
                 [0, 0, 1.0, 0],
                 [0, 0, 0, 1],
-            ]
+            ],
+            dtype=np.float64,
         )
         ornt = io_orientation(affine, tol=1e-5)
         assert_array_equal(ornt, [[0, 1], [np.nan, np.nan], [2, 1]])
@@ -490,3 +491,25 @@ def test_flip_axis_deprecation():
     with deprecated_to('5.0.0'):
         a_flipped = flip_axis(a, axis)
     assert_array_equal(a_flipped, np.flip(a, axis))
+
+
+@pytest.mark.parametrize('dtype', [np.float16, np.float32, np.float64, np.longdouble])
+def test_io_orientation_handles_every_float_width(dtype):
+    # np.linalg accepts only single and double precision, so a half or extended
+    # precision affine used to raise "array type ... is unsupported in linalg"
+    # out of the SVD.  On Windows extended precision is 64 bits wide and names
+    # itself float64, which made the message actively misleading.
+    affine = np.eye(4, dtype=dtype)
+    assert_array_equal(io_orientation(affine), [[0, 1], [1, 1], [2, 1]])
+
+    # A rank-deficient affine takes the other branch of the same function.
+    affine = np.array(
+        [
+            [1.0, 1.0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 1.0, 0],
+            [0, 0, 0, 1],
+        ],
+        dtype=dtype,
+    )
+    assert_array_equal(io_orientation(affine, tol=1e-5), [[0, 1], [np.nan, np.nan], [2, 1]])
