@@ -16,6 +16,7 @@ from ..affines import from_matvec, to_matvec
 from ..nifti1 import Nifti1Image
 from ..orientations import (
     OrientationError,
+    _rank_axes_by_strength,
     aff2axcodes,
     apply_orientation,
     axcodes2ornt,
@@ -269,11 +270,15 @@ def test_io_orientation():
     aff_extra_col[-1, -1] = 1  # Not strictly necessary, but for completeness
     aff_extra_col[:3, :3] = mat
     aff_extra_col[:3, -1] = vec
+    # Columns 0 and 1 are collinear to within floating point noise, so only one
+    # of them can claim output axis 0 and the other is dropped.  The tie is
+    # resolved in favour of the lower input axis (gh-1512); it used to be
+    # decided by the last bits of the SVD, which differ between architectures.
     assert_array_equal(
         io_orientation(aff_extra_col, tol=1e-5),
         [
-            [np.nan, np.nan],
             [0, 1],
+            [np.nan, np.nan],
             [2, 1],
             [np.nan, np.nan],
         ],
@@ -290,6 +295,46 @@ def test_io_orientation():
             [2, 1],
         ],
     )
+
+
+def test_rank_axes_by_strength_is_noise_insensitive():
+    # gh-1512: on i386 the SVD in io_orientation returns values a few ULPs away
+    # from the x86_64 ones, which used to flip the order of two equally strong
+    # axes and so change which axis was dropped.  Strengths that differ only by
+    # noise must tie, and ties go to the lower axis index.
+    exact = np.array([-0.5, -0.5, -1.0, -0.0])
+    expected = [2, 0, 1, 3]
+    assert_array_equal(_rank_axes_by_strength(exact), expected)
+    # Same input nudged by a few ULPs either way, standing in for the same
+    # computation on another architecture.  The real i386 discrepancy in
+    # gh-1512 was 5 ULPs on a strength of 0.5.
+    for ulps in (-4, -2, -1, 1, 2, 4):
+        noisy = exact.copy()
+        target = np.inf if ulps > 0 else -np.inf
+        for _ in range(abs(ulps)):
+            noisy[1] = np.nextafter(noisy[1], target)
+        assert noisy[1] != exact[1]
+        assert_array_equal(_rank_axes_by_strength(noisy), expected)
+    # A genuine difference in strength still orders the axes.
+    assert_array_equal(_rank_axes_by_strength(np.array([-0.5, -0.9])), [1, 0])
+
+
+def test_io_orientation_collinear_columns_are_stable():
+    # Two collinear columns, differing only in a term far below the tolerance.
+    # Whichever way the SVD rounds, the first axis must win and the second must
+    # be the one dropped.
+    eps = np.finfo(float).eps
+    for y_val in (0, eps, eps * 10, eps * 100):
+        affine = np.array(
+            [
+                [1.0, 1.0, 0, 0],
+                [0, y_val, 0, 0],
+                [0, 0, 1.0, 0],
+                [0, 0, 0, 1],
+            ]
+        )
+        ornt = io_orientation(affine, tol=1e-5)
+        assert_array_equal(ornt, [[0, 1], [np.nan, np.nan], [2, 1]])
 
 
 def test_io_orientation_column_strength_regression():

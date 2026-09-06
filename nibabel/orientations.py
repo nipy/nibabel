@@ -77,7 +77,12 @@ def io_orientation(affine, tol=None):
     ornt = np.ones((p, 2), dtype=np.int8) * np.nan
     # Process input axes from strongest to weakest (stable on ties) so a given
     # dimension is labeled consistently regardless of the original order.
-    in_axes = np.argsort(np.min(-(R**2), axis=0), kind='stable')
+    # Strengths that differ only by floating point noise must tie rather than
+    # be ordered by that noise: the SVD above is not bit-identical across
+    # architectures, and for a rank-deficient affine this order decides which
+    # input axis is dropped.  Ties fall back on input axis order.
+    strength = np.min(-(R**2), axis=0)
+    in_axes = _rank_axes_by_strength(strength)
     for in_ax in in_axes:
         col = R[:, in_ax]
         if not np.allclose(col, 0):
@@ -92,6 +97,43 @@ def io_orientation(affine, tol=None):
             # zeroing out the corresponding row in R
             R[out_ax, :] = 0
     return ornt
+
+
+def _rank_axes_by_strength(strength):
+    """Order input axes from strongest to weakest, ties broken by axis order.
+
+    Two axes count as tied when their strengths differ by no more than
+    floating point noise.  Grouping is done on the sorted strengths rather than
+    by rounding to a fixed grid, so that a pair of near-equal values is never
+    split by falling either side of a bin edge.
+
+    Parameters
+    ----------
+    strength : (p,) array-like
+        Per-axis strength, most negative first (see :func:`io_orientation`).
+
+    Returns
+    -------
+    in_axes : (p,) ndarray
+        Axis indices, strongest first.
+    """
+    strength = np.asarray(strength, dtype=np.float64)
+    order = np.argsort(strength, kind='stable')
+    if order.size < 2:
+        return order
+    # Same form as the singular value threshold above, so a difference that
+    # would not have changed the rank does not change the ordering either.
+    noise = np.abs(strength).max() * strength.size * np.finfo(strength.dtype).eps
+    out = []
+    group = [order[0]]
+    for in_ax in order[1:]:
+        if strength[in_ax] - strength[group[0]] <= noise:
+            group.append(in_ax)
+        else:
+            out.extend(sorted(group))
+            group = [in_ax]
+    out.extend(sorted(group))
+    return np.array(out, dtype=order.dtype)
 
 
 def ornt_transform(start_ornt, end_ornt):
