@@ -513,3 +513,13 @@ def test_io_orientation_handles_every_float_width(dtype):
         dtype=dtype,
     )
     assert_array_equal(io_orientation(affine, tol=1e-5), [[0, 1], [np.nan, np.nan], [2, 1]])
+
+
+def test_io_orientation_float_check_uses_the_scalar_type():
+    # The guard in io_orientation must look at dtype.type, not at the dtype.
+    # Where extended precision is 64 bits wide (Windows, macOS on arm64)
+    # np.dtype(np.longdouble) compares EQUAL to np.dtype(np.float64) while
+    # np.linalg still refuses it, so a dtype comparison skips the cast on
+    # exactly the platforms that need it.  Pin the property that makes the
+    # distinction, on every platform.
+    assert np.dtype(np.longdouble).type is not np.float64

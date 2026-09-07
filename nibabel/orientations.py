@@ -65,7 +65,11 @@ def io_orientation(affine, tol=None):
     # float64 and reads like nonsense.  Widen (or narrow) to a dtype the SVD
     # accepts; the orientation is a comparison of column directions, so the
     # extra mantissa bits could not have changed the answer.
-    if RS.dtype.kind == 'f' and RS.dtype not in (np.dtype(np.float32), np.dtype(np.float64)):
+    # Test the scalar TYPE, not the dtype: where extended precision is 64 bits
+    # wide (Windows, macOS on arm64) np.dtype(np.longdouble) compares EQUAL to
+    # np.dtype(np.float64), so a dtype comparison silently skips the cast on
+    # exactly the platforms that need it.
+    if RS.dtype.kind == 'f' and RS.dtype.type not in (np.float32, np.float64):
         RS = RS.astype(np.float64)
     # Transform below is polar decomposition, returning the closest
     # shearless matrix R to RS
