@@ -684,7 +684,7 @@ class Nifti1Extensions(list):
 
         Parameters
         ----------
-        code : int | str
+        ecode : int | str
             The ecode can be specified either literal or as numerical value.
         """
         count = 0

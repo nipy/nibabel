@@ -375,14 +375,14 @@ class WrapStruct:
 
         Parameters
         ----------
-        wstr : mapping-like
+        mapping : mapping-like
             Something implementing a mapping.  We will guess the endianness
             from looking at the field values
 
         Returns
         -------
         endianness : {'<', '>'}
-           Guessed endianness of binary data in ``wstr``
+           Guessed endianness of binary data in ``mapping``
         """
         raise NotImplementedError
 

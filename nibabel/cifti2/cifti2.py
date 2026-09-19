@@ -433,7 +433,7 @@ class Cifti2NamedMap(xml.XmlSerializable):
 
         Parameters
         ----------
-        meta : Cifti2MetaData
+        metadata : Cifti2MetaData
 
         Returns
         -------

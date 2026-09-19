@@ -993,7 +993,7 @@ def int_scinter_ftype(
         slope, default 1.0
     inter : float, optional
         intercept, default 0.0
-    default_out : object, optional
+    default : object, optional
         numpy floating point type, default is ``np.float32``
 
     Returns
