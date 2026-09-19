@@ -21,7 +21,7 @@ def read_zt_byte_strings(fobj, n_strings=1, bufsize=1024):
 
     Parameters
     ----------
-    f : fileobj
+    fobj : fileobj
         File object to use.  Should implement ``read``, returning byte objects,
         and ``seek(n, 1)`` to seek from current file position.
     n_strings : int, optional
