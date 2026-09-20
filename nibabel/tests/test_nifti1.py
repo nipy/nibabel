@@ -1573,6 +1573,37 @@ class TestNifti1General:
                 bias_thresh = np.max([max_miss / np.sqrt(count), eps])
                 assert np.abs(bias) < bias_thresh
 
+    def test_reoriented_preserves_xform_codes(self):
+        # gh-1427: reorienting permutes and flips axes, it does not move the
+        # image into another space, so the sform/qform codes must survive.
+        # dcm2niix writes scanner anat (code 1) for both.
+        affine = np.diag([-2.0, 2, 2, 1])
+        affine[:3, 3] = [10, -20, -30]
+        img = self.single_class(np.zeros((4, 4, 4)), affine)
+        img.header.set_sform(affine, code=1)
+        img.header.set_qform(affine, code=1)
+
+        reoriented = img.as_reoriented([[0, -1], [1, 1], [2, 1]])
+
+        assert int(reoriented.header['sform_code']) == 1
+        assert int(reoriented.header['qform_code']) == 1
+        # The header must still describe the affine the image reports.
+        assert_array_equal(reoriented.affine, reoriented.header.get_best_affine())
+
+    def test_reoriented_leaves_unset_xform_codes_alone(self):
+        # An image with no qform has nothing to preserve there, and clearing
+        # what the affine write-back set could leave it with no valid form.
+        affine = np.diag([-2.0, 2, 2, 1])
+        img = self.single_class(np.zeros((4, 4, 4)), affine)
+        img.header.set_sform(affine, code=4)
+        img.header.set_qform(None, code=0)
+
+        reoriented = img.as_reoriented([[0, -1], [1, 1], [2, 1]])
+
+        assert int(reoriented.header['sform_code']) == 4
+        assert int(reoriented.header['qform_code']) == 0
+        assert_array_equal(reoriented.affine, reoriented.header.get_best_affine())
+
     def test_reoriented_dim_info(self):
         # Check that dim_info is reoriented correctly
         arr = np.arange(24, dtype='f4').reshape((2, 3, 4))
