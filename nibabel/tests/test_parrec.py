@@ -918,3 +918,12 @@ def test_alternative_header_field_names():
     # Diffusion values" in the General Information section. This tests that
     # the key is read correctly regardless of case.
     assert HDR_INFO['max_diffusion_values'] == 1
+
+
+def test_array_copy_false_raises():
+    # gh-1318: the REC data is read and scaled on the way out, so there is no
+    # existing array for copy=False to return a view on.
+    hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
+    prox = PARRECArrayProxy(EG_REC, hdr, scaling='dv')
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        prox.__array__(copy=False)

@@ -689,7 +689,7 @@ class PARRECArrayProxy:
         """
         return self._get_unscaled(slicer=())
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         """Read data from file and apply scaling, casting to ``dtype``
 
         If ``dtype`` is unspecified, the dtype of the returned array is the
@@ -700,12 +700,23 @@ class PARRECArrayProxy:
         ----------
         dtype : numpy dtype specifier, optional
             A numpy dtype specifier specifying the type of the returned array.
+        copy : {None, True, False}, optional
+            Part of the numpy array protocol.  ``False`` asks for an array that
+            shares memory with this object, which it cannot provide, and so
+            raises ``ValueError``.  ``None`` and ``True`` both return a new
+            array.
 
         Returns
         -------
         array
             Scaled image data with type `dtype`.
         """
+        if copy is False:
+            raise ValueError(
+                'Unable to avoid copy while creating an array as requested.\n'
+                'The data is read from file and scaled on the way out, so there is '
+                'no existing array to return a view on.'
+            )
         arr = self._get_scaled(dtype=dtype, slicer=())
         if dtype is not None:
             arr = arr.astype(dtype, copy=False)
