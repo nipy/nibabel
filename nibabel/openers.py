@@ -168,6 +168,9 @@ class Opener:
     def tell(self, /) -> int:
         return self.fobj.tell()
 
+    def truncate(self, size: int | None = None, /) -> int:
+        return self.fobj.truncate(size)
+
     def close(self, /) -> None:
         return self.fobj.close()
 

@@ -11,6 +11,8 @@
 Author: Krish Subramaniam
 """
 
+import warnings
+from io import UnsupportedOperation
 from os.path import splitext
 
 import numpy as np
@@ -29,6 +31,12 @@ from ..wrapstruct import LabeledWrapStruct
 # mgh header
 # See https://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/MghFormat
 DATA_OFFSET = 284
+# Upper bound on the tag data retained after the footer.  This has to be generous:
+# TAG_MRI_FRAME stores per-frame acquisition parameters, so a long BOLD run
+# legitimately carries megabytes of tags.  The bound exists only to stop a file whose
+# `dims` field understates the data -- which makes the voxel data itself look like
+# tag data -- from pulling an unbounded amount into memory.
+MAX_TAG_BYTES = 2**26
 # Note that mgh data is strictly big endian ( hence the > sign )
 # fmt: off
 header_dtd = [
@@ -98,6 +106,19 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
 
     The header also consists of the footer data which MGH places after the data
     chunk.
+
+    FreeSurfer may write additional, variable-length tag data after the footer
+    (e.g. ``TAG_CMDLINE`` history, auto-align matrices, embedded colour tables).
+    That data is not interpreted here, but is retained verbatim in ``_tags`` so
+    that an otherwise unmodified load/save round-trip does not discard it.
+
+    Tags are *not* portable between volumes.  Several are tied to the volume they
+    were written with -- ``TAG_MRI_FRAME`` carries per-frame state sized by the
+    frame count, and ``TAG_AUTO_ALIGN`` holds a geometry-specific transform -- so
+    writing them alongside a different volume yields a file FreeSurfer will
+    misparse.  The bytes are therefore recorded together with the header state they
+    were read with (``_tags_binaryblock``) and are only written back while the
+    header is unchanged; see ``_tags_valid``.
     """
 
     # Copies of module-level definitions
@@ -105,6 +126,10 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
     _hdrdtype = header_dtype
     _ftrdtype = footer_dtype
     _data_type_codes = data_type_codes
+    # Uninterpreted bytes following the footer; see class docstring
+    _tags = b''
+    # Header state `_tags` was read with; None when there are no tags
+    _tags_binaryblock = None
 
     def __init__(self, binaryblock=None, check=True):
         """Initialize header from binary data block
@@ -177,7 +202,21 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
             + int(klass._data_type_codes.bytespervox[tp]) * np.prod(hdr_str_to_np['dims'])
         )
         ftr_str = fileobj.read(klass._ftrdtype.itemsize)
-        return klass(hdr_str + ftr_str, check=check)
+        hdr = klass(hdr_str + ftr_str, check=check)
+        # Retain any tag data following the footer so that it survives an unmodified
+        # load/save round-trip (see class docstring).  Read one byte more than we are
+        # willing to keep so that an over-long trailing region can be detected.
+        tags = fileobj.read(MAX_TAG_BYTES + 1)
+        if len(tags) > MAX_TAG_BYTES:
+            warnings.warn(
+                f'MGH tag data exceeds {MAX_TAG_BYTES} bytes and will not be preserved; '
+                'the file may be malformed',
+                stacklevel=2,
+            )
+        elif tags:
+            hdr._tags = tags
+            hdr._tags_binaryblock = hdr.binaryblock
+        return hdr
 
     def get_affine(self):
         """Get the affine transform from the header information.
@@ -408,10 +447,22 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
         fileobj.seek(0)
         fileobj.write(hdr_nofooter.tobytes())
 
+    @property
+    def _tags_valid(self):
+        """True if the retained tag data still matches this header
+
+        Tag data is tied to the volume it was read with, so it is only safe to write
+        it back out while the header is byte-for-byte unchanged.  Any edit that alters
+        the frame count, shape, data type or geometry invalidates it.
+        """
+        return bool(self._tags) and self.binaryblock == self._tags_binaryblock
+
     def writeftr_to(self, fileobj):
         """Write footer to fileobj
 
         Footer data is located after the data chunk. So move there and write.
+        Retained tag data (see class docstring) is written after the footer, but
+        only while it still corresponds to this header.
 
         Parameters
         ----------
@@ -428,10 +479,24 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
         )
         fileobj.seek(self.get_footer_offset())
         fileobj.write(ftr_nd.tobytes())
+        if self._tags_valid:
+            fileobj.write(self._tags)
+        # The image ends here.  Without this, writing a smaller image over a reused
+        # stream (e.g. `to_file_map` with a `BytesIO`) would leave bytes from the
+        # previous, larger image behind, to be read back as tag data.
+        try:
+            fileobj.truncate()
+        except (AttributeError, OSError, UnsupportedOperation):
+            # Streams that cannot truncate, such as gzip, are written from the start
+            # each time, so they have no stale trailing bytes to remove.
+            pass
 
     def copy(self):
         """Return copy of structure"""
-        return self.__class__(self.binaryblock, check=False)
+        new = self.__class__(self.binaryblock, check=False)
+        new._tags = self._tags
+        new._tags_binaryblock = self._tags_binaryblock
+        return new
 
     def as_byteswapped(self, endianness=None):
         """Return new object with given ``endianness``
