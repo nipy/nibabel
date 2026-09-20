@@ -56,6 +56,7 @@ from .funcs import as_closest_canonical, concat_images, four_to_three, squeeze_i
 from .gifti import GiftiImage
 from .imageclasses import all_image_classes
 from .loadsave import load, save
+from .mif import MifHeader, MifImage
 from .minc1 import Minc1Image
 from .minc2 import Minc2Image
 from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
