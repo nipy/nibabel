@@ -33,6 +33,14 @@ class WrapperError(Exception):
     pass
 
 
+class SliceIndexOrderError(WrapperError):
+    """Raised when a non-singular index precedes the slice index
+
+    Internal to `MultiframeWrapper.image_shape`, which retries with the slice
+    index moved to the front.
+    """
+
+
 class WrapperPrecisionError(WrapperError):
     pass
 
@@ -757,59 +765,20 @@ class MultiframeWrapper(Wrapper):
             _ = self.image_shape
         return np.lexsort(self._frame_indices.T)
 
-    @cached_property
-    def image_shape(self):
-        """The array shape as it will be returned by ``get_data()``
+    def _calc_shape(self, rows, cols, frame_indices, slice_dim_idx):
+        """Determine the array shape and the frame indices that order it
 
-        The shape is determined by the *Rows* DICOM attribute, *Columns*
-        DICOM attribute, and the set of frame indices given by the
-        *FrameContentSequence[0].DimensionIndexValues* DICOM attribute of each
-        element in the *PerFrameFunctionalGroupsSequence*.  The first two
-        axes of the returned shape correspond to the rows, and columns
-        respectively. The remaining axes correspond to those of the frame
-        indices with order preserved.
-
-        What each axis in the frame indices refers to is given by the
-        corresponding entry in the *DimensionIndexSequence* DICOM attribute.
-        **WARNING**: Any axis referring to the *StackID* DICOM attribute will
-        have been removed from the frame indices in determining the shape. This
-        is because only a file containing a single stack is currently allowed by
-        this wrapper.
-
-        References
-        ----------
-        * C.7.6.16 Multi-Frame Functional Groups Module:
-          http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16
-        * C.7.6.17 Multi-Frame Dimension Module:
-          http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17
-        * Diagram of DimensionIndexSequence and DimensionIndexValues:
-          http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#figure_C.7.6.17-1
+        Returns the shape, and the (possibly reduced) `frame_indices` whose columns
+        correspond in order to the shape axes following rows and columns.  Raises
+        `SliceIndexOrderError` if a non-singular index precedes the slice index; the
+        caller resolves that by reordering the columns.
         """
-        rows, cols = self.get('Rows'), self.get('Columns')
-        if None in (rows, cols):
-            raise WrapperError('Rows and/or Columns are empty.')
-        # Check number of frames and handle single frame files
-        n_frames = len(self.frames)
-        if n_frames == 1:
-            self._frame_indices = np.array([[0]], dtype=np.int64)
-            return (rows, cols)
-        # Initialize array of frame indices
-        try:
-            frame_indices = np.array(
-                [frame.FrameContentSequence[0].DimensionIndexValues for frame in self.frames]
-            )
-        except AttributeError:
-            raise WrapperError("Can't find frame 'DimensionIndexValues'")
-        if len(frame_indices.shape) == 1:
-            frame_indices = frame_indices.reshape(frame_indices.shape + (1,))
         # Determine the shape and which indices to use
+        n_frames = len(frame_indices)
         shape = [rows, cols]
         curr_parts = n_frames
         frames_per_part = 1
         del_indices = {}
-        dim_seq = [dim.DimensionIndexPointer for dim in self.get('DimensionIndexSequence')]
-        stackpos_tag = pydicom.datadict.tag_for_keyword('InStackPositionNumber')
-        slice_dim_idx = dim_seq.index(stackpos_tag)
         for row_idx, row in enumerate(frame_indices.T):
             unique = np.unique(row)
             count = len(unique)
@@ -819,7 +788,7 @@ class MultiframeWrapper(Wrapper):
             # Replace slice indices with order determined from slice positions along normal
             if row_idx == slice_dim_idx:
                 if len(shape) > 2:
-                    raise WrapperError('Non-singular index precedes the slice index')
+                    raise SliceIndexOrderError('Non-singular index precedes the slice index')
                 row = self._frame_slc_ord
                 frame_indices.T[row_idx, :] = row
                 unique = np.unique(row)
@@ -879,9 +848,74 @@ class MultiframeWrapper(Wrapper):
                     )
         if curr_parts > 1:
             raise WrapperError('Unable to determine sorting of final dimension(s)')
+        return tuple(shape), frame_indices
+
+    @cached_property
+    def image_shape(self):
+        """The array shape as it will be returned by ``get_data()``
+
+        The shape is determined by the *Rows* DICOM attribute, *Columns*
+        DICOM attribute, and the set of frame indices given by the
+        *FrameContentSequence[0].DimensionIndexValues* DICOM attribute of each
+        element in the *PerFrameFunctionalGroupsSequence*.  The first two
+        axes of the returned shape correspond to the rows, and columns
+        respectively. The remaining axes correspond to those of the frame
+        indices with order preserved, except that a slice index preceded by a
+        non-singular index is moved ahead of it, so that the slice axis always
+        immediately follows the columns.
+
+        What each axis in the frame indices refers to is given by the
+        corresponding entry in the *DimensionIndexSequence* DICOM attribute.
+        **WARNING**: Any axis referring to the *StackID* DICOM attribute will
+        have been removed from the frame indices in determining the shape. This
+        is because only a file containing a single stack is currently allowed by
+        this wrapper.
+
+        References
+        ----------
+        * C.7.6.16 Multi-Frame Functional Groups Module:
+          http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.16
+        * C.7.6.17 Multi-Frame Dimension Module:
+          http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#sect_C.7.6.17
+        * Diagram of DimensionIndexSequence and DimensionIndexValues:
+          http://dicom.nema.org/medical/dicom/current/output/pdf/part03.pdf#figure_C.7.6.17-1
+        """
+        rows, cols = self.get('Rows'), self.get('Columns')
+        if None in (rows, cols):
+            raise WrapperError('Rows and/or Columns are empty.')
+        # Check number of frames and handle single frame files
+        n_frames = len(self.frames)
+        if n_frames == 1:
+            self._frame_indices = np.array([[0]], dtype=np.int64)
+            return (rows, cols)
+        # Initialize array of frame indices
+        try:
+            frame_indices = np.array(
+                [frame.FrameContentSequence[0].DimensionIndexValues for frame in self.frames]
+            )
+        except AttributeError:
+            raise WrapperError("Can't find frame 'DimensionIndexValues'")
+        if len(frame_indices.shape) == 1:
+            frame_indices = frame_indices.reshape(frame_indices.shape + (1,))
+        dim_seq = [dim.DimensionIndexPointer for dim in self.get('DimensionIndexSequence')]
+        stackpos_tag = pydicom.datadict.tag_for_keyword('InStackPositionNumber')
+        slice_dim_idx = dim_seq.index(stackpos_tag)
+        try:
+            shape, frame_indices = self._calc_shape(rows, cols, frame_indices, slice_dim_idx)
+        except SliceIndexOrderError:
+            # The shape gains one axis per surviving column of `frame_indices`, in
+            # column order, and `frame_order` lexsorts those same columns, so the slice
+            # index must come first for frames to sort slice-fastest --
+            # `get_unscaled_data` reshapes with order='F'.  Some vendors order the
+            # dimension indices with a non-singular index (e.g. TemporalPositionIndex)
+            # ahead of InStackPositionNumber; retry those with the slice column moved to
+            # the front.  Files that already worked never raise, so they are unaffected.
+            n_dims = frame_indices.shape[1]
+            col_order = [slice_dim_idx] + [i for i in range(n_dims) if i != slice_dim_idx]
+            shape, frame_indices = self._calc_shape(rows, cols, frame_indices[:, col_order], 0)
         # Store frame indices
         self._frame_indices = frame_indices
-        return tuple(shape)
+        return shape
 
     @cached_property
     def image_orient_patient(self):
