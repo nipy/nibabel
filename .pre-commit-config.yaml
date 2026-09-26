@@ -20,7 +20,7 @@ repos:
       - id: check-merge-conflict
       - id: check-vcs-permalinks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.15
+    rev: v0.16.6
     hooks:
       - id: ruff-check
         args: [ --fix ]
@@ -35,12 +35,12 @@ repos:
         pass_filenames: false
         additional_dependencies: [uv]
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
+    rev: v2.4.3
     hooks:
       - id: codespell
         additional_dependencies:
           - tomli
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.37.2
+    rev: 0.38.0
     hooks:
       - id: check-citation-file-format
