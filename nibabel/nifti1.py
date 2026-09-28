@@ -29,6 +29,7 @@ from .casting import have_binary128
 from .deprecated import alert_future_error
 from .filebasedimages import ImageFileError, SerializableImage
 from .optpkg import optional_package
+from .orientations import inv_ornt_aff
 from .quaternions import fillpositive, mat2quat, quat2mat
 from .spatialimages import HeaderDataError
 from .spm99analyze import SpmAnalyzeHeader
@@ -2407,15 +2408,20 @@ class Nifti1Pair(analyze.AnalyzeImage):
         # through _affine2header, which files it under the default 'aligned'
         # sform code and drops the qform, so a scanner anat image came back
         # labelled as merely aligned (gh-1427).  Restore whichever codes were
-        # set before.  A code of 0 is left alone: the image had no form of that
-        # kind to preserve, and clearing what _affine2header just set could
-        # leave the image with no valid form at all.
-        sform_code = int(self.header['sform_code'])
-        qform_code = int(self.header['qform_code'])
+        # set before.  Each form is reoriented from its own matrix, not from
+        # img.affine, which is the sform whenever one is set: a qform and an
+        # sform may describe different spaces (scanner and MNI, say), and the
+        # qform slot must not end up holding the sform's matrix under the
+        # qform's code.  A code of 0 is left alone: the image had no form of
+        # that kind to preserve, and clearing what _affine2header just set
+        # could leave the image with no valid form at all.
+        vox_ornt = inv_ornt_aff(ornt, self.shape)
+        sform, sform_code = self.header.get_sform(coded=True)
+        qform, qform_code = self.header.get_qform(coded=True)
         if sform_code != 0:
-            img.header.set_sform(img.affine, code=sform_code)
+            img.header.set_sform(sform @ vox_ornt, code=int(sform_code))
         if qform_code != 0:
-            img.header.set_qform(img.affine, code=qform_code)
+            img.header.set_qform(qform @ vox_ornt, code=int(qform_code))
 
         return img
 

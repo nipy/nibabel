@@ -41,7 +41,7 @@ from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
 
 from ..freesurfer import load as mghload
-from ..orientations import aff2axcodes
+from ..orientations import aff2axcodes, inv_ornt_aff
 from ..testing import (
     bytesio_filemap,
     bytesio_round_trip,
@@ -1588,6 +1588,31 @@ class TestNifti1General:
         assert int(reoriented.header['sform_code']) == 1
         assert int(reoriented.header['qform_code']) == 1
         # The header must still describe the affine the image reports.
+        assert_array_equal(reoriented.affine, reoriented.header.get_best_affine())
+
+    def test_reoriented_keeps_qform_and_sform_in_their_own_spaces(self):
+        # gh-1546 review: a scanner qform (code 1) next to an sform registered
+        # to MNI (code 4).  Each form must be reoriented from its own matrix;
+        # img.affine is the sform here, and copying it into the qform slot
+        # would label MNI coordinates as scanner coordinates.
+        shape = (4, 5, 6)
+        qform = np.diag([-2.0, 2, 2, 1])
+        qform[:3, 3] = [10, -20, -30]
+        sform = np.array([[0, 0, -2.0, 5], [0, 2.0, 0, -7], [2.0, 0, 0, 3], [0, 0, 0, 1]])
+        img = self.single_class(np.zeros(shape), sform)
+        img.header.set_sform(sform, code=4)
+        img.header.set_qform(qform, code=1)
+        ornt = [[1, -1], [0, 1], [2, -1]]
+
+        reoriented = img.as_reoriented(ornt)
+
+        vox_ornt = inv_ornt_aff(ornt, shape)
+        new_sform, new_scode = reoriented.header.get_sform(coded=True)
+        new_qform, new_qcode = reoriented.header.get_qform(coded=True)
+        assert new_scode == 4
+        assert new_qcode == 1
+        assert_almost_equal(new_sform, sform @ vox_ornt)
+        assert_almost_equal(new_qform, qform @ vox_ornt)
         assert_array_equal(reoriented.affine, reoriented.header.get_best_affine())
 
     def test_reoriented_leaves_unset_xform_codes_alone(self):
