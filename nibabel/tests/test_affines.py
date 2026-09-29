@@ -236,3 +236,33 @@ def test_rescale_affine():
                 new_shape = tuple(orig_shape)
             new_centroid = apply_affine(new_aff, (np.array(new_shape) - 1) // 2)
             assert_almost_equal(new_centroid, orig_centroid)
+
+
+def test_rescale_affine_2d():
+    # rescale_affine is documented for (N, N) affines, not just 4x4
+    orig_shape = np.array([64, 48])
+    orig_aff = np.array([[2.0, 0.0, 10.0], [0.0, 3.0, 20.0], [0.0, 0.0, 1.0]])
+    orig_centroid = apply_affine(orig_aff, (orig_shape - 1) // 2)
+
+    new_aff = rescale_affine(orig_aff, orig_shape, (1.0, 1.0))
+
+    assert new_aff.shape == (3, 3)
+    assert_almost_equal(voxel_sizes(new_aff), (1.0, 1.0))
+    new_centroid = apply_affine(new_aff, (orig_shape - 1) // 2)
+    assert_almost_equal(new_centroid, orig_centroid)
+
+
+def test_rescale_affine_4d():
+    # rescale_affine is documented for (N, N) affines, not just 4x4
+    orig_shape = np.array([64, 48, 32, 10])
+    orig_aff = np.diag([2.0, 3.0, 4.0, 5.0, 1.0])
+    orig_aff[:4, 4] = [10.0, 20.0, 30.0, 40.0]
+    orig_centroid = apply_affine(orig_aff, (orig_shape - 1) // 2)
+
+    new_zooms = (1.0, 1.0, 1.0, 2.5)
+    new_aff = rescale_affine(orig_aff, orig_shape, new_zooms)
+
+    assert new_aff.shape == (5, 5)
+    assert_almost_equal(voxel_sizes(new_aff), new_zooms)
+    new_centroid = apply_affine(new_aff, (orig_shape - 1) // 2)
+    assert_almost_equal(new_centroid, orig_centroid)

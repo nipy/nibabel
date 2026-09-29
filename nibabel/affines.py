@@ -370,7 +370,7 @@ def rescale_affine(affine, shape, zooms, new_shape=None):
     new_shape = np.array(new_shape if new_shape is not None else shape)
 
     s = voxel_sizes(affine)
-    rzs_out = affine[:3, :3] * zooms / s
+    rzs_out = affine[:-1, :-1] * zooms / s
 
     # Using xyz = A @ ijk, determine translation
     centroid = apply_affine(affine, (shape - 1) // 2)
