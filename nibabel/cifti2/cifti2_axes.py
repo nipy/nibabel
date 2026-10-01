@@ -481,6 +481,8 @@ class BrainModelAxis(Axis):
         - slice to select the data associated with the brain structure from the tensor
         - :class:`BrainModelAxis` covering that specific brain structure
         """
+        if self.size == 0:
+            return
         idx_start = 0
         start_name = self.name[idx_start]
         for idx_current, name in enumerate(self.name):
@@ -567,14 +569,16 @@ class BrainModelAxis(Axis):
         """
         (N, ) boolean array which is true for any element on the surface
         """
-        return np.vectorize(lambda name: name in self.nvertices.keys())(self.name)
+        return np.vectorize(lambda name: name in self.nvertices.keys(), otypes=[bool])(self.name)
 
     @property
     def volume_mask(self):
         """
         (N, ) boolean array which is true for any element on the surface
         """
-        return np.vectorize(lambda name: name not in self.nvertices.keys())(self.name)
+        return np.vectorize(lambda name: name not in self.nvertices.keys(), otypes=[bool])(
+            self.name
+        )
 
     _affine = None
 
