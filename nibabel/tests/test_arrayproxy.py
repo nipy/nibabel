@@ -11,6 +11,7 @@
 import contextlib
 import gzip
 import pickle
+import warnings
 from io import BytesIO
 from unittest import mock
 
@@ -28,6 +29,8 @@ from ..testing import memmap_after_ufunc
 from ..tmpdirs import InTemporaryDirectory
 from .test_fileslice import slicer_samples
 from .test_openers import patch_indexed_gzip
+
+NUMPY_LT_2 = Version(np.__version__) < Version('2.0.0.dev0')
 
 
 class FunkyHeader:
@@ -606,3 +609,41 @@ def test_copy_with_indexed_gzip_handle(tmp_path):
         assert proxy.file_like is copied.file_like
         assert np.array_equal(proxy[0, 0, 0], copied[0, 0, 0])
         assert np.array_equal(proxy[-1, -1, -1], copied[-1, -1, -1])
+
+
+def test_array_copy_keyword():
+    # gh-1318: numpy 2 passes copy= to __array__ and deprecates implementations
+    # that do not accept it.  The data is read from file and scaled, so there is
+    # never an array to share, and copy=False has to raise rather than quietly
+    # hand back a copy.
+    shape = (2, 3, 4)
+    arr = np.arange(24, dtype=np.int16).reshape(shape)
+    bio = BytesIO()
+    hdr = Nifti1Header()
+    hdr.set_data_shape(shape)
+    hdr.set_data_dtype(np.int16)
+    bio.write(b'\x00' * hdr.get_data_offset())
+    bio.write(arr.tobytes(order='F'))
+    prox = ArrayProxy(bio, hdr)
+
+    # The guard is ours, so it holds on every numpy we support.
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        prox.__array__(copy=False)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', DeprecationWarning)
+        assert_array_equal(np.asarray(prox), arr)
+        assert_array_equal(np.array(prox, copy=True), arr)
+
+    # numpy 1 never forwards copy= to __array__: it rejects copy=None outright
+    # and implements copy=False itself, so only on numpy 2 does np.array()
+    # reach the guard.
+    if NUMPY_LT_2:
+        return
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', DeprecationWarning)
+        assert_array_equal(np.array(prox, copy=None), arr)
+
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        np.array(prox, copy=False)
