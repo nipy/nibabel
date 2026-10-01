@@ -11,6 +11,7 @@
 import io
 import os
 import pathlib
+import struct
 
 import numpy as np
 import pytest
@@ -18,6 +19,7 @@ from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert
 
 from ... import imageglobals
 from ...fileholders import FileHolder
+from ...funcs import four_to_three
 from ...openers import ImageOpener
 from ...spatialimages import HeaderDataError
 from ...testing import data_path
@@ -27,7 +29,7 @@ from ...tmpdirs import InTemporaryDirectory
 from ...volumeutils import sys_is_le
 from ...wrapstruct import WrapStructError
 from .. import load, save
-from ..mghformat import MGHError, MGHHeader, MGHImage
+from ..mghformat import MAX_TAG_BYTES, MGHError, MGHHeader, MGHImage
 
 MGZ_FNAME = os.path.join(data_path, 'test.mgz')
 
@@ -188,6 +190,110 @@ def test_bad_dtype_mgh():
     # Now test the above function
     with pytest.raises(MGHError):
         bad_dtype_mgh()
+
+
+@pytest.mark.thread_unsafe
+def test_tag_data_roundtrip():
+    # FreeSurfer may append variable-length tag data (command history,
+    # colour tables, ...) after the footer. nibabel does not interpret it, but
+    # must not drop it on a load/save round-trip (gh-1402).
+    v = np.arange(24, dtype=np.uint8).reshape((2, 3, 4))
+    # Stand-in for FreeSurfer tag data: a tag id (TAG_CMDLINE == 3, per FreeSurfer
+    # include/tags.h) followed by a length and a payload. nibabel does not interpret
+    # the tag data, so the exact encoding is immaterial here -- what matters is that
+    # trailing bytes of any length survive unchanged.
+    cmdline = b'mri_convert wm.mgz wm.mgz\x00'
+    tags = struct.pack('>i', 3) + struct.pack('>q', len(cmdline)) + cmdline
+    with InTemporaryDirectory():
+        MGHImage(v, np.eye(4)).to_filename('tagless.mgz')
+        with ImageOpener('tagless.mgz') as fobj:
+            tagless = fobj.read()
+        with ImageOpener('tagged.mgz', 'wb') as fobj:
+            fobj.write(tagless + tags)
+        # The tag data must survive a load/save round-trip byte for byte
+        img = load('tagged.mgz')
+        img.to_filename('roundtrip.mgz')
+        with ImageOpener('roundtrip.mgz') as fobj:
+            assert fobj.read() == tagless + tags
+        assert img.header._tags == tags
+        # Copying a header carries the tag data with it
+        assert MGHHeader.from_header(img.header)._tags == tags
+        # Editing the voxel data but not the header still round-trips the tags;
+        # this is the case reported in gh-1402
+        edited = MGHImage(v * 2, img.affine, header=img.header)
+        edited.to_filename('edited.mgz')
+        with ImageOpener('edited.mgz') as fobj:
+            assert fobj.read().endswith(tags)
+        # Images without tag data are unaffected
+        reloaded = load('tagless.mgz')
+        reloaded.to_filename('tagless2.mgz')
+        with ImageOpener('tagless2.mgz') as fobj:
+            assert fobj.read() == tagless
+        assert reloaded.header._tags == b''
+
+
+@pytest.mark.thread_unsafe
+def test_tag_data_not_reused_across_volumes():
+    # Tag data is tied to the volume it was written with (TAG_MRI_FRAME is sized
+    # by the frame count, TAG_AUTO_ALIGN is geometry-specific), so it must not be
+    # carried onto a derived image with a different shape (gh-1402).
+    img = load(os.path.join(data_path, 'test.mgz'))
+    assert img.header._tags != b''
+    assert img.header._tags_valid
+    with InTemporaryDirectory():
+        # An unmodified round-trip keeps them
+        img.to_filename('same.mgz')
+        assert load('same.mgz').header._tags == img.header._tags
+        # Dropping a frame invalidates them
+        single = four_to_three(img)[0]
+        assert single.header._tags_valid is False
+        single.to_filename('single.mgz')
+        assert load('single.mgz').header._tags == b''
+        # As does changing the shape or the data type. The header is only
+        # brought up to date as the image is written, so check the output.
+        others = {
+            'reshaped.mgz': MGHImage(
+                np.zeros((2, 3, 4), dtype=np.float32), img.affine, header=img.header
+            ),
+            'retyped.mgz': MGHImage(
+                np.zeros(img.shape, dtype=np.int16), img.affine, header=img.header
+            ),
+        }
+        others['retyped.mgz'].set_data_dtype(np.int16)
+        for fname, other in others.items():
+            other.to_filename(fname)
+            assert load(fname).header._tags == b''
+
+
+@pytest.mark.thread_unsafe
+def test_tag_data_not_laundered_from_reused_stream():
+    # Writing a smaller image over a reused stream must not leave bytes from the
+    # previous, larger image behind to be read back as tag data (gh-1402).
+    fmap = lambda fobj: {'image': FileHolder(fileobj=fobj)}
+    bio = io.BytesIO()
+    MGHImage(np.ones((8, 8, 8), dtype=np.uint8), np.eye(4)).to_file_map(fmap(bio))
+    bio.seek(0)
+    MGHImage(np.ones((2, 2, 2), dtype=np.uint8), np.eye(4)).to_file_map(fmap(bio))
+    reread = MGHImage.from_file_map(fmap(io.BytesIO(bio.getvalue())))
+    assert reread.shape == (2, 2, 2)
+    assert reread.header._tags == b''
+
+
+@pytest.mark.thread_unsafe
+def test_tag_data_bounded():
+    # A file whose `dims` understate the data makes the voxel data itself look
+    # like tag data; that must not be read without bound (gh-1402).
+    v = np.zeros((2, 3, 4), dtype=np.uint8)
+    with InTemporaryDirectory():
+        MGHImage(v, np.eye(4)).to_filename('base.mgz')
+        with ImageOpener('base.mgz') as fobj:
+            base = fobj.read()
+        with ImageOpener('huge.mgz', 'wb') as fobj:
+            fobj.write(base + b'\x00' * (MAX_TAG_BYTES + 1))
+        with pytest.warns(UserWarning, match='exceeds'):
+            img = load('huge.mgz')
+        assert img.header._tags == b''
+        assert img.header._tags_valid is False
 
 
 @pytest.mark.thread_unsafe
