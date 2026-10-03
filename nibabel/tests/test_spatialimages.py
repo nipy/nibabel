@@ -15,6 +15,7 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from .. import load as top_load
+from ..affines import apply_affine
 from ..imageclasses import spatial_axes_first
 from ..spatialimages import HeaderDataError, SpatialHeader, SpatialImage
 from ..testing import bytesio_round_trip, deprecated_to, expires, memmap_after_ufunc
@@ -393,6 +394,43 @@ class TestSpatialImage:
             assert rt_img.get_data() is not out_data
         with deprecated_to('5.0.0'):
             assert (rt_img.get_data() == in_data).all()
+
+    def test_slicer_preserves_ras_position(self):
+        # Slicing must not move voxels in RAS+ space, whatever form the slice
+        # takes. Negative starts and negative steps used to be written into the
+        # affine unresolved, shifting the image. See gh-1533.
+        img_klass = self.image_class
+        shape = (10, 4, 4)
+        in_data = np.arange(int(np.prod(shape)), dtype=np.int16).reshape(shape)
+        affine = np.diag([-2.0, 2.0, 3.0, 1.0])
+        affine[:3, 3] = [90.0, -126.0, -72.0]
+        img = img_klass(in_data, affine)
+        if not spatial_axes_first(img):
+            return
+
+        # Value -> original voxel index, to track where each voxel came from
+        lookup = {int(value): ijk for ijk, value in np.ndenumerate(in_data)}
+
+        for sliceobj in (
+            (slice(8, None),),
+            (slice(-2, None),),  # Same voxels as [8:]
+            (slice(9, None, -1),),
+            (slice(None, None, -1),),  # Same voxels as [9::-1]
+            (slice(-1, None, -1),),  # Same voxels as [9::-1]
+            (slice(None, None, -2),),
+            (slice(-2, None, -3),),
+            (slice(1, -1),),
+            (slice(-2, None), slice(None, None, -1), slice(-1, None, -1)),
+        ):
+            sliced_img = img.slicer[sliceobj]
+            sliced_data = np.asanyarray(sliced_img.dataobj)
+            assert np.array_equal(sliced_data, in_data[sliceobj])
+            for ijk, value in np.ndenumerate(sliced_data):
+                assert_array_almost_equal(
+                    apply_affine(sliced_img.affine, ijk),
+                    apply_affine(img.affine, lookup[int(value)]),
+                    err_msg=f'Voxel moved in RAS+ space for slicer {sliceobj}',
+                )
 
     def test_slicer(self):
         img_klass = self.image_class
