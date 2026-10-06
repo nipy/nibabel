@@ -95,20 +95,37 @@ def io_orientation(affine, tol=None):
 
 
 def ornt_transform(start_ornt, end_ornt):
-    """Return the orientation that transforms from `start_ornt` to `end_ornt`.
+    """Return the orientation transform from `start_ornt` to `end_ornt`.
+
+    Orientation arrays describe how data array axes map to a common set of
+    output axes, typically RAS+ world coordinates. The returned transform can
+    be applied to data whose axes are described by `start_ornt` to obtain data
+    whose axes are described by `end_ornt`.
 
     Parameters
     ----------
-    start_ornt : (n,2) orientation array
-        Initial orientation.
-
-    end_ornt : (n,2) orientation array
-        Final orientation.
+    start_ornt : (n, 2) orientation array
+        Orientation of the original data axes relative to the output axes,
+        often from :func:`io_orientation`.
+    end_ornt : (n, 2) orientation array
+        Desired orientation of the data axes relative to the same output axes,
+        often from :func:`axcodes2ornt`.
 
     Returns
     -------
-    orientations : (p, 2) ndarray
-       The orientation that will transform the `start_ornt` to the `end_ornt`.
+    orientations : (n, 2) ndarray
+        The orientation transform from `start_ornt` to `end_ornt`.
+
+    Examples
+    --------
+    Both ``orig_to_ras`` and ``lpi_to_ras`` map data axes to RAS+ world
+    coordinates. Their relative transform reorients the original data to LPI:
+
+    >>> orig_to_ras = io_orientation(np.diag([-1, 1, 1, 1]))
+    >>> lpi_to_ras = axcodes2ornt('LPI')
+    >>> orig_to_lpi = ornt_transform(orig_to_ras, lpi_to_ras)
+    >>> orig_to_lpi.tolist()
+    [[0.0, 1.0], [1.0, -1.0], [2.0, -1.0]]
     """
     start_ornt = np.asarray(start_ornt)
     end_ornt = np.asarray(end_ornt)
