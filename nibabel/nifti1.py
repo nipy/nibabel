@@ -1352,6 +1352,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         if affine is None:
             return
         affine = np.asarray(affine)
+        if not affine.shape == (4, 4):
+            raise TypeError('Need 4x4 affine as input')
         hdr['srow_x'][:] = affine[0, :]
         hdr['srow_y'][:] = affine[1, :]
         hdr['srow_z'][:] = affine[2, :]
