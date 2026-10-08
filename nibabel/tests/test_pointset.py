@@ -179,3 +179,11 @@ class TestGrids(TestPointsets):
             ],
         )
         assert np.array_equal(mask_img.affine, np.eye(4))
+
+
+def test_GridIndices_array_copy_false_raises():
+    # gh-1318: the coordinates are generated on demand, so there is no existing
+    # array for copy=False to return a view on.
+    gi = ps.GridIndices((2, 3, 4))
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        gi.__array__(copy=False)
