@@ -498,6 +498,9 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             ehdr['pixdim'][1:4] = dims
             with pytest.raises(HeaderDataError):
                 ehdr.get_qform()
+        # Non-4x4 affines are rejected
+        with pytest.raises(TypeError):
+            ehdr.set_qform(np.eye(5))
 
     def test_sform(self):
         # Test roundtrip case
@@ -511,6 +514,14 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert ehdr['sform_code'] == xfas['scanner']
         ehdr.set_sform(A, xfas['aligned'])
         assert ehdr['sform_code'] == xfas['aligned']
+        # Non-4x4 affines are rejected, matching set_qform behavior.
+        # A (6, 4) array previously slipped through silently, because
+        # set_sform only indexed the first three rows without checking
+        # the overall shape.
+        with pytest.raises(TypeError):
+            ehdr.set_sform(np.eye(5))
+        with pytest.raises(TypeError):
+            ehdr.set_sform(np.zeros((6, 4)))
 
     def test_dim_info(self):
         ehdr = self.header_class()
