@@ -65,6 +65,52 @@ def test_Opener():
 
 
 @pytest.mark.thread_unsafe
+def test_Opener_fileobj_mode():
+    # An explicit mode must be compatible with the mode of a file object
+    with InTemporaryDirectory():
+        with open('test.txt', 'w') as fobj:
+            fobj.write('please do not crash')
+        for file_mode, good, bad in (
+            ('r', ('r', 'rt'), ('rb', 'w', 'wb', 'r+', 'a')),
+            ('rb', ('rb', 'br'), ('r', 'w', 'wb', 'r+b', 'ab', 'a+b')),
+            ('w', ('w', 'wt'), ('wb', 'r', 'rb', 'w+', 'a')),
+            ('wb', ('wb', 'bw'), ('w', 'r', 'rb', 'w+b', 'ab', 'a+b')),
+            ('r+', ('r+', 'r+t', 'rt+', 'r', 'w'), ('rb+', 'rb', 'wb', 'a', 'a+')),
+            # '+' binary files report 'rb+' whether opened 'r+b' or 'w+b'
+            ('r+b', ('r+b', 'rb+', 'br+', 'rb', 'wb', 'w+b'), ('r+', 'w+', 'r', 'w', 'ab')),
+            ('w+', ('w+', 'w', 'r+', 'r'), ('rb', 'wb', 'w+b', 'a', 'ab', 'a+')),
+            ('a', ('a', 'at'), ('w', 'r', 'ab', 'a+', 'rb')),
+            ('ab', ('ab', 'ba'), ('wb', 'w', 'r', 'rb', 'a+b', 'a', 'r+b')),
+            ('a+', ('a+', 'at+', 'a+t', 'a'), ('w', 'w+', 'r', 'r+', 'ab+', 'rb')),
+            ('a+b', ('a+b', 'ab+', 'ba+', 'ab'), ('wb', 'r+b', 'w+b', 'rb', 'w')),
+        ):
+            fobj = open('test.txt', file_mode)
+            try:
+                # The requested mode must cover, but need not equal, the
+                # file object's mode; '+' provides extra capabilities.
+                for mode in good:
+                    assert Opener(fobj, mode).mode == fobj.mode
+                    assert Opener(fobj, mode=mode).mode == fobj.mode
+                for mode in bad:
+                    with pytest.raises(OSError):
+                        Opener(fobj, mode)
+                    with pytest.raises(OSError):
+                        Opener(fobj, mode=mode)
+            finally:
+                fobj.close()
+        # Requests without an explicit mode accept any file mode
+        fobj = open('test.txt')
+        try:
+            assert Opener(fobj).mode == 'r'
+        finally:
+            fobj.close()
+        # File objects without a string mode are accepted unchecked
+        for obj in (BytesIO(), Lunk('')):
+            for mode in ('r', 'rb', 'w', 'wb', 'r+b'):
+                assert Opener(obj, mode).fobj is obj
+
+
+@pytest.mark.thread_unsafe
 def test_Opener_various():
     # Check we can do all sorts of files here
     message = b'Oh what a giveaway'

@@ -36,6 +36,23 @@ class Fileish(ty.Protocol):
     def write(self, b: bytes, /) -> int | None: ...
 
 
+def _mode_to_tuple(mode: str) -> tuple[str, bool, bool, bool] | None:
+    """Normalize a file mode string to ``(operation, readable, writable, binary)``
+
+    ``operation`` is one of 'r', 'w', 'a' or 'x'. ``readable`` and ``writable``
+    reflect the direction(s) the mode permits, so an updating mode ('+')
+    enables both. ``binary`` reflects the 'b' flag ('t' is the default and is
+    dropped). Returns ``None`` if no operation is found.
+    """
+    for operation in 'rwax':
+        if operation in mode:
+            plus = '+' in mode
+            readable = operation == 'r' or plus
+            writable = operation in 'wax' or plus
+            return operation, readable, writable, 'b' in mode
+    return None
+
+
 class Opener:
     r"""Class to accept, maybe open, and context-manage file-likes / filenames
 
@@ -85,6 +102,11 @@ class Opener:
             self.fobj = fileish
             self.me_opened = False
             self._name = getattr(fileish, 'name', None)
+            # Positional arguments override keywords, as in the filename path
+            mode = kwargs.get('mode')
+            if args:
+                mode = args[0]
+            self._check_fobj_mode(mode)
             return
         opener, arg_names = self._get_opener_argnames(fileish)
         # Get full arguments to check for optional parameters
@@ -110,6 +132,36 @@ class Opener:
         self.fobj = opener(fileish, *args, **kwargs)
         self._name = fileish
         self.me_opened = True
+
+    def _check_fobj_mode(self, mode) -> None:
+        """Check a requested ``mode`` against ``self.fobj``'s own mode
+
+        A file object is required to cover the requested mode: matching
+        text/binary flag, read and/or write access as requested, and
+        matching append mode, so 'wb' is rejected for a file opened for
+        appending. A file object opened for update ('+') provides both read
+        and write access and covers any request in its text/binary class.
+
+        Raises ``OSError`` for incompatible modes. File objects without a
+        string ``mode`` (such as ``io.BytesIO``) are accepted unchecked, as
+        are requests without an explicit mode.
+        """
+        if not isinstance(mode, str):
+            return
+        fobj_mode = getattr(self.fobj, 'mode', None)
+        if not isinstance(fobj_mode, str):
+            return
+        request = _mode_to_tuple(mode)
+        have = _mode_to_tuple(fobj_mode)
+        if request is None or have is None:
+            return
+        if (
+            request[3] != have[3]  # text/binary disagreement
+            or (request[0] == 'a') != (have[0] == 'a')  # append mode disagreement
+            or (request[1] and not have[1])  # needs a readable file
+            or (request[2] and not have[2])  # needs a writable file
+        ):
+            raise OSError(f'mode {mode!r} requested, but file object has mode {fobj_mode!r}')
 
     def _get_opener_argnames(self, fileish: str) -> OpenerDef:
         _, ext = splitext(fileish)
