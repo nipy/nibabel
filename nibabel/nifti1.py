@@ -765,6 +765,8 @@ class Nifti1Extensions(list):
             # be extra verbose
             ecode = ext_def[1]
             esize = ext_def[0]
+            if esize < 8:
+                raise HeaderDataError('extension size must be at least 8 bytes')
             if esize % 16:
                 warnings.warn(
                     'Extension size is not a multiple of 16 bytes; '

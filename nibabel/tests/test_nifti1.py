@@ -1310,6 +1310,14 @@ def test_extension_list():
     assert ext_c0 == ext_c1
 
 
+@pytest.mark.parametrize('esize', [0, -16])
+def test_undersized_extension_does_not_read_payload(esize):
+    bio = BytesIO(struct.pack('=ii', esize, 6) + b'sentinel')
+    with pytest.raises(HeaderDataError):
+        Nifti1Extensions.from_fileobj(bio, -1, False)
+    assert bio.tell() == 8
+
+
 @pytest.mark.thread_unsafe
 def test_extension_io():
     bio = BytesIO()
