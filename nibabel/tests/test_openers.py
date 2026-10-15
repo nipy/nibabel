@@ -374,7 +374,7 @@ def test_DeterministicGzipFile():
 
         # No filename, no mtime
         with open('ref.gz', 'wb') as fobj:
-            with GzipFile(filename='', mode='wb', fileobj=fobj, mtime=0) as gzobj:
+            with GzipFile(filename='', mode='wb', compresslevel=9, fileobj=fobj, mtime=0) as gzobj:
                 gzobj.write(msg)
         anon_chksum = md5sum('ref.gz')
 
@@ -390,7 +390,9 @@ def test_DeterministicGzipFile():
         # No filename, current mtime
         now = time.time()
         with open('ref.gz', 'wb') as fobj:
-            with GzipFile(filename='', mode='wb', fileobj=fobj, mtime=now) as gzobj:
+            with GzipFile(
+                filename='', mode='wb', compresslevel=9, fileobj=fobj, mtime=now
+            ) as gzobj:
                 gzobj.write(msg)
         now_chksum = md5sum('ref.gz')
 
@@ -405,7 +407,7 @@ def test_DeterministicGzipFile():
 
             # GzipFile will use time.time()
             with open('ref.gz', 'wb') as fobj:
-                with GzipFile(filename='', mode='wb', fileobj=fobj) as gzobj:
+                with GzipFile(filename='', mode='wb', compresslevel=9, fileobj=fobj) as gzobj:
                     gzobj.write(msg)
             assert md5sum('ref.gz') == now_chksum
 
@@ -415,7 +417,7 @@ def test_DeterministicGzipFile():
             assert md5sum('now.gz') == anon_chksum
 
         # GzipFile is filename dependent, DeterministicGzipFile is independent
-        with GzipFile('filenameA.gz', mode='wb', mtime=0) as gzobj:
+        with GzipFile('filenameA.gz', mode='wb', compresslevel=9, mtime=0) as gzobj:
             gzobj.write(msg)
         fnameA_chksum = md5sum('filenameA.gz')
         assert fnameA_chksum != anon_chksum
@@ -432,7 +434,7 @@ def test_DeterministicGzipFile_fileobj():
     with InTemporaryDirectory():
         msg = b"Hello, I'd like to have an argument."
         with open('ref.gz', 'wb') as fobj:
-            with GzipFile(filename='', mode='wb', fileobj=fobj, mtime=0) as gzobj:
+            with GzipFile(filename='', mode='wb', compresslevel=9, fileobj=fobj, mtime=0) as gzobj:
                 gzobj.write(msg)
         ref_chksum = md5sum('ref.gz')
 
