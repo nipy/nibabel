@@ -1,2 +1,3 @@
 .git_archival.txt export-subst
 nibabel/pkg_info.py export-subst
+uv.lock merge=binary
