@@ -192,7 +192,8 @@ authors:
     given-names: Christian
   - family-names: Hymers
     given-names: Mark
-  - alias: Michael Krause
+  - family-names: Krause
+    given-names: Michael
   - family-names: Esteban
     given-names: Oscar
     affiliation: Department of Psychology, Stanford University, CA, USA
@@ -262,7 +263,8 @@ authors:
   - family-names: Hinds
     given-names: Oliver P.
   - alias: Sandro
-  - alias: Siddhardha Nanda
+  - family-names: Nanda
+    given-names: Siddhardha
   - family-names: Fauber
     given-names: Bennet
   - family-names: Dewey
@@ -320,7 +322,8 @@ authors:
     given-names: Jon
   - family-names: Lecher
     given-names: Justin
-  - alias: Karolina Surma
+  - family-names: Surma
+    given-names: Karolina
   - family-names: Leinweber
     given-names: Katrin
     affiliation: TIB – Leibniz Information Centre for Science and Technology and University Library,
@@ -331,8 +334,10 @@ authors:
     affiliation: National Technical University of Athens, Greece
   - family-names: Calábková
     given-names: Markéta
-  - alias: Nagizaaz Shaik
-  - alias: Nathan Suttie
+  - family-names: Shaik
+    given-names: Nagizaaz
+  - family-names: Suttie
+    given-names: Nathan
   - family-names: Fischer
     given-names: Peter
     affiliation: Friedrich-Alexander-Universität Erlangen-Nürnberg, Erlangen, Germany
@@ -345,7 +350,8 @@ authors:
     given-names: Thomas
   - family-names: Roos
     given-names: Thomas
-  - alias: Venish Paneliya
+  - family-names: Paneliya
+    given-names: Venish
   - family-names: Reddam
     given-names: Venkateswara Reddy
     affiliation: National Institute of Mental Health and Neuro-Sciences, India
