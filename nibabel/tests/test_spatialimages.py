@@ -426,11 +426,10 @@ class TestSpatialImage:
             sliced_data = np.asanyarray(sliced_img.dataobj)
             assert np.array_equal(sliced_data, in_data[sliceobj])
             for ijk, value in np.ndenumerate(sliced_data):
-                assert_array_almost_equal(
+                assert np.array_equal(
                     apply_affine(sliced_img.affine, ijk),
                     apply_affine(img.affine, lookup[int(value)]),
-                    err_msg=f'Voxel moved in RAS+ space for slicer {sliceobj}',
-                )
+                ), f'Voxel moved in RAS+ space for slicer {sliceobj}'
 
     def test_slicer(self):
         img_klass = self.image_class
