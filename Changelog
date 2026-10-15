@@ -25,6 +25,65 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.5.0 (To be determined)
+========================
+
+New feature release in the 5.5.x series.
+
+This release requires a minimum Python of 3.11 and NumPy 2.0, and has been
+tested up to Python 3.15 and NumPy 2.5.
+
+New features
+------------
+* The :class:`~nibabel.nicom.dicomwrappers.FilterMultiOrient` frame filter
+  allows extracting a volume of consistent orientation from a DICOM containing
+  mixed orienations (pr/1485) (Michael Krause, reviewed by Basile Pinsard and CM)
+
+Enhancements
+------------
+* Support for empty :class:`~nibabel.cifti2.cifti2_axes.BrainModelAxis` (pr/1555)
+  (Nathan Suttie, reviewed by CM)
+* Support for rescaling N-to-N affines in :func:`~nibabel.affines.rescale_affine`
+  (pr/1553) (Siddhardha Nanda, reviewed by CM)
+* Improved documentation of :meth:`~nibabel.cifti2.cifti2_axes.BrainModelAxis.iter_structures`
+  (pr/1550) (Nagizaaz Shaik, reviewed by CM)
+* Documentation has been modernized with a new theme and improved navigation
+  (pr/1484) (Leonardo Ayala, reviewed by CM)
+
+Bug fixes
+---------
+* Validate affine shape in :meth:`~nibabel.nifti1.Nifti1Header.set_sform`,
+  matching :meth:`~nibabel.nifti1.Nifti1Header.set_qform` (pr/1562)
+  (Siddhardha Nanda, reviewed by CM)
+* Fix docstrings that mismatched function signatures (pr/1552) (Venish Paneliya,
+  reviewed by CM)
+* Fix rendering of docstrings of deprecated functions/classes (pr/1545) (CM,
+  reviewed by Mathias Goncalves)
+* Correct dtype of ECAT ``patient_birth_date`` field (``int32``) (pr/1522)
+  (Cedric Conday, reviewed by CM)
+* Set the gzip compression level to the default for the current Python version,
+  which changed from 9 to 6 in Python 3.15 (pr/1509) (Karolina Surma, reviewed by CM)
+* Outdated references to Travis CI were removed from our developer docs
+  (pr/1506) (Dimitri Papadopoulos, reviewed by CM)
+* Typos in documentation (pr/1499) (Dimitri Papadopoulos, reviewed by CM) and
+  (pr/1500) (Kabilar Gunalan, reviewied by CM)
+
+Maintenance
+-----------
+* Set minimum tested ``indexed-gzip`` version to 1.9.1 (pr/1554) (CM)
+* Testing on ARM64 Linux runners (pr/1496) (Leonardo Ayala, reviewed by CM)
+* Transitioned from ``.zenodo.json`` to ``CITATION.cff`` (pr/1494) (CM,
+  at least discussed with Rémi Gau)
+* Remove deprecated use of ``__package__`` constant (pr/1487)
+  (Dimitri Papadopoulos, reviewed by CM)
+* Publish docs automatically on tags or triggers (pr/1482) (CM)
+* Mark thread-unsafe tests as such, and run a weekly multithreaded test job
+  (pr/1455) (Rémi Gau, reviewed by CM)
+
+API changes and deprecations
+----------------------------
+* Drop support for Python 3.10, Numpy < 2.0 (pr/1570) (CM)
+
 5.4.2 (Wednesday 11 March 2026)
 ===============================
 
