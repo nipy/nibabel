@@ -33,12 +33,12 @@ authors:
     given-names: Ben
     affiliation: UC San Diego
     orcid: https://orcid.org/0000-0002-7782-0790
-  - family-names: McCarthy
-    given-names: Paul
   - family-names: Papadopoulos Orfanos
     given-names: Dimitri
     affiliation: CEA
     orcid: https://orcid.org/0000-0002-1242-8990
+  - family-names: McCarthy
+    given-names: Paul
   - family-names: Jarecka
     given-names: Dorota
     affiliation: MIT
@@ -157,15 +157,15 @@ authors:
     orcid: https://orcid.org/0000-0001-7003-9822
   - family-names: Subramaniam
     given-names: Krish
+  - family-names: Ayala
+    given-names: Leonardo
+    orcid: https://orcid.org/0000-0002-3574-2085
   - family-names: Van
     given-names: Andrew
   - family-names: Gorgolewski
     given-names: Krzysztof J.
     affiliation: Google
     orcid: https://orcid.org/0000-0003-3321-7583
-  - family-names: Ayala
-    given-names: Leonardo
-    orcid: https://orcid.org/0000-0002-3574-2085
   - family-names: Raamana
     given-names: Pradeep Reddy
     affiliation: Rotman Research Institute, Baycrest Health Sciences, Toronto, ON, Canada
@@ -192,6 +192,7 @@ authors:
     given-names: Christian
   - family-names: Hymers
     given-names: Mark
+  - alias: Michael Krause
   - family-names: Esteban
     given-names: Oscar
     affiliation: Department of Psychology, Stanford University, CA, USA
@@ -218,6 +219,11 @@ authors:
     given-names: Horea
   - family-names: Nimmo-Smith
     given-names: Ian
+  - family-names: Gunalan
+    given-names: Kabilar
+    affiliation: McGovern Institute for Brain Research, Massachusetts Institute of Technology,
+      Cambridge, MA, USA
+    orcid: https://orcid.org/0000-0001-6964-4865
   - family-names: Nguyen
     given-names: Ly
   - family-names: Suter
@@ -232,6 +238,8 @@ authors:
     given-names: Alex
     affiliation: Sir Peter Mansfield Imaging Centre, University of Nottingham, UK
     orcid: https://orcid.org/0000-0003-2353-3283
+  - family-names: Conday
+    given-names: Cedric
   - family-names: Panfilov
     given-names: Egor
     orcid: https://orcid.org/0000-0002-2500-6375
@@ -254,6 +262,7 @@ authors:
   - family-names: Hinds
     given-names: Oliver P.
   - alias: Sandro
+  - alias: Siddhardha Nanda
   - family-names: Fauber
     given-names: Bennet
   - family-names: Dewey
@@ -311,6 +320,7 @@ authors:
     given-names: Jon
   - family-names: Lecher
     given-names: Justin
+  - alias: Karolina Surma
   - family-names: Leinweber
     given-names: Katrin
     affiliation: TIB – Leibniz Information Centre for Science and Technology and University Library,
@@ -321,6 +331,8 @@ authors:
     affiliation: National Technical University of Athens, Greece
   - family-names: Calábková
     given-names: Markéta
+  - alias: Nagizaaz Shaik
+  - alias: Nathan Suttie
   - family-names: Fischer
     given-names: Peter
     affiliation: Friedrich-Alexander-Universität Erlangen-Nürnberg, Erlangen, Germany
@@ -333,14 +345,9 @@ authors:
     given-names: Thomas
   - family-names: Roos
     given-names: Thomas
+  - alias: Venish Paneliya
   - family-names: Reddam
     given-names: Venkateswara Reddy
     affiliation: National Institute of Mental Health and Neuro-Sciences, India
     orcid: https://orcid.org/0000-0001-6817-2966
   - alias: freec84
-  - family-names: Gunalan
-    given-names: Kabilar
-    affiliation: McGovern Institute for Brain Research, Massachusetts Institute of Technology, Cambridge, MA, USA
-    orcid: https://orcid.org/0000-0001-6964-4865
-  - family-names: Conday
-    given-names: Cedric
