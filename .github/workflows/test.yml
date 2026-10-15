@@ -125,7 +125,6 @@ jobs:
           # Full Python span
           - {python-version: '3.12',  dependencies: full, os: ubuntu-latest, architecture: x64}
           - {python-version: '3.13',  dependencies: full, os: ubuntu-latest, architecture: x64}
-          - {python-version: '3.13t', dependencies: full, os: ubuntu-latest, architecture: x64}
           - {python-version: '3.14',  dependencies: full, os: ubuntu-latest, architecture: x64}
           - {python-version: '3.14t', dependencies: full, os: ubuntu-latest, architecture: x64}
         exclude:
