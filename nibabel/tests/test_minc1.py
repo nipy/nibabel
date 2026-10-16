@@ -213,3 +213,11 @@ class TestMinc1Image(tsi.TestSpatialImage):
                 img.header.data_to_fileobj(arr, bio)
             with pytest.raises(NotImplementedError):
                 img.header.data_from_fileobj(bio)
+
+
+def test_array_copy_false_raises():
+    # gh-1318: the data is read from the netcdf variable and scaled on the way
+    # out, so there is no existing array for copy=False to return a view on.
+    img = Minc1Image.from_filename(EG_FNAME)
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        img.dataobj.__array__(copy=False)

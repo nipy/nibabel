@@ -41,10 +41,14 @@ class CoordinateArray(ty.Protocol):
     shape: tuple[int, int]
 
     @ty.overload
-    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
+    def __array__(
+        self, dtype: None = ..., /, *, copy: bool | None = ...
+    ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
 
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...
+    def __array__(
+        self, dtype: _DType, /, *, copy: bool | None = ...
+    ) -> np.ndarray[ty.Any, _DType]: ...
 
 
 @dataclass
@@ -189,7 +193,13 @@ class GridIndices:
     def __repr__(self):
         return f'<{self.__class__.__name__}{self.gridshape}>'
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
+        if copy is False:
+            raise ValueError(
+                'Unable to avoid copy while creating an array as requested.\n'
+                'The coordinates are generated on demand, so there is no existing '
+                'array to return a view on.'
+            )
         if dtype is None:
             dtype = self.dtype
 

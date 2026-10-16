@@ -687,7 +687,7 @@ class EcatImageArrayProxy:
     def is_proxy(self):
         return True
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         """Read of data from file
 
         This reads ALL FRAMES into one array, can be memory expensive.
@@ -699,12 +699,23 @@ class EcatImageArrayProxy:
         ----------
         dtype : numpy dtype specifier, optional
             A numpy dtype specifier specifying the type of the returned array.
+        copy : {None, True, False}, optional
+            Part of the numpy array protocol.  ``False`` asks for an array that
+            shares memory with this object, which it cannot provide, and so
+            raises ``ValueError``.  ``None`` and ``True`` both return a new
+            array.
 
         Returns
         -------
         array
             Scaled image data with type `dtype`.
         """
+        if copy is False:
+            raise ValueError(
+                'Unable to avoid copy while creating an array as requested.\n'
+                'The frames are read from file and assembled into a new array, so '
+                'there is no existing array to return a view on.'
+            )
         # dtype=None is interpreted as float64
         data = np.empty(self.shape)
         frame_mapping = get_frame_order(self._subheader._mlist)
