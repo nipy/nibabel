@@ -1,6 +1,7 @@
 """Testing parrec module"""
 
 from glob import glob
+from io import StringIO
 from os.path import basename, dirname
 from os.path import join as pjoin
 from warnings import simplefilter
@@ -473,6 +474,17 @@ def test_truncated_load():
     with clear_and_catch_warnings(record=True) as wlist:
         PARRECHeader(gen_info, slice_info, True)
         assert len(wlist) == 1
+
+
+@pytest.mark.parametrize('n_values', [10, 17])
+def test_truncated_image_info_line(n_values):
+    # Image information line with too few values is a PAR format error
+    with open(EG_PAR) as fobj:
+        lines = fobj.readlines()
+    first = next(i for i, line in enumerate(lines) if line.strip()[:1].isdigit())
+    lines[first] = ' '.join(lines[first].split()[:n_values]) + '\n'
+    with pytest.raises(PARRECError):
+        parse_PAR_header(StringIO(''.join(lines)))
 
 
 def test_vol_calculations():
