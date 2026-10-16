@@ -1,6 +1,7 @@
 """Testing parrec module"""
 
 from glob import glob
+from io import StringIO
 from os.path import basename, dirname
 from os.path import join as pjoin
 from warnings import simplefilter
@@ -473,6 +474,15 @@ def test_truncated_load():
     with clear_and_catch_warnings(record=True) as wlist:
         PARRECHeader(gen_info, slice_info, True)
         assert len(wlist) == 1
+
+
+def test_truncated_general_info_line():
+    # General information line cut before its colon is a PAR format error
+    with open(EG_PAR) as fobj:
+        text = fobj.read()
+    cut = text.index('Max. number of slices/locations') + len('Max. number of slices')
+    with pytest.raises(PARRECError):
+        parse_PAR_header(StringIO(text[:cut]))
 
 
 def test_vol_calculations():
