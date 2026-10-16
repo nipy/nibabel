@@ -39,6 +39,7 @@ from nibabel.optpkg import optional_package
 from nibabel.pkg_info import cmp_pkg_version
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
+from nibabel.volumeutils import native_code
 
 from ..freesurfer import load as mghload
 from ..orientations import aff2axcodes
@@ -1311,10 +1312,11 @@ def test_extension_list():
 
 
 @pytest.mark.parametrize('esize', [0, -16])
-def test_undersized_extension_does_not_read_payload(esize):
-    bio = BytesIO(struct.pack('=ii', esize, 6) + b'sentinel')
+@pytest.mark.parametrize('endianness', ['<', '>'])
+def test_undersized_extension_does_not_read_payload(esize, endianness):
+    bio = BytesIO(struct.pack(endianness + 'ii', esize, 6) + b'sentinel')
     with pytest.raises(HeaderDataError):
-        Nifti1Extensions.from_fileobj(bio, -1, False)
+        Nifti1Extensions.from_fileobj(bio, -1, endianness != native_code)
     assert bio.tell() == 8
 
 
