@@ -330,8 +330,11 @@ def _split_header(fobj):
         if state == 'general-info':
             if not line.startswith('.'):
                 state = 'comment-block'
-            else:  # Let match raise error for unexpected field format
-                key, value = GEN_RE.match(line).groups()
+            else:  # Raise error for unexpected field format
+                match = GEN_RE.match(line)
+                if match is None:
+                    raise PARRECError(f'Cannot parse general information line: {line!r}')
+                key, value = match.groups()
                 gen_dict[key] = value
         if state == 'comment-block':
             if not line.startswith('#'):
