@@ -485,6 +485,44 @@ def test_truncated_general_info_line():
         parse_PAR_header(StringIO(text[:cut]))
 
 
+@pytest.mark.parametrize('image_no', [1, 2])
+@pytest.mark.parametrize(
+    ('par_file', 'expected_values', 'n_values'),
+    [(EG_PAR, 49, 10), (EG_PAR, 49, 17), (V41_PAR, 48, 46)],
+)
+def test_truncated_image_info_line(par_file, expected_values, n_values, image_no):
+    # Image information line with too few values is a PAR format error
+    with open(par_file) as fobj:
+        lines = fobj.readlines()
+    first = next(i for i, line in enumerate(lines) if line.strip()[:1].isdigit())
+    row = first + image_no - 1
+    lines[row] = ' '.join(lines[row].split()[:n_values]) + '\n'
+    with pytest.raises(PARRECError) as exc:
+        parse_PAR_header(StringIO(''.join(lines)))
+    message, summary = str(exc.value).splitlines()
+    assert message == f'Image information line has {n_values} values, expected {expected_values}'
+    assert summary.startswith(f'Image information line {image_no}: ')
+    assert len(summary) <= 80
+
+
+@pytest.mark.parametrize(
+    ('line', 'expected_summary'),
+    [
+        ('1 2', 'Image information line 1: 1 2'),
+        ('1' + ' ' * 52 + '2', 'Image information line 1: 1' + ' ' * 52 + '2'),
+        ('1' + ' ' * 53 + '2', 'Image information line 1: 1' + ' ' * 48 + '[...]'),
+    ],
+)
+def test_image_info_error_summary(line, expected_summary):
+    # Preserve summaries up to 80 characters and truncate longer ones.
+    with pytest.raises(PARRECError) as exc:
+        parrec._process_image_lines([line + '\n'], 'V4.2')
+    assert str(exc.value).splitlines() == [
+        'Image information line has 2 values, expected 49',
+        expected_summary,
+    ]
+
+
 def test_vol_calculations():
     # Test vol_is_full on sample data
     for par, fobj in gen_par_fobj():

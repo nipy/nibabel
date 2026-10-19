@@ -371,11 +371,20 @@ def _process_image_lines(image_lines, version):
     """Process image information definition lines according to `version`"""
     # postproc image def props
     image_def_dtd = image_def_dtds[version]
+    # number of values on each image definition line
+    n_values = sum(1 if len(props) == 2 else np.prod(props[2]) for props in image_def_dtd)
     # create an array for all image defs
     image_defs = np.zeros(len(image_lines), dtype=image_def_dtd)
     # for every image definition
     for i, line in enumerate(image_lines):
         items = line.split()
+        if len(items) < n_values:
+            summary = f'Image information line {i + 1}: {line.rstrip()}'
+            if len(summary) > 80:
+                summary = f'{summary[:75]}[...]'
+            raise PARRECError(
+                f'Image information line has {len(items)} values, expected {n_values}\n{summary}'
+            )
         item_counter = 0
         # for all image properties we know about
         for props in image_def_dtd:
