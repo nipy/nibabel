@@ -1132,6 +1132,24 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         hdr['scl_slope'] = slope
         hdr['scl_inter'] = inter
 
+    @pytest.mark.parametrize('dtype', (np.complex64, np.complex128))
+    @pytest.mark.parametrize('byteorder', ('<', '>'))
+    def test_complex_scaling(self, dtype, byteorder):
+        components = ((1, 2), (-1, -2))
+        raw = np.array([complex(r, i) for r, i in components], dtype=dtype)
+        hdr = self.image_class.header_class(endianness=byteorder)
+        hdr.set_data_dtype(dtype)
+        img = self.image_class(raw, np.eye(4), hdr)
+        slope, inter = 2, 3
+        img.header.set_slope_inter(slope, inter)
+        img = bytesio_round_trip(img)
+        # Compute each component independently of the complex scaling helpers.
+        expected = [complex(r * slope + inter, i * slope + inter) for r, i in components]
+        assert_array_equal(img.dataobj.get_unscaled(), raw)
+        assert_array_equal(np.asanyarray(img.dataobj), expected)
+        assert_array_equal(img.dataobj[:1], expected[:1])
+        assert_array_equal(np.asarray(img.dataobj, dtype=dtype), expected)
+
     def test_write_scaling(self):
         # Check we can set slope, inter on write
         for slope, inter, e_slope, e_inter in (
