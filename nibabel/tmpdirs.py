@@ -10,21 +10,7 @@
 
 import os
 import tempfile
-from contextlib import contextmanager
-
-try:
-    from contextlib import chdir as _chdir
-except ImportError:  # PY310
-
-    @contextmanager  # type: ignore[no-redef]
-    def _chdir(path):
-        cwd = os.getcwd()
-        os.chdir(path)
-        try:
-            yield
-        finally:
-            os.chdir(cwd)
-
+from contextlib import chdir, contextmanager
 
 from .deprecated import deprecate_with_version
 
@@ -81,7 +67,7 @@ def InTemporaryDirectory():
     >>> os.getcwd() == my_cwd
     True
     """
-    with tempfile.TemporaryDirectory() as tmpdir, _chdir(tmpdir):
+    with tempfile.TemporaryDirectory() as tmpdir, chdir(tmpdir):
         yield tmpdir
 
 
@@ -118,5 +104,5 @@ def InGivenDirectory(path=None):
     if path is None:
         path = os.getcwd()
     os.makedirs(path, exist_ok=True)
-    with _chdir(path):
+    with chdir(path):
         yield os.path.abspath(path)
