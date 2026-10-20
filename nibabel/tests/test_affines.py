@@ -266,3 +266,88 @@ def test_rescale_affine_4d():
     assert_almost_equal(voxel_sizes(new_aff), new_zooms)
     new_centroid = apply_affine(new_aff, (orig_shape - 1) // 2)
     assert_almost_equal(new_centroid, orig_centroid)
+
+
+def test_rescale_affine_default_unchanged():
+    # The default (center='voxel') preserves the RAS location of the central
+    # voxel, ``(shape - 1) // 2``, as rescale_affine always has (gh-1366)
+    rng = np.random.RandomState(20241009)
+    orig_aff = np.eye(4)
+    orig_aff[:3, :] = rng.normal(size=(3, 4))
+    for orig_shape, new_zooms, new_shape in (
+        ((64, 64, 33), (2, 2, 3), None),
+        ((5, 6, 7), (0.5, 1, 2), (10, 12, 14)),
+        ((256, 256, 160), (1, 1, 1), (128, 128, 81)),
+    ):
+        shape = np.asarray(orig_shape)
+        out_shape = shape if new_shape is None else np.asarray(new_shape)
+        rzs = orig_aff[:3, :3] * new_zooms / voxel_sizes(orig_aff)
+        trans = apply_affine(orig_aff, (shape - 1) // 2) - rzs @ ((out_shape - 1) // 2)
+        expected = from_matvec(rzs, trans)
+
+        default = rescale_affine(orig_aff, orig_shape, new_zooms, new_shape)
+        explicit = rescale_affine(orig_aff, orig_shape, new_zooms, new_shape, center='voxel')
+        assert_array_equal(default, expected)
+        assert_array_equal(explicit, expected)
+
+    # 4x4x4 1mm image rescaled to 2x2x2 2mm (gh-1366): voxel (1, 1, 1) stays at (1, 1, 1)
+    new_aff = rescale_affine(np.eye(4), (4, 4, 4), (2, 2, 2), (2, 2, 2))
+    assert_array_equal(new_aff, [[2, 0, 0, 1], [0, 2, 0, 1], [0, 0, 2, 1], [0, 0, 0, 1]])
+
+
+def test_rescale_affine_image_center():
+    rng = np.random.RandomState(20241009)
+    orig_aff = np.eye(4)
+    orig_aff[:3, :] = rng.normal(size=(3, 4))
+    orig_axcodes = aff2axcodes(orig_aff)
+
+    for orig_shape in ((64, 64, 40), (65, 63, 41), (20, 31, 512)):
+        orig_center = apply_affine(orig_aff, (np.array(orig_shape) - 1) / 2)
+        for new_shape in (None, (256, 256, 256), (64, 65, 39), (3, 4, 5)):
+            for new_zooms in ((1, 1, 1), (2, 2, 3), (0.5, 0.7, 0.5)):
+                new_aff = rescale_affine(
+                    orig_aff, orig_shape, new_zooms, new_shape, center='image'
+                )
+                assert aff2axcodes(new_aff) == orig_axcodes
+                assert_almost_equal(voxel_sizes(new_aff), new_zooms)
+                out_shape = orig_shape if new_shape is None else new_shape
+                new_center = apply_affine(new_aff, (np.array(out_shape) - 1) / 2)
+                assert_almost_equal(new_center, orig_center)
+
+    # With odd input and output shapes, the central voxel is the image center
+    for center in ('voxel', 'image'):
+        assert_almost_equal(
+            rescale_affine(orig_aff, (65, 63, 41), (2, 2, 3), (33, 31, 27), center=center),
+            rescale_affine(orig_aff, (65, 63, 41), (2, 2, 3), (33, 31, 27)),
+        )
+
+
+def test_rescale_affine_image_center_fov():
+    # gh-1366: a 4x4x4 1mm image rescaled to 2x2x2 2mm covers the same field of
+    # view, so the outer voxel edges should coincide, as in SimpleITK and TorchIO
+    orig_aff = np.eye(4)
+    new_aff = rescale_affine(orig_aff, (4, 4, 4), (2, 2, 2), (2, 2, 2), center='image')
+    assert_array_equal(new_aff, [[2, 0, 0, 0.5], [0, 2, 0, 0.5], [0, 0, 2, 0.5], [0, 0, 0, 1]])
+
+    # More generally, if the field of view is unchanged, so are its corners
+    orig_aff = from_matvec(euler2mat(x=0.3, y=-0.2, z=0.1) * [1.0, 1.2, 2.5], [-90, 110, -40])
+    orig_shape = np.array([96, 80, 48])
+    for new_zooms in ((2.0, 2.4, 5.0), (0.5, 0.6, 1.25), (3.0, 1.2, 0.625)):
+        new_shape = orig_shape * voxel_sizes(orig_aff) / new_zooms
+        assert_almost_equal(new_shape, np.round(new_shape))
+        new_shape = np.round(new_shape).astype(int)
+        new_aff = rescale_affine(orig_aff, orig_shape, new_zooms, new_shape, center='image')
+        for corner in product(*zip((0, 0, 0), (1, 1, 1))):
+            corner = np.array(corner)
+            assert_almost_equal(
+                apply_affine(new_aff, corner * new_shape - 0.5),
+                apply_affine(orig_aff, corner * orig_shape - 0.5),
+            )
+
+
+def test_rescale_affine_bad_center():
+    with pytest.raises(ValueError, match='center'):
+        rescale_affine(np.eye(4), (4, 4, 4), (2, 2, 2), center='fov')
+    with pytest.raises(TypeError):
+        # center is keyword-only
+        rescale_affine(np.eye(4), (4, 4, 4), (2, 2, 2), None, 'image')
