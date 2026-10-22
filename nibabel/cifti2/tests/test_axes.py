@@ -742,6 +742,24 @@ def test_writing():
             check_rewrite(arr, (ax1, ax2))
 
 
+@pytest.mark.parametrize('axis', [*get_axes(), axes.SeriesAxis(-1000, 1000, 3)])
+@pytest.mark.parametrize(
+    'index_type',
+    [int, np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32, np.uint64],
+)
+def test_integer_index(axis, index_type):
+    start = 0 if np.issubdtype(index_type, np.unsignedinteger) else -len(axis)
+    for index in range(start, len(axis)):
+        np.testing.assert_equal(axis[index_type(index)], axis[index])
+
+    for index in (len(axis), len(axis) + 1):
+        with pytest.raises(IndexError):
+            axis[index_type(index)]
+    if start < 0:
+        with pytest.raises(IndexError):
+            axis[index_type(-len(axis) - 1)]
+
+
 def test_common_interface():
     """
     Tests the common interface for all custom created CIFTI-2 axes
