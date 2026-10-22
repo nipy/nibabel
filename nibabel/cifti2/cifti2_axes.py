@@ -1479,24 +1479,8 @@ class SeriesAxis(Axis):
 
     def __getitem__(self, item):
         if isinstance(item, slice):
-            step = 1 if item.step is None else item.step
-            idx_start = (
-                (self.size - 1 if step < 0 else 0)
-                if item.start is None
-                else (item.start if item.start >= 0 else self.size + item.start)
-            )
-            idx_end = (
-                (-1 if step < 0 else self.size)
-                if item.stop is None
-                else (item.stop if item.stop >= 0 else self.size + item.stop)
-            )
-            if idx_start > self.size and step < 0:
-                idx_start = self.size - 1
-            if idx_end > self.size:
-                idx_end = self.size
-            nelements = (idx_end - idx_start) // step
-            if nelements < 0:
-                nelements = 0
+            idx_start, idx_end, step = item.indices(self.size)
+            nelements = len(range(idx_start, idx_end, step))
             return SeriesAxis(
                 idx_start * self.step + self.start, self.step * step, nelements, self.unit
             )
