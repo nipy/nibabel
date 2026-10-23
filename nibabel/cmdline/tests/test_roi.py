@@ -121,7 +121,15 @@ def test_nib_roi(tmp_path, inplace):
     assert out_img.shape == in_sliced.shape
     assert np.array_equal(in_data[1:-1, -1:1:-1, :, :5], out_img.dataobj)
     assert np.allclose(in_sliced.dataobj, out_img.dataobj)
-    assert np.allclose(in_sliced.affine, out_img.affine)
+    # Calculate the expected affine independently of the slicer; comparing
+    # in_sliced.affine to out_img.affine only checks the slicer against
+    # itself, and passed with the wrong affine of gh-1533
+    transform = np.eye(4)
+    transform[:3, :3] = np.diag([1, -1, 1])
+    transform[:3, 3] = [1, in_img.shape[1] - 1, 0]
+    expected_affine = in_img.affine @ transform
+    assert np.allclose(out_img.affine, expected_affine)
+    assert np.allclose(in_sliced.affine, expected_affine)
 
 
 @pytest.mark.parametrize(
