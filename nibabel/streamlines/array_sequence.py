@@ -239,6 +239,8 @@ class ArraySequence:
         in_cached_build = build_cache is not None
         if not in_cached_build:  # One shot append, not part of sequence
             build_cache = _BuildCache(self, common_shape, element.dtype)
+        if common_shape != build_cache.common_shape:
+            raise ValueError('All dimensions, except the first one, must match exactly')
         next_offset = build_cache.next_offset
         req_rows = next_offset + n_items
         if self._data.shape[0] < req_rows:
