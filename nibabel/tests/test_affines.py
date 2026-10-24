@@ -208,6 +208,21 @@ def test_voxel_sizes():
             assert_almost_equal(voxel_sizes(full_aff), vox_sizes)
 
 
+@pytest.mark.parametrize(
+    ('dtype', 'zoom'),
+    [('i1', 20), ('u1', 20), ('i2', 200), ('i4', 50000), ('i8', 4000000000)],
+)
+def test_voxel_sizes_integer_overflow(dtype, zoom):
+    affine = np.diag(np.array([zoom, zoom, zoom, 1], dtype=dtype))
+    original = affine.copy()
+    assert_array_equal(voxel_sizes(affine), [zoom] * 3)
+    assert_array_equal(affine, original)
+
+
+def test_voxel_sizes_array_like():
+    assert_array_equal(voxel_sizes([[2, 0, 0], [0, 3, 0], [0, 0, 1]]), [2, 3])
+
+
 def test_obliquity():
     """Check the calculation of inclination of an affine axes."""
     from math import pi
