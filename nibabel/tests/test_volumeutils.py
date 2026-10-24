@@ -1231,6 +1231,44 @@ def test_array_from_file_overflow():
     )
 
 
+def test_array_from_file_short_before_allocating():
+    # gh-1566: a header claiming far more data than the file holds should give
+    # our OSError up front, not try to allocate a buffer for the claimed size
+    shape = (2**20,) * 3
+    dtype = np.dtype(np.int8)
+    n_bytes = 2**60
+    for mmap in (True, False):
+        bio = BytesIO(b'\x00' * 352)
+        with pytest.raises(OSError, match=f'Expected {n_bytes} bytes, got 342 bytes'):
+            array_from_file(shape, dtype, bio, offset=10, mmap=mmap)
+    # Offset past the end of the data
+    with pytest.raises(OSError, match=f'Expected {n_bytes} bytes, got 0 bytes'):
+        array_from_file(shape, dtype, BytesIO(b'\x00' * 10), offset=20)
+    with InTemporaryDirectory():
+        with open('short.bin', 'wb') as fobj:
+            fobj.write(b'\x00' * 352)
+        for mmap in (True, False):
+            with open('short.bin', 'rb') as fobj:
+                with pytest.raises(OSError, match=r'got 352 bytes from .*short\.bin'):
+                    array_from_file(shape, dtype, fobj, mmap=mmap)
+    # Exactly enough data still reads fine
+    arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+    bio = BytesIO(b'\x00' * 5 + arr.tobytes('F'))
+    assert_array_equal(array_from_file((2, 3, 4), arr.dtype, bio, offset=5, mmap=False), arr)
+
+
+def test_array_from_file_short_compressed():
+    # Compressed streams are not checked up front, but still report a short read
+    shape = (2, 3, 4)
+    dtype = np.dtype(np.float32)
+    with InTemporaryDirectory():
+        with Opener('short.gz', 'wb') as fobj:
+            fobj.write(b'\x00' * 10)
+        with Opener('short.gz', 'rb') as fobj:
+            with pytest.raises(OSError, match='Expected 96 bytes, got 10 bytes'):
+                array_from_file(shape, dtype, fobj)
+
+
 def test__ftype4scaled_finite_warningfilters():
     # This test checks our ability to properly manage the thread-unsafe
     # warnings filter list.
