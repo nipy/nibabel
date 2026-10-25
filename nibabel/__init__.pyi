@@ -32,6 +32,7 @@ from nibabel.minc1 import Minc1Image
 from nibabel.minc2 import Minc2Image
 from nibabel.nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
 from nibabel.nifti2 import Nifti2Header, Nifti2Image, Nifti2Pair
+from nibabel.nrrd import NrrdHeader, NrrdImage
 from nibabel.orientations import (
     OrientationError,
     aff2axcodes,
@@ -73,6 +74,8 @@ __all__ = [
     'Nifti2Header',
     'Nifti2Image',
     'Nifti2Pair',
+    'NrrdHeader',
+    'NrrdImage',
     'OrientationError',
     'Spm2AnalyzeHeader',
     'Spm2AnalyzeImage',
