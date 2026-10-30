@@ -30,7 +30,7 @@ class DataobjImage(FileBasedImage):
     """Template class for images that have dataobj data stores"""
 
     _data_cache: np.ndarray | None
-    _fdata_cache: np.ndarray[ty.Any, np.dtype[np.floating]] | None
+    _fdata_cache: np.ndarray[ty.Any, np.dtype[np.inexact]] | None
 
     def __init__(
         self,
@@ -226,8 +226,8 @@ class DataobjImage(FileBasedImage):
     def get_fdata(
         self,
         caching: ty.Literal['fill', 'unchanged'] = 'fill',
-        dtype: npt.DTypeLike = np.float64,
-    ) -> np.ndarray[ty.Any, np.dtype[np.floating]]:
+        dtype: npt.DTypeLike | None = None,
+    ) -> np.ndarray[ty.Any, np.dtype[np.inexact]]:
         """Return floating point image data with necessary scaling applied
 
         The image ``dataobj`` property can be an array proxy or an array.  An
@@ -261,9 +261,11 @@ class DataobjImage(FileBasedImage):
             the call to ``get_fdata`` does not create an extra (cached)
             reference to the returned array.  In this case it is easier for
             Python to free the memory from the returned array.
-        dtype : numpy dtype specifier
-            A numpy dtype specifier specifying a floating point type.  Data is
-            returned as this floating point type.  Default is ``np.float64``.
+        dtype : None or numpy dtype specifier, optional
+            A numpy dtype specifier specifying a floating point or complex
+            type.  Data is returned as this type.  If None (the default), use
+            ``np.complex128`` if the image data is complex, and ``np.float64``
+            otherwise.
 
         Returns
         -------
@@ -360,6 +362,13 @@ class DataobjImage(FileBasedImage):
         """
         if caching not in ('fill', 'unchanged'):
             raise ValueError('caching value should be "fill" or "unchanged"')
+        if dtype is None:
+            # Do not silently drop the imaginary part of complex data
+            data_dtype = getattr(self._dataobj, 'dtype', None)
+            if data_dtype is not None and np.issubdtype(data_dtype, np.complexfloating):
+                dtype = np.complex128
+            else:
+                dtype = np.float64
         dtype = np.dtype(dtype)
         if not issubclass(dtype.type, np.inexact):
             raise ValueError(f'{dtype} should be floating point type')
