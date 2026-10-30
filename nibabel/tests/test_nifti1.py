@@ -16,6 +16,7 @@ from io import BytesIO
 
 import numpy as np
 import pytest
+from numpy.exceptions import ComplexWarning
 from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_array_equal
 
 from nibabel import nifti1 as nifti1
@@ -1200,6 +1201,34 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                 assert img.get_data_dtype() == effective_dt
                 img_rt = bytesio_round_trip(img)
                 assert img_rt.get_data_dtype() == effective_dt
+
+    def test_get_fdata_complex(self):
+        # Complex data are returned as complex128 by default (gh-975)
+        for dtype in (np.complex64, np.complex128):
+            data = (np.arange(24) + 1j * np.arange(24)[::-1]).astype(dtype).reshape((2, 3, 4))
+            img = self.image_class(data, np.eye(4))
+            img_rt = bytesio_round_trip(img)
+            assert img_rt.get_data_dtype() == dtype
+            for im in (img, img_rt):
+                fdata = im.get_fdata()
+                assert fdata.dtype == np.complex128
+                assert_array_equal(fdata, data)
+                assert im.get_fdata() is fdata
+                assert im.get_fdata(dtype=np.complex128) is fdata
+                # An explicit dtype is respected
+                cdata = im.get_fdata(caching='unchanged', dtype=np.complex64)
+                assert cdata.dtype == np.complex64
+                assert_array_equal(cdata, data)
+                im.uncache()
+                with pytest.warns(ComplexWarning):
+                    rdata = im.get_fdata(dtype=np.float64)
+                assert rdata.dtype == np.float64
+                assert_array_equal(rdata, data.real)
+        # Real data still default to float64
+        for dtype in (np.int16, np.float32):
+            data = np.arange(24, dtype=dtype).reshape((2, 3, 4))
+            img_rt = bytesio_round_trip(self.image_class(data, np.eye(4)))
+            assert img_rt.get_fdata().dtype == np.float64
 
 
 class TestNifti1Image(TestNifti1Pair):
