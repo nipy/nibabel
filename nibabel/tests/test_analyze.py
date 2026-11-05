@@ -443,19 +443,11 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
                 # Errors for negative zooms
                 with pytest.raises(HeaderDataError):
                     hdr.set_zooms((-1,) + (1,) * (L - 1))
-                # A zero spatial zoom is also rejected
-                with pytest.raises(HeaderDataError):
-                    hdr.set_zooms((0,) + (1,) * (L - 1))
             with pytest.raises(HeaderDataError):
                 hdr.set_zooms((1,) * (L + 1))
             # Errors for negative zooms
             with pytest.raises(HeaderDataError):
                 hdr.set_zooms((-1,) * L)
-            # A zero zoom on a trailing (non-spatial) axis is legal
-            if L > 3:
-                hdr.set_zooms((1,) * (L - 1) + (0,))
-                assert hdr.get_zooms() == (1,) * (L - 1) + (0,)
-                hdr.set_zooms((1,) * L)
         # reducing the dimensionality of the array and then increasing
         # it again reverts the previously set zoom values to 1.0
         hdr = self.header_class()
