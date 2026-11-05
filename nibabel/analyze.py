@@ -702,6 +702,11 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
             raise HeaderDataError(f'Expecting {ndim} zoom values for ndim {ndim}')
         if np.any(zooms < 0):
             raise HeaderDataError('zooms must be positive')
+        # Spatial (first three) zooms specifically must be nonzero: a zero
+        # spatial zoom makes get_base_affine()'s diag(zooms) singular. A zero
+        # zoom on a trailing (e.g. time) axis is legal -- see MGHHeader.set_zooms.
+        if np.any(zooms[:3] == 0):
+            raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
         pixdims[1 : ndim + 1] = zooms[:]
 
