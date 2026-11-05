@@ -129,6 +129,14 @@ def test_shape_zooms():
     # as do negative zooms
     with pytest.raises(HeaderDataError):
         hdr.set_zooms((4.0, 3.0, -2.0))
+    # a zero spatial zoom is also rejected, since it would make
+    # get_base_affine()'s diag(zooms) singular
+    with pytest.raises(HeaderDataError):
+        hdr.set_zooms((4.0, 0.0, 2.0))
+    # but a zero zoom on a trailing (non-spatial) axis is legal
+    hdr.set_data_shape((1, 2, 3, 4))
+    hdr.set_zooms((4.0, 3.0, 2.0, 0.0))
+    assert hdr.get_zooms() == (4.0, 3.0, 2.0, 0.0)
 
 
 def test_data_dtype():
