@@ -44,3 +44,7 @@ repos:
     rev: 0494aa7fa1314e98913a41227d8f0a515b2c1049  # frozen: 0.38.2
     hooks:
       - id: check-citation-file-format
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: 06a39750ec31860bb44f2acf67182c40016cd1e7 # frozen: v1.32.0
+    hooks:
+      - id: zizmor
