@@ -113,9 +113,9 @@ The simplest way to install the necessary tools is to run::
     uv sync --group=dev
 
 This will install tox_ and pre-commit_ with uv_ plugins into a local
-`.venv` environment.
+``.venv`` environment.
 
-Otherwise, you may install tox using `uv tool`::
+Otherwise, you may install tox using ``uv tool``::
 
     uv tool install --with=tox-uv-bare tox
 
@@ -200,7 +200,7 @@ Changelog
 =========
 
 The changelog is located in the toplevel directory of the source tree in the
-`Changelog` file. The content of this file should be formatted as restructured
+``Changelog`` file. The content of this file should be formatted as restructured
 text to make it easy to put it into manual appendix and on the website.
 
 This changelog should neither replicate the VCS commit log nor the
