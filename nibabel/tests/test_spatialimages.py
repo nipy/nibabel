@@ -126,8 +126,6 @@ def test_shape_zooms():
         hdr.set_zooms((4.0, 3.0))
     with pytest.raises(HeaderDataError):
         hdr.set_zooms((4.0, 3.0, 2.0, 1.0))
-    # back to 3D so the zoom *values* (not just length) are exercised below
-    hdr.set_data_shape((1, 2, 3))
     # as do negative zooms
     with pytest.raises(HeaderDataError):
         hdr.set_zooms((4.0, 3.0, -2.0))

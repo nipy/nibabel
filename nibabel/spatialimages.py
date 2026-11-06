@@ -265,12 +265,7 @@ class SpatialHeader(FileBasedHeader, SpatialProtocol):
         ndim = len(shape)
         if len(zooms) != ndim:
             raise HeaderDataError(f'Expecting {ndim} zoom values for ndim {ndim}')
-        if any(z < 0 for z in zooms):
-            raise HeaderDataError('zooms must be positive')
-        # Spatial (first three) zooms specifically must be nonzero: a zero
-        # spatial zoom makes get_base_affine()'s diag(zooms) singular. A zero
-        # zoom on a trailing (e.g. time) axis is legal -- see MGHHeader.set_zooms.
-        if any(z == 0 for z in zooms[:3]):
+        if any(z <= 0 for z in zooms[:3]) or any(z < 0 for z in zooms[3:]):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
 
