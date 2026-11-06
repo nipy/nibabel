@@ -1367,7 +1367,7 @@ class Nifti1Header(SpmAnalyzeHeader):
         -------
         slope : None or float
            scaling (slope).  None if there is no valid scaling from these
-           fields
+           fields, or if the data type is RGB or RGBA
         inter : None or float
            offset (intercept). None if there is no valid scaling or if offset
            is not finite.
@@ -1393,6 +1393,9 @@ class Nifti1Header(SpmAnalyzeHeader):
             ...
         HeaderDataError: Valid slope but invalid intercept inf
         """
+        # Ignore scaling for RGB(A) data types
+        if self.get_value_label('datatype') in ('RGB', 'RGBA'):
+            return None, None
         # Note that we are returning float (float64) scalefactors and
         # intercepts, although they are stored as in nifti1 as float32.
         slope = float(self['scl_slope'])

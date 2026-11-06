@@ -73,6 +73,18 @@ A[:3, :3] = np.array(R) * Z  # broadcasting does the job
 A[:3, 3] = T
 
 
+def _rgb_data(code):
+    # Return a structured RGB/RGBA volume and its expected 0-1 float values
+    dtype = data_type_codes.dtype[code]
+    raw = np.arange(24 * len(dtype.names), dtype=np.uint8).reshape((2, 3, 4, -1))
+    # Last voxel pure white, so the data includes the uint8 max. case (255 -> 1.0)
+    raw[-1, -1, -1] = 255
+    structured = np.empty((2, 3, 4), dtype=dtype)
+    for i, name in enumerate(dtype.names):
+        structured[name] = raw[..., i]
+    return structured, raw / 255
+
+
 class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
     header_class = Nifti1PairHeader
     example_file = header_file
@@ -737,6 +749,14 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr['slice_code'] = 4  # alternating decreasing
         assert hdr.get_value_label('slice_code') == 'alternating decreasing'
 
+    def test_rgb_slope_inter_ignored(self):
+        # nifti1.h: scaling is ignored for RGB data
+        hdr = self.header_class()
+        for code in ('RGB', 'RGBA'):
+            hdr.set_data_dtype(code)
+            hdr.set_slope_inter(5, 5)
+            assert hdr.get_slope_inter() == (None, None)
+
 
 def unshear_44(affine):
     RZS = affine[:3, :3]
@@ -1200,6 +1220,60 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
                 assert img.get_data_dtype() == effective_dt
                 img_rt = bytesio_round_trip(img)
                 assert img_rt.get_data_dtype() == effective_dt
+
+    def test_rgb_get_fdata(self):
+        for code in ('RGB', 'RGBA'):
+            structured, expected = _rgb_data(code)
+            img = bytesio_round_trip(self.image_class(structured, np.eye(4)))
+            data = img.get_fdata()
+            # Channels become a last axis, scaled to 0-1 as matplotlib expects
+            assert data.shape == expected.shape
+            assert data.dtype == np.float64
+            assert_array_almost_equal(data, expected)
+            assert data.max() == 1.0
+
+    def test_rgb_get_fdata_float32(self):
+        for code in ('RGB', 'RGBA'):
+            structured, expected = _rgb_data(code)
+            img = bytesio_round_trip(self.image_class(structured, np.eye(4)))
+            data = img.get_fdata(dtype=np.float32)
+            assert data.dtype == np.float32
+            assert_array_almost_equal(data, expected)
+
+    def test_rgb_get_fdata_in_memory(self):
+        # Unsaved images hold a plain array, not an array proxy
+        for code in ('RGB', 'RGBA'):
+            structured, expected = _rgb_data(code)
+            img = self.image_class(structured, np.eye(4))
+            assert_array_almost_equal(img.get_fdata(), expected)
+
+    def test_rgb_get_fdata_caching(self):
+        # RGB data take their own read path, but are cached like any other image
+        for code in ('RGB', 'RGBA'):
+            structured, _ = _rgb_data(code)
+            img = bytesio_round_trip(self.image_class(structured, np.eye(4)))
+            img.get_fdata(caching='unchanged')
+            assert not img.in_memory
+            data = img.get_fdata()
+            assert img.in_memory
+            assert img.get_fdata() is data
+
+    def test_rgb_scaled_get_fdata(self):
+        for code in ('RGB', 'RGBA'):
+            structured, expected = _rgb_data(code)
+            img = self.image_class(structured, np.eye(4))
+            img.header.set_slope_inter(5, 5)
+            # Slope is ignored (nifti1.h); only the 0-1 normalization applies
+            assert_array_almost_equal(bytesio_round_trip(img).get_fdata(), expected)
+
+    def test_rgb_scaled_raw_read(self):
+        # Applying a slope to RGB records used to crash raw reads
+        for code in ('RGB', 'RGBA'):
+            structured, _ = _rgb_data(code)
+            img = self.image_class(structured, np.eye(4))
+            img.header.set_slope_inter(5, 5)
+            img_back = bytesio_round_trip(img)
+            assert_array_equal(np.asarray(img_back.dataobj), structured)
 
 
 class TestNifti1Image(TestNifti1Pair):

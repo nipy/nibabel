@@ -13,6 +13,7 @@ from __future__ import annotations
 import typing as ty
 
 import numpy as np
+from numpy.lib.recfunctions import structured_to_unstructured
 
 from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage
@@ -268,7 +269,10 @@ class DataobjImage(FileBasedImage):
         Returns
         -------
         fdata : array
-            Array of image data of data type `dtype`.
+            Array of image data of data type `dtype`.  For RGB or RGBA images,
+            the channels are returned along an extra last axis of length 3 or 4,
+            scaled to [0, 1]; the original 8-bit values are available from
+            ``dataobj``.
 
         See also
         --------
@@ -367,10 +371,16 @@ class DataobjImage(FileBasedImage):
         if self._fdata_cache is not None:
             if self._fdata_cache.dtype.type == dtype.type:
                 return self._fdata_cache
-        # Always return requested data type
-        # For array proxies, will attempt to confine data array to dtype
-        # during scaling
-        data = np.asanyarray(self._dataobj, dtype=dtype)
+        # Records (RGB/A) can't be cast to float; getattr as MINC proxies have no dtype
+        raw_dtype = getattr(self._dataobj, 'dtype', None)
+        if raw_dtype is not None and np.dtype(raw_dtype).names is not None:
+            # Read the raw records; asking the proxy for floats would fail
+            data = structured_to_unstructured(np.asanyarray(self._dataobj), dtype=dtype)
+            data /= 255  # RGB(A) channels are uint8
+        else:
+            # Always return requested data type
+            # For array proxies, will attempt to confine data array to dtype during scaling
+            data = np.asanyarray(self._dataobj, dtype=dtype)
         if caching == 'fill':
             self._fdata_cache = data
         return data

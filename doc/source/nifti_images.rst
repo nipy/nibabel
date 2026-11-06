@@ -398,6 +398,8 @@ The output data from a NIfTI image comes from:
 
 'Defined' means, the value is not NaN (not a number).
 
+Scaling is ignored for RGB and RGBA data, as the NIfTI standard requires.
+
 All this gets built into the array proxy when you load a NIfTI image.
 
 When you load an image, the header scaling values automatically get set to NaN
