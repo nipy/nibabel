@@ -265,7 +265,7 @@ class SpatialHeader(FileBasedHeader, SpatialProtocol):
         ndim = len(shape)
         if len(zooms) != ndim:
             raise HeaderDataError(f'Expecting {ndim} zoom values for ndim {ndim}')
-        if any(z < 0 for z in zooms):
+        if any(z <= 0 for z in zooms[:3]) or any(z < 0 for z in zooms[3:]):
             raise HeaderDataError('zooms must be positive')
         self._zooms = zooms
 

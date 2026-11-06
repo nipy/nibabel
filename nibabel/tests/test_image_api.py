@@ -43,6 +43,7 @@ import pytest
 from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal
 
 from nibabel.arraywriters import WriterError
+from nibabel.spatialimages import HeaderDataError
 from nibabel.testing import (
     assert_data_similar,
     bytesio_filemap,
@@ -469,6 +470,27 @@ class HeaderShapeMixin:
         assert img.header.get_data_shape() == new_shape
 
 
+class HeaderZoomsMixin:
+    """Tests that a zero spatial zoom is rejected, matching MGHHeader
+
+    Add this if your header supports ``get_zooms`` and ``set_zooms`` with
+    the same "spatial (first three) zooms must be nonzero" contract as
+    SpatialHeader/AnalyzeHeader/MGHHeader.
+    """
+
+    def validate_header_zooms(self, imaker, params):
+        img = imaker()
+        hdr = img.header
+        hdr.set_data_shape((2, 3, 4, 5))
+        # A zero zoom on a spatial (first three) axis is rejected, since it
+        # would make get_base_affine()'s diag(zooms) singular.
+        with pytest.raises(HeaderDataError):
+            hdr.set_zooms((1.0, 0.0, 1.0, 1.0))
+        # A zero zoom on a trailing (non-spatial) axis is legal.
+        hdr.set_zooms((1.0, 1.0, 1.0, 0.0))
+        assert hdr.get_zooms()[-1] == 0.0
+
+
 class AffineMixin:
     """Adds test of affine property, method
 
@@ -719,7 +741,7 @@ class ImageHeaderAPI(MakeImageAPI):
         return self.image_maker.header_class()
 
 
-class TestSpatialImageAPI(ImageHeaderAPI):
+class TestSpatialImageAPI(ImageHeaderAPI, HeaderZoomsMixin):
     klass = image_maker = SpatialImage
     can_save = False
 
