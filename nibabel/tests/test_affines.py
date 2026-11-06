@@ -105,6 +105,14 @@ def test_matrix_vector():
     assert_array_equal(from_matvec(mat.tolist(), vec.tolist()), xform)
 
 
+def test_from_matvec_fractional_translation():
+    matrix = np.diag([2, 3])
+    vector = [0.5, -0.25]
+    affine = from_matvec(matrix, vector)
+    assert_array_equal(apply_affine(affine, [1, 2]), [2.5, 5.75])
+    assert from_matvec(matrix).dtype == matrix.dtype
+
+
 def test_append_diag():
     # Routine for appending diagonal elements
     assert_array_equal(append_diag(np.diag([2, 3, 1]), [1]), np.diag([2, 3, 1, 1]))
@@ -157,6 +165,14 @@ def test_append_diag():
     # Length of starts has to match length of steps
     with pytest.raises(AffineError):
         append_diag(aff, [5, 6], [9])
+
+
+def test_append_diag_mixed_dtypes():
+    affine = np.eye(3, dtype=np.int16)
+    for step, start in [(0.5, 1), (2, -0.25)]:
+        extended = append_diag(affine, step, start)
+        assert_array_equal(apply_affine(extended, [1, 2, 3]), [1, 2, 3 * step + start])
+    assert append_diag(affine, []).dtype == affine.dtype
 
 
 def test_dot_reduce():
