@@ -363,6 +363,8 @@ class ImageScalingMixin:
         if supported_dtype in COMPLEX_TYPES:
             # always cast to real from complex
             exp_back = exp_back.astype(supported_dtype)
+            # Apply the intercept to both components of complex data.
+            inter = complex(inter, inter)
         else:
             # Cast to working precision
             exp_back = exp_back.astype(float)
