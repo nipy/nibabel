@@ -488,6 +488,13 @@ class ArraySequence:
         """
         seq = self if inplace else self.copy()
 
+        if len(seq) == 0:
+            if is_array_sequence(value) and seq._check_shape(value):
+                value = value._data[:0]
+            args = [] if value is None else [value]
+            seq._data = getattr(self._data[:0], op)(*args)
+            return seq
+
         if is_array_sequence(value) and seq._check_shape(value):
             elements = zip(
                 seq._offsets,
