@@ -20,7 +20,7 @@ repos:
       - id: check-merge-conflict
       - id: check-vcs-permalinks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 38bfb07c0c64c304f47eb52090f8288150c77730  # frozen: v0.17.1
+    rev: 25bcf95026b96e2dd3c0aec3090c3d6ef6ca2e6c  # frozen: v0.17.3
     hooks:
       - id: ruff-check
         args: [ --fix, --show-fixes ]
@@ -41,7 +41,7 @@ repos:
         additional_dependencies:
           - tomli
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0494aa7fa1314e98913a41227d8f0a515b2c1049  # frozen: 0.38.2
+    rev: 39478bf2c099a58683d3f1aedf675105318b078d  # frozen: 0.39.0
     hooks:
       - id: check-citation-file-format
   - repo: https://github.com/pre-commit/pygrep-hooks
