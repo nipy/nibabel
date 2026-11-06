@@ -50,7 +50,8 @@ def io_orientation(affine, tol=None):
        -1 if it is in the opposite direction.  If a row is [np.nan, np.nan],
        which can happen when p > q, then this row should be considered dropped.
     """
-    affine = np.asarray(affine)
+    # Work in the highest commonly available precision to avoid issues with SVD
+    affine = np.asarray(affine, np.float64)
     q, p = affine.shape[0] - 1, affine.shape[1] - 1
     # extract the underlying rotation, zoom, shear matrix
     RZS = affine[:q, :p]
