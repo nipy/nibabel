@@ -184,7 +184,8 @@ def from_matvec(matrix, vector=None):
     """
     matrix = np.asarray(matrix)
     nin, nout = matrix.shape
-    t = np.zeros((nin + 1, nout + 1), matrix.dtype)
+    dtype = matrix.dtype if vector is None else np.result_type(matrix, np.asarray(vector))
+    t = np.zeros((nin + 1, nout + 1), dtype)
     t[0:nin, 0:nout] = matrix
     t[nin, nout] = 1.0
     if vector is not None:

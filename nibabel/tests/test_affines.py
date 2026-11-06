@@ -105,6 +105,14 @@ def test_matrix_vector():
     assert_array_equal(from_matvec(mat.tolist(), vec.tolist()), xform)
 
 
+def test_from_matvec_fractional_translation():
+    matrix = np.diag([2, 3])
+    vector = [0.5, -0.25]
+    affine = from_matvec(matrix, vector)
+    assert_array_equal(apply_affine(affine, [1, 2]), [2.5, 5.75])
+    assert from_matvec(matrix).dtype == matrix.dtype
+
+
 def test_append_diag():
     # Routine for appending diagonal elements
     assert_array_equal(append_diag(np.diag([2, 3, 1]), [1]), np.diag([2, 3, 1, 1]))
