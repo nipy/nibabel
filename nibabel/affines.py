@@ -238,7 +238,8 @@ def append_diag(aff, steps, starts=()):
         raise AffineError('Steps should have same length as starts')
     old_n_out, old_n_in = aff.shape[0] - 1, aff.shape[1] - 1
     # make new affine
-    aff_plus = np.zeros((old_n_out + n_steps + 1, old_n_in + n_steps + 1), dtype=aff.dtype)
+    dtype = np.result_type(aff, steps, starts) if n_steps else aff.dtype
+    aff_plus = np.zeros((old_n_out + n_steps + 1, old_n_in + n_steps + 1), dtype=dtype)
     # Get stuff from old affine
     aff_plus[:old_n_out, :old_n_in] = aff[:old_n_out, :old_n_in]
     aff_plus[:old_n_out, -1] = aff[:old_n_out, -1]

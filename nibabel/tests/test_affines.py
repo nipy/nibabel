@@ -167,6 +167,14 @@ def test_append_diag():
         append_diag(aff, [5, 6], [9])
 
 
+def test_append_diag_mixed_dtypes():
+    affine = np.eye(3, dtype=np.int16)
+    for step, start in [(0.5, 1), (2, -0.25)]:
+        extended = append_diag(affine, step, start)
+        assert_array_equal(apply_affine(extended, [1, 2, 3]), [1, 2, 3 * step + start])
+    assert append_diag(affine, []).dtype == affine.dtype
+
+
 def test_dot_reduce():
     # Chaining numpy dot
     # Error for no arguments
