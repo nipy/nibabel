@@ -732,6 +732,35 @@ def test_series():
         assert sr != sr_other
 
 
+@pytest.mark.parametrize('size', [0, 1, 4, 5])
+@pytest.mark.parametrize(
+    'selection',
+    [
+        slice(None, None, 2),
+        slice(None, None, -2),
+        slice(-100, None),
+        slice(None, -100, -2),
+        slice(5, None, -1),
+        slice(100, None, -2),
+        slice(-100, None, -1),
+        slice(100, 200),
+    ],
+)
+def test_series_slice_matches_numpy(size, selection):
+    axis = axes.SeriesAxis(3, 2, size, 'HERTZ')
+    sliced = axis[selection]
+    expected = axis.time[selection]
+    np.testing.assert_array_equal(sliced.time, expected)
+    assert sliced.size == expected.size
+    assert sliced.unit == axis.unit
+    assert sliced.step == axis.step * (selection.step or 1)
+
+
+def test_series_slice_zero_step():
+    with pytest.raises(ValueError, match='slice step cannot be zero'):
+        axes.SeriesAxis(3, 2, 5)[::0]
+
+
 def test_writing():
     """
     Tests the writing and reading back in of custom created CIFTI-2 axes
