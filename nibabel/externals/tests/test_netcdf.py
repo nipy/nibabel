@@ -1,6 +1,5 @@
 """ Tests for netcdf """
 
-import os
 from contextlib import contextmanager
 from glob import glob
 from io import BytesIO
