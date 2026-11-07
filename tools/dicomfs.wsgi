@@ -159,7 +159,7 @@ def handler(environ):
             return ('200 OK', 'image/nifti', nifti(parts[0], parts[1], parts[2]))
         elif parts[3] == 'png':
             return ('200 OK', 'image/png', png(parts[0], parts[1], parts[2]))
-    raise HandlerError('404 Not Found', '%s not found\n' % environ['PATH_INFO'])
+    raise HandlerError('404 Not Found', f'{environ["PATH_INFO"]} not found\n')
 
 
 def study_cmp(a, b):
@@ -185,7 +185,7 @@ def index(environ):
 def patient(patient):
     studies = [s for s in studies_getter() if s.patient_name_or_uid() == patient]
     if len(studies) == 0:
-        raise HandlerError('404 Not Found', 'patient %s not found\n' % patient)
+        raise HandlerError('404 Not Found', f'patient {patient} not found\n')
     studies.sort(study_cmp)
     template = template_env.from_string(patient_template)
     return template.render(studies=studies).encode('utf-8')
@@ -196,7 +196,7 @@ def patient_date_time(patient, date_time):
     for s in studies_getter():
         if s.patient_name_or_uid() != patient:
             continue
-        if date_time != '{}_{}'.format(s.date, s.time):
+        if date_time != f'{s.date}_{s.time}':
             continue
         study = s
         break
@@ -211,7 +211,7 @@ def nifti(patient, date_time, scan):
     for s in studies_getter():
         if s.patient_name_or_uid() != patient:
             continue
-        if date_time != '{}_{}'.format(s.date, s.time):
+        if date_time != f'{s.date}_{s.time}':
             continue
         study = s
         break
@@ -233,7 +233,7 @@ def png(patient, date_time, scan):
     for s in studies_getter():
         if s.patient_name_or_uid() != patient:
             continue
-        if date_time != '{}_{}'.format(s.date, s.time):
+        if date_time != f'{s.date}_{s.time}':
             continue
         study = s
         break
