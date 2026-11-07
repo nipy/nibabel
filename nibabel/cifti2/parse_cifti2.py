@@ -417,21 +417,10 @@ class Cifti2Parser(xml.XmlParser):
             meta = self.struct_state[-1]
             meta[pair[0]] = pair[1]
 
-        elif name == 'Name':
+        elif name in {'Name', 'Value'}:
             self.write_to = None
 
-        elif name == 'Value':
-            self.write_to = None
-
-        elif name == 'MatrixIndicesMap':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-
-        elif name == 'NamedMap':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-
-        elif name == 'LabelTable':
+        elif name in {'MatrixIndicesMap', 'NamedMap', 'LabelTable'}:
             self.fsm_state.pop()
             self.struct_state.pop()
 
