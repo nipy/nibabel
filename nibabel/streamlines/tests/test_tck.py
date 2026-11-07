@@ -18,8 +18,6 @@ DATA = {}
 
 
 def setup_module():
-    global DATA
-
     DATA['empty_tck_fname'] = pjoin(data_path, 'empty.tck')
     DATA['no_magic_number_tck_fname'] = pjoin(data_path, 'no_magic_number.tck')
     DATA['no_header_end_tck_fname'] = pjoin(data_path, 'no_header_end.tck')

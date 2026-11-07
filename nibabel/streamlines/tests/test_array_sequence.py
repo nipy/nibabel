@@ -14,7 +14,6 @@ SEQ_DATA = {}
 
 
 def setup_module():
-    global SEQ_DATA
     rng = np.random.RandomState(42)
     SEQ_DATA['rng'] = rng
     SEQ_DATA['data'] = generate_data(nb_arrays=5, common_shape=(3,), rng=rng)
