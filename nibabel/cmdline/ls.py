@@ -29,7 +29,7 @@ MAX_UNIQUE = 1000  # maximal number of unique values to report for --counts
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage=f'{sys.argv[0]} [OPTIONS] [FILE ...]\n\n' + __doc__,
+        usage=f'{sys.argv[0]} [OPTIONS] [FILE ...]\n\n{__doc__}',
         version='%prog ' + nib.__version__,
     )
 

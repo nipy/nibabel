@@ -61,7 +61,7 @@ def filename_search_replace(sr_pairs, filename, backup=False):
         return False
     open(filename, 'w').write(out_txt)
     if backup:
-        open(filename + '.bak', 'w').write(in_txt)
+        open(f'{filename}.bak', 'w').write(in_txt)
     return True
 
 

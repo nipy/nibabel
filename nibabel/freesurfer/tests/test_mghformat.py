@@ -200,7 +200,7 @@ def test_filename_exts():
     # Check if these extensions allow round trip
     for ext in ('.mgh', '.mgz'):
         with InTemporaryDirectory():
-            fname = 'tmpname' + ext
+            fname = f'tmpname{ext}'
             save(img, fname)
             # read from the tmp file and see if it checks out
             img_back = load(fname)

@@ -53,9 +53,9 @@ def rst_table(
     title_heading = format_chars.pop('title_heading', '*')
     if len(format_chars) != 0:
         raise ValueError(f'Unexpected ``format_char`` keys {", ".join(format_chars)}')
-    down_joiner = ' ' + down + ' '
-    down_starter = down + ' '
-    down_ender = ' ' + down
+    down_joiner = f' {down} '
+    down_starter = f'{down} '
+    down_ender = f' {down}'
     cross_joiner = along + cross + along
     cross_starter = cross + along
     cross_ender = along + cross
@@ -81,13 +81,13 @@ def rst_table(
         row_strs = [val_fmt.format(val) for val in cell_values[row_no]]
         col_len = max(col_len, *map(len, row_strs))
         row_str_list.append(row_strs)
-    row_name_fmt = '{0:<' + str(row_len) + '}'
+    row_name_fmt = f'{{0:<{row_len}}}'
     row_names = [row_name_fmt.format(name) for name in row_names]
-    col_name_fmt = '{0:^' + str(col_len) + '}'
+    col_name_fmt = f'{{0:^{col_len}}}'
     col_names = [col_name_fmt.format(name) for name in col_names]
     col_headings = [' ' * row_len] + col_names
     col_header = down_joiner.join(col_headings)
-    row_val_fmt = '{0:<' + str(col_len) + '}'
+    row_val_fmt = f'{{0:<{col_len}}}'
     table_strs = []
     if title != '':
         table_strs += [

@@ -609,7 +609,7 @@ class MmapImageMixin:
         shape = (3, 4, 2)
         data = np.arange(np.prod(shape), dtype=np.int16).reshape(shape)
         img = img_klass(data, None)
-        fname = 'test' + img_klass.files_types[0][1]
+        fname = f'test{img_klass.files_types[0][1]}'
         img.to_filename(fname)
         return img, fname, False
 

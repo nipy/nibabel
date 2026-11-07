@@ -288,7 +288,7 @@ def test_affine_regression():
     # Checked against Michael's data using some GUI tools
     # Data at http://psydata.ovgu.de/philips_achieva_testfiles/conversion2
     for basename_affine, exp_affine in PREVIOUS_AFFINES.items():
-        fname = pjoin(DATA_PATH, basename_affine + '.PAR')
+        fname = pjoin(DATA_PATH, f'{basename_affine}.PAR')
         with open(fname) as fobj:
             hdr = PARRECHeader.from_fileobj(fobj)
         assert_almost_equal(hdr.get_affine(), exp_affine)
@@ -516,7 +516,7 @@ def test_truncated_image_info_line(par_file, expected_values, n_values, image_no
 def test_image_info_error_summary(line, expected_summary):
     # Preserve summaries up to 80 characters and truncate longer ones.
     with pytest.raises(PARRECError) as exc:
-        parrec._process_image_lines([line + '\n'], 'V4.2')
+        parrec._process_image_lines([f'{line}\n'], 'V4.2')
     assert str(exc.value).splitlines() == [
         'Image information line has 2 values, expected 49',
         expected_summary,
@@ -610,7 +610,7 @@ def test_null_diffusion_params():
 def test_epi_params():
     # Check EPI conversion
     for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
-        epi_par = pjoin(DATA_PATH, par_root + '.PAR')
+        epi_par = pjoin(DATA_PATH, f'{par_root}.PAR')
         with open(epi_par) as fobj:
             epi_hdr = PARRECHeader.from_fileobj(fobj)
         assert len(epi_hdr.get_data_shape()) == 4
@@ -620,7 +620,7 @@ def test_epi_params():
 def test_xyzt_unit_conversion():
     # Check conversion to NIfTI-like has sensible units
     for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
-        epi_par = pjoin(DATA_PATH, par_root + '.PAR')
+        epi_par = pjoin(DATA_PATH, f'{par_root}.PAR')
         with open(epi_par) as fobj:
             epi_hdr = PARRECHeader.from_fileobj(fobj)
         nifti_hdr = Nifti1Header.from_header(epi_hdr)

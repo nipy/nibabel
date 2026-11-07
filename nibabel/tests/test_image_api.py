@@ -161,13 +161,13 @@ class GenericImageAPI(ValidateAPI):
         assert_almost_equal(img.get_fdata(), rt_rt_img.get_fdata())
         assert_almost_equal(np.asanyarray(img.dataobj), np.asanyarray(rt_img.dataobj))
         # get_ / set_ filename
-        fname = 'an_image' + self.standard_extension
+        fname = f'an_image{self.standard_extension}'
         for path in (fname, pathlib.Path(fname)):
             img.set_filename(path)
             assert img.get_filename() == str(path)
             assert img.file_map['image'].filename == str(path)
         # to_ / from_ filename
-        fname = 'another_image' + self.standard_extension
+        fname = f'another_image{self.standard_extension}'
         for path in (fname, pathlib.Path(fname)):
             with InTemporaryDirectory():
                 # Validate that saving or loading a file doesn't use deprecated methods internally
@@ -434,7 +434,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
                 # Skip only formats we can't write
                 if not img.rw or not img.valid_exts:
                     return
-                fname = 'image' + img.valid_exts[0]
+                fname = f'image{img.valid_exts[0]}'
                 img.to_filename(fname)
             rt_img = img.__class__.from_filename(fname, mmap=True)
             assert_almost_equal(img.get_fdata(), rt_img.get_fdata())
@@ -525,7 +525,7 @@ class SerializeMixin:
         img = imaker()
         klass = getattr(self, 'klass', img.__class__)
         with InTemporaryDirectory():
-            fname = 'img' + self.standard_extension
+            fname = f'img{self.standard_extension}'
             img.to_filename(fname)
 
             with open('stream', 'wb') as fobj:
@@ -551,7 +551,7 @@ class SerializeMixin:
         img = imaker()
         klass = getattr(self, 'klass', img.__class__)
         with InTemporaryDirectory():
-            fname = 'img' + self.standard_extension
+            fname = f'img{self.standard_extension}'
             img.to_filename(fname)
 
             all_images = list(getattr(self, 'example_images', [])) + [{'fname': fname}]
@@ -719,7 +719,7 @@ class DtypeOverrideMixin(GetSetDtypeMixin):
             raise unittest.SkipTest
         img = imaker()
         orig_dtype = img.get_data_dtype()
-        fname = 'image' + self.standard_extension
+        fname = f'image{self.standard_extension}'
         with InTemporaryDirectory():
             for dtype in self.storable_dtypes:
                 try:

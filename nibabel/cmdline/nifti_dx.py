@@ -42,6 +42,6 @@ def main(args=None):
         result = args.header_class.diagnose_binaryblock(hdr)
         if len(result):
             print(f'Picky header check output for "{fname}"\n')
-            print(result + '\n')
+            print(f'{result}\n')
         else:
             print(f'Header for "{fname}" is clean')

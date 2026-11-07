@@ -93,7 +93,7 @@ def read_data_block(darray, fname, data, mmap):
             )
         ext_fname = op.join(op.dirname(fname), darray.ext_fname)
         if not op.exists(ext_fname):
-            raise GiftiParseError('Cannot locate external file ' + ext_fname)
+            raise GiftiParseError(f'Cannot locate external file {ext_fname}')
         # We either create a memmap, or load into memory
         newarr = None
         if mmap:

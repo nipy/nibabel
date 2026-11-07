@@ -150,7 +150,7 @@ def encode_value_in_name(value, name, max_name_len=20):
     if len(name) > max_name_len:
         msg = f"Data information named '{name}' is too long (max {max_name_len} characters.)"
         raise ValueError(msg)
-    encoded_name = name if value <= 1 else name + '\x00' + str(value)
+    encoded_name = name if value <= 1 else f'{name}\x00{value}'
     if len(encoded_name) > max_name_len:
         msg = (
             f"Data information named '{name}' is too long (need to be less"

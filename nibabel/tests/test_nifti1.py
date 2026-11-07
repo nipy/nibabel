@@ -285,9 +285,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert fhdr['vox_offset'] == hdr.single_vox_offset
         assert (
-            message == 'vox offset 10 too low for single '
-            'file nifti1; setting to minimum value '
-            'of ' + str(hdr.single_vox_offset)
+            message == 'vox offset 10 too low for single file nifti1; '
+            f'setting to minimum value of {hdr.single_vox_offset}'
         )
 
     def test_freesurfer_large_vector_hack(self):
@@ -1018,7 +1017,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         hdr_len = len(img.header.binaryblock)
         img.header['vox_offset'] = hdr_len + 400
         with InTemporaryDirectory():
-            img.to_filename('another_file' + ext)
+            img.to_filename(f'another_file{ext}')
 
     @pytest.mark.thread_unsafe
     def test_load_save(self):
@@ -1036,7 +1035,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_array_equal(img2.get_fdata(), data)
         with InTemporaryDirectory() as tmpdir:
             for ext in ('', '.gz', '.bz2'):
-                fname = os.path.join(tmpdir, 'test' + img_ext + ext)
+                fname = os.path.join(tmpdir, f'test{img_ext}{ext}')
                 img.to_filename(fname)
                 img3 = IC.load(fname)
                 assert isinstance(img3, img.__class__)
@@ -1314,7 +1313,7 @@ def test_extension_list():
 @pytest.mark.parametrize('esize', [0, -16])
 @pytest.mark.parametrize('endianness', ['<', '>'])
 def test_undersized_extension_does_not_read_payload(esize, endianness):
-    bio = BytesIO(struct.pack(endianness + 'ii', esize, 6) + b'sentinel')
+    bio = BytesIO(struct.pack(f'{endianness}ii', esize, 6) + b'sentinel')
     with pytest.raises(HeaderDataError):
         Nifti1Extensions.from_fileobj(bio, -1, endianness != native_code)
     assert bio.tell() == 8

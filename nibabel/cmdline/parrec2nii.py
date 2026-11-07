@@ -22,8 +22,8 @@ from nibabel.volumeutils import fname_ext_ul_case
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage=f'{sys.argv[0]} [OPTIONS] <PAR files>\n\n' + __doc__,
-        version='%prog ' + nibabel.__version__,
+        usage=f'{sys.argv[0]} [OPTIONS] <PAR files>\n\n{__doc__}',
+        version=f'%prog {nibabel.__version__}',
     )
     p.add_option(
         Option(
@@ -236,7 +236,7 @@ def verbose(msg, indent=0):
 
 
 def error(msg, exit_code):
-    sys.stderr.write(msg + '\n')
+    sys.stderr.write(f'{msg}\n')
     sys.exit(exit_code)
 
 
@@ -250,9 +250,9 @@ def proc_file(infile, opts):
     # prep a file
     if opts.compressed:
         verbose('Using gzip compression')
-        outfilename = basefilename + '.nii.gz'
+        outfilename = f'{basefilename}.nii.gz'
     else:
-        outfilename = basefilename + '.nii'
+        outfilename = f'{basefilename}.nii'
     if os.path.isfile(outfilename) and not opts.overwrite:
         raise OSError(f'Output file "{outfilename}" exists, use --overwrite to overwrite it')
 
@@ -356,7 +356,7 @@ def proc_file(infile, opts):
                 'DTI volumes detected, but no diffusion direction info was'
                 'found.  Writing .bvals file only.'
             )
-            with open(basefilename + '.bvals', 'w') as fid:
+            with open(f'{basefilename}.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 fid.writelines(f'{val} ' for val in bvals)
                 fid.write('\n')
@@ -366,11 +366,11 @@ def proc_file(infile, opts):
             orig2new = npl.inv(t_aff)
             bv_reorient = from_matvec(to_matvec(orig2new)[0], [0, 0, 0])
             bvecs = apply_affine(bv_reorient, bvecs)
-            with open(basefilename + '.bvals', 'w') as fid:
+            with open(f'{basefilename}.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 fid.writelines(f'{val} ' for val in bvals)
                 fid.write('\n')
-            with open(basefilename + '.bvecs', 'w') as fid:
+            with open(f'{basefilename}.bvecs', 'w') as fid:
                 for row in bvecs.T:
                     fid.writelines(f'{val} ' for val in row)
                     fid.write('\n')
@@ -380,7 +380,7 @@ def proc_file(infile, opts):
         labels = pr_img.header.get_volume_labels()
         if len(labels) > 0:
             vol_keys = list(labels.keys())
-            with open(basefilename + '.ordering.csv', 'w', newline='') as csvfile:
+            with open(f'{basefilename}.ordering.csv', 'w', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile, delimiter=',')
                 csvwriter.writerow(vol_keys)
                 for vals in zip(*[labels[k] for k in vol_keys]):
@@ -399,7 +399,7 @@ def proc_file(infile, opts):
                 f'Writing dwell time ({dwell_time!r} sec) '
                 f'calculated assuming {opts.field_strength}T magnet'
             )
-            with open(basefilename + '.dwell_time', 'w') as fid:
+            with open(f'{basefilename}.dwell_time', 'w') as fid:
                 fid.write(f'{dwell_time!r}\n')
     # done
 

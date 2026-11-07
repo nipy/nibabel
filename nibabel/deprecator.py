@@ -50,7 +50,7 @@ def _ensure_cr(text: str) -> str:
 
     Ensures that `text` always ends with a carriage return
     """
-    return text.rstrip() + '\n'
+    return f'{text.rstrip()}\n'
 
 
 def _add_dep_doc(
@@ -91,7 +91,7 @@ def _add_dep_doc(
     next_line = line_no + 1
     if next_line >= len(old_lines):
         # nothing following first paragraph, just append message
-        return old_doc + '\n' + dep_doc
+        return f'{old_doc}\n{dep_doc}'
     leading_white = _LEADING_WHITE.match(old_lines[next_line])
     assert leading_white is not None  # Type narrowing, since this always matches
     indent = leading_white.group()
@@ -195,7 +195,7 @@ class Deprecator:
         if (since, until) != ('', ''):
             messages.append('')
         if since:
-            messages.append('* deprecated from version: ' + since)
+            messages.append(f'* deprecated from version: {since}')
         if until:
             messages.append(
                 f'* {"Raises" if self.is_bad_version(until) else "Will raise"} '

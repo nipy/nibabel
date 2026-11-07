@@ -482,7 +482,7 @@ def _truncation_checks(general_info, image_defs, permit_truncated):
     def _chk_trunc(idef_name, gdef_max_name):
         if gdef_max_name not in general_info:
             return
-        id_values = image_defs[idef_name + ' number']
+        id_values = image_defs[f'{idef_name} number']
         n_have = len(set(id_values))
         n_expected = general_info[gdef_max_name]
         if n_have != n_expected:
