@@ -129,11 +129,11 @@ def proc_file(f, opts):
         else:
             header_fields = opts.header_fields.split(',')
 
-        for f in header_fields:
-            if not f:  # skip empty
+        for field in header_fields:
+            if not field:  # skip empty
                 continue
             try:
-                row += [str(h[f])]
+                row += [str(h[field])]
             except (KeyError, ValueError):
                 row += [_err()]
 

@@ -112,7 +112,6 @@ def make_dummy_streamline(nb_points):
 
 
 def setup_module():
-    global DATA
     DATA['rng'] = np.random.RandomState(1234)
 
     DATA['streamlines'] = []

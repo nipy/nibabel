@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_array_equal
 
-from nibabel import nifti1 as nifti1
+from nibabel import nifti1
 from nibabel.affines import from_matvec
 from nibabel.casting import have_binary128, type_info
 from nibabel.eulerangles import euler2mat
