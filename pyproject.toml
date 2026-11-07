@@ -142,6 +142,7 @@ exclude = ["doc", "nibabel/externals", "tools", "version.py", "versioneer.py"]
 select = [
     "B",
     "C4",
+    "EXE",
     "ISC",
     "PIE",
     "PYI",
