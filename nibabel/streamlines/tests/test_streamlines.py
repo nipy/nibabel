@@ -21,7 +21,6 @@ DATA = {}
 
 
 def setup_module():
-    global DATA
     DATA['empty_filenames'] = [pjoin(data_path, 'empty' + ext) for ext in FORMATS.keys()]
     DATA['simple_filenames'] = [pjoin(data_path, 'simple' + ext) for ext in FORMATS.keys()]
     DATA['complex_filenames'] = [
