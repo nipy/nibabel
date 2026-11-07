@@ -330,7 +330,7 @@ class FileBasedImage:
         file_map = {}
         for key, ext in klass.files_types:
             file_map[key] = FileHolder()
-            mapval = mapping.get(key, None)
+            mapval = mapping.get(key)
             if isinstance(mapval, str):
                 file_map[key].filename = mapval
             elif hasattr(mapval, 'tell'):
