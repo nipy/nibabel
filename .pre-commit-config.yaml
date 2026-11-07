@@ -25,7 +25,7 @@ repos:
       - id: ruff-check
         args: [ --fix, --show-fixes ]
       - id: ruff-format
-  # Use uv run so we can use uv pinning
+  # Use uv run so we can pull the dependency group typecheck
   - repo: local
     hooks:
       - id: typecheck
