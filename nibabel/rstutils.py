@@ -80,8 +80,7 @@ def rst_table(
     for row_no in range(R):
         row_strs = [val_fmt.format(val) for val in cell_values[row_no]]
         max_len = max(len(s) for s in row_strs)
-        if max_len > col_len:
-            col_len = max_len
+        col_len = max(col_len, max_len)
         row_str_list.append(row_strs)
     row_name_fmt = '{0:<' + str(row_len) + '}'
     row_names = [row_name_fmt.format(name) for name in row_names]
