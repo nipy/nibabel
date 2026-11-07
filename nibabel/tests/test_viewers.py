@@ -204,7 +204,6 @@ def test_viewer_nonRAS_on_mouse():
     assert_array_equal(sag, data1[i_target, :, :])  #
     assert_array_equal(cor, data1[::-1, :, k_target].T)  # x flipped
     assert_array_equal(axi, data1[::-1, j_target, :].T)  # x flipped
-    return None
 
 
 @needs_mpl
@@ -332,4 +331,3 @@ def test_viewer_nonRAS_on_scroll():
     assert_array_equal(sag, data1[i_target, :, :])
     assert_array_equal(cor, data1[::-1, :, k_target].T)
     assert_array_equal(axi, data1[::-1, j_target - 1, :].T)
-    return None
