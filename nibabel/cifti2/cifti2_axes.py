@@ -1493,8 +1493,7 @@ class SeriesAxis(Axis):
             if idx_start > self.size and step < 0:
                 idx_start = self.size - 1
             idx_end = min(idx_end, self.size)
-            nelements = (idx_end - idx_start) // step
-            nelements = max(nelements, 0)
+            nelements = max((idx_end - idx_start) // step, 0)
             return SeriesAxis(
                 idx_start * self.step + self.start, self.step * step, nelements, self.unit
             )
