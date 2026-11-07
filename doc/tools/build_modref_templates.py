@@ -6,13 +6,13 @@ import re
 
 # stdlib imports
 import sys
-
-# version comparison
-from packaging.version import Version as V
 from os.path import join as pjoin
 
 # local imports
 from apigen import ApiDocWriter
+
+# version comparison
+from packaging.version import Version as V
 
 # *****************************************************************************
 
