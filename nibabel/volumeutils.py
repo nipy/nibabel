@@ -388,6 +388,13 @@ def _is_compressed_fobj(fobj: io.IOBase) -> bool:
     return isinstance(fobj, COMPRESSED_FILE_LIKES)
 
 
+def _short_read_message(n_bytes: int, n_read: int, infile: io.IOBase) -> str:
+    return (
+        f'Expected {n_bytes} bytes, got {n_read} bytes from '
+        f'{getattr(infile, "name", "object")}\n - could the file be damaged?'
+    )
+
+
 def array_from_file(
     shape: tuple[int, ...],
     in_dtype: np.dtype[DT],
@@ -457,6 +464,22 @@ def array_from_file(
     n_bytes = reduce(mul, shape) * in_dtype.itemsize
     if n_bytes == 0:
         return np.array([], in_dtype)
+    # Check there is enough data in the file before allocating a buffer for it.
+    # Otherwise a small file whose header claims a huge shape makes us allocate
+    # memory for data that isn't there.  Only done for uncompressed streams,
+    # where seeking to the end is cheap; for compressed streams it would mean
+    # decompressing the whole file.
+    if not _is_compressed_fobj(infile):
+        try:
+            infile.seek(0, 2)
+            n_available = max(infile.tell() - offset, 0)
+        except (AttributeError, TypeError, OSError):
+            # Minimal file-likes may lack tell() or whence; fall back to the
+            # check after reading
+            pass
+        else:
+            if n_available < n_bytes:
+                raise OSError(_short_read_message(n_bytes, n_available, infile))
     # Read data from file
     infile.seek(offset)
     if hasattr(infile, 'readinto'):
@@ -468,10 +491,7 @@ def array_from_file(
         n_read = len(data_bytes)
         needs_copy = True
     if n_bytes != n_read:
-        raise OSError(
-            f'Expected {n_bytes} bytes, got {n_read} bytes from '
-            f'{getattr(infile, "name", "object")}\n - could the file be damaged?'
-        )
+        raise OSError(_short_read_message(n_bytes, n_read, infile))
     arr: np.ndarray = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
     if needs_copy:
         return arr.copy()

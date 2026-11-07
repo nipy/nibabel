@@ -1639,3 +1639,22 @@ def test_large_nifti1():
     assert image_shape == data.shape
     n_ones = np.sum(data == 1.0)
     assert np.prod(image_shape) == n_ones
+
+
+def test_truncated_data_header_claims_large_shape():
+    # gh-1566: a tiny file whose header claims a huge data array can still be
+    # loaded for its header, but reading the data raises OSError up front
+    # instead of trying to allocate memory for the claimed size
+    hdr = Nifti1Header()
+    hdr.set_data_dtype(np.float64)
+    hdr.set_data_shape((32767, 32767, 1000))
+    with InTemporaryDirectory():
+        with open('short.nii', 'wb') as fobj:
+            hdr.write_to(fobj)
+            fobj.write(b'\x00' * 16)
+        img = load('short.nii')
+        assert img.shape == (32767, 32767, 1000)
+        with pytest.raises(OSError, match=r'Expected \d+ bytes, got 16 bytes'):
+            img.get_fdata()
+        with pytest.raises(OSError, match=r'Expected \d+ bytes, got 16 bytes'):
+            np.asanyarray(img.dataobj)
