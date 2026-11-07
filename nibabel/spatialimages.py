@@ -455,8 +455,12 @@ class SpatialFirstSlicer(ty.Generic[SpatialImgT]):
             if isinstance(subslicer, slice):
                 if subslicer.step == 0:
                     raise ValueError('slice step cannot be 0')
-                transform[i, i] = subslicer.step if subslicer.step is not None else 1
-                transform[i, 3] = subslicer.start or 0
+                # Resolve against the axis length so that negative starts and
+                # negative steps with an implicit start refer to the same voxel
+                # that ``dataobj[slicer]`` selects.
+                start, _, step = subslicer.indices(self.img.shape[i])
+                transform[i, i] = step
+                transform[i, 3] = start
             # If slicer is None, nothing to do
 
         return self.img.affine.dot(transform)
