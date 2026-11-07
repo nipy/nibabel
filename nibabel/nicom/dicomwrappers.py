@@ -463,14 +463,9 @@ class Wrapper:
         if (
             dcm_data.get('RescaleSlope') is not None
             or dcm_data.get('RescaleIntercept') is not None
-        ) and (
-            self.vendor != Vendor.PHILIPS
-            or dcm_data.get('RescaleType', 'US')
-            not in (
-                '',
-                'US',
-                'normalized',
-            )
+        ) and not (
+            self.vendor == Vendor.PHILIPS
+            and dcm_data.get('RescaleType', 'US') in {'', 'US', 'normalized'}
         ):
             return (dcm_data.get('RescaleSlope', 1), dcm_data.get('RescaleIntercept', 0))
 

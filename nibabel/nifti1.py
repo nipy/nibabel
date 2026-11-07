@@ -1622,11 +1622,11 @@ class Nifti1Header(SpmAnalyzeHeader):
         if known_intent:
             icode = intent_codes.code[code]
             p_descr = intent_codes.parameters[code]
-        else:
+        elif not allow_unknown or isinstance(code, str):
             # We can set intent via an unknown integer code, but can't via an
             # unknown string label
-            if not allow_unknown or isinstance(code, str):
-                raise KeyError(f'Unknown intent code: {code}')
+            raise KeyError(f'Unknown intent code: {code}')
+        else:
             icode = code
             p_descr = ('p1', 'p2', 'p3')
         if len(params) and len(params) != len(p_descr):

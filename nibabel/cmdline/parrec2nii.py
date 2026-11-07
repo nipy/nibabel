@@ -305,14 +305,11 @@ def proc_file(infile, opts):
         in_data = apply_orientation(in_data, ornt)
 
     bvals, bvecs = pr_hdr.get_bvals_bvecs()
-    if (
-        not opts.keep_trace  # discard Philips DTI trace if present
-        and bvecs is not None
-    ):
+    if not opts.keep_trace and bvecs is not None:
+        # discard Philips DTI trace if present
         bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
-        if bad_mask.sum() > 0:
-            pl = 's' if bad_mask.sum() != 1 else ''
-            verbose(f'Removing {bad_mask.sum()} DTI trace volume{pl}')
+        if n_bad := bad_mask.sum():
+            verbose(f'Removing {n_bad} DTI trace volume{"s" if n_bad != 1 else ""}')
             good_mask = ~bad_mask
             in_data = in_data[..., good_mask]
             bvals = bvals[good_mask]
