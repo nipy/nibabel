@@ -2407,18 +2407,11 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         img.header.set_dim_info(*new_dim)
 
-        # Reorienting permutes and flips axes; it does not move the image into
-        # a different space.  Writing the new affine into the header goes
-        # through _affine2header, which files it under the default 'aligned'
-        # sform code and drops the qform, so a scanner anat image came back
-        # labelled as merely aligned (gh-1427).  Restore whichever codes were
-        # set before.  Each form is reoriented from its own matrix, not from
-        # img.affine, which is the sform whenever one is set: a qform and an
-        # sform may describe different spaces (scanner and MNI, say), and the
-        # qform slot must not end up holding the sform's matrix under the
-        # qform's code.  A code of 0 is left alone: the image had no form of
-        # that kind to preserve, and clearing what _affine2header just set
-        # could leave the image with no valid form at all.
+        # Reorienting the affine will set the qform and sform to the new affine,
+        # with codes 0 and 2, respectively.
+        # For the purposes of this function, no orientation information has been
+        # lost, so reorient the qform and sform individually and restore their codes,
+        # if they had non-zero codes.
         vox_ornt = inv_ornt_aff(ornt, self.shape)
         sform, sform_code = self.header.get_sform(coded=True)
         qform, qform_code = self.header.get_qform(coded=True)
