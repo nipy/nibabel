@@ -217,7 +217,7 @@ class ApiDocWriter:
                 continue
             obj = mod.__dict__[obj_str]
             # Check if function / class defined in module
-            if not self.other_defines and not getmodule(obj) == mod:
+            if not self.other_defines and getmodule(obj) != mod:
                 continue
             # figure out if obj is a function or class
             if isinstance(obj, (FunctionType, BuiltinFunctionType)):
