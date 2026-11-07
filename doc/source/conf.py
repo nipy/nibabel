@@ -60,7 +60,7 @@ if Version(np.__version__) >= Version('1.22'):
 rel = run_path(os.path.join('..', '..', 'nibabel', 'info.py'))
 
 # Write long description from info
-with open('_long_description.inc', 'wt') as fobj:
+with open('_long_description.inc', 'w') as fobj:
     fobj.write(rel['long_description'])
 
 # Load metadata from setup.cfg
