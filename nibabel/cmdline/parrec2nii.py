@@ -424,7 +424,7 @@ def main():
         except Exception as e:
             errs.append(f'{infile}: {e}')
 
-    if len(errs):
+    if errs:
         error(f'Caught {len(errs)} exceptions. Dump follows:\n\n' + '\n'.join(errs), 1)
     else:
         verbose('Done')
