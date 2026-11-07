@@ -1,13 +1,13 @@
 """ Tests for netcdf """
 
 import os
-from os.path import join as pjoin, dirname
-from io import BytesIO
-from glob import glob
 from contextlib import contextmanager
+from glob import glob
+from io import BytesIO
+from os.path import dirname
+from os.path import join as pjoin
 
 import numpy as np
-
 import pytest
 
 from ..netcdf import netcdf_file
