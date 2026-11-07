@@ -149,6 +149,7 @@ select = [
     "PT",
     "Q",
     "RSE",
+    "SIM",
     "TC",
     "FLY",
     "I",
@@ -186,6 +187,9 @@ ignore = [
     "PT028",  # Consider: Test function parameter has default argument
     "PT030",  # Consider: pytest.warns(UserWarning) is too broad
     "PT031",  # Consider: pytest.warns(UserWarning) block should contain 1 statement
+    "SIM105",
+    "SIM108",
+    "SIM115",
     "TC003",  # Consider: Move import into type-checking block
     "PERF203",
     "RUF005",
@@ -214,6 +218,7 @@ ignore = [
 "__init__.py" = ["F401"]
 "doc/source/conf.py" = ["F401"]
 "tools/profile" = ["F821"]
+"nibabel/**/tests/*.py" = ["SIM117", "SIM118", "SIM201", "SIM202"]
 
 [tool.ruff.format]
 quote-style = "single"
