@@ -9,8 +9,8 @@ import numpy as np
 import numpy.linalg as npl
 
 import nibabel
-import nibabel.nifti1 as nifti1
 import nibabel.parrec as pr
+from nibabel import nifti1
 from nibabel.affines import apply_affine, from_matvec, to_matvec
 from nibabel.filename_parser import splitext_addext
 from nibabel.mriutils import MRIError, calculate_dwell_time
