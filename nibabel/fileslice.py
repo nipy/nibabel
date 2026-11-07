@@ -613,16 +613,15 @@ def slicers2segments(read_slicers, in_shape, offset, itemsize):
             if read_slicer.start != 0:
                 all_segments[0][0] += stride * read_slicer.start
             all_segments[0][1] *= slice_len
-        else:  # Previous or current stuff is not contiguous
-            if is_int:
-                for segment in all_segments:
-                    segment[0] += stride * read_slicer
-            else:  # slice object
-                segments = all_segments
-                all_segments = []
-                for i in range(read_slicer.start, read_slicer.stop, read_slicer.step):
-                    for s in segments:
-                        all_segments.append([s[0] + stride * i, s[1]])
+        elif is_int:  # previous or current stuff is not contiguous
+            for segment in all_segments:
+                segment[0] += stride * read_slicer
+        else:  # slice object
+            segments = all_segments
+            all_segments = []
+            for i in range(read_slicer.start, read_slicer.stop, read_slicer.step):
+                for s in segments:
+                    all_segments.append([s[0] + stride * i, s[1]])
         all_full = all_full and is_full
         stride *= dim_len
     return all_segments

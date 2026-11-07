@@ -35,7 +35,7 @@ except ImportError:
 from optparse import Option, OptionParser
 
 import nibabel as nib
-import nibabel.dft as dft
+from nibabel import dft
 
 encoding = locale.getlocale()[1]
 

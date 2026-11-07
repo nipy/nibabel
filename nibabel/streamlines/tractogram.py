@@ -636,7 +636,7 @@ class LazyTractogram(Tractogram):
         lazy_tractogram : :class:`LazyTractogram` object
             New lazy tractogram.
         """
-        lazy_tractogram = cls(lambda: tractogram.streamlines.copy())
+        lazy_tractogram = cls(tractogram.streamlines.copy)
 
         # Set data_per_streamline using data_func
         def _gen(key):
