@@ -136,28 +136,29 @@ __version_tuple__ = version_tuple = {version_tuple!r}
 
 [tool.ruff]
 line-length = 99
-exclude = ["doc", "nibabel/externals", "tools", "version.py", "versioneer.py"]
+exclude = ["nibabel/externals"]
 
 [tool.ruff.lint]
 select = [
     "B",
     "C4",
-    "F",
-    "FLY",
-    "FURB",
-    "I",
+    "EXE",
     "ISC",
-    "PERF",
-    "PGH",
     "PIE",
-    "PLE",
-    "PT",
     "PYI",
+    "PT",
     "Q",
     "RSE",
-    "RUF",
-    "TCH",
+    "TC",
+    "FLY",
+    "I",
+    "PERF",
+    "F",
+    "PGH",
+    "PLE",
     "UP",
+    "FURB",
+    "RUF",
 ]
 ignore = [
     "B006",   # TODO: enable
@@ -174,8 +175,8 @@ ignore = [
     "C401",
     "C408",
     "C416",
-    "PERF203",
     "PIE790",
+    "PYI024",
     "PT007",
     "PT010",  # Consider: Set expected exception in pytest.raises
     "PT011",
@@ -185,7 +186,8 @@ ignore = [
     "PT028",  # Consider: Test function parameter has default argument
     "PT030",  # Consider: pytest.warns(UserWarning) is too broad
     "PT031",  # Consider: pytest.warns(UserWarning) block should contain 1 statement
-    "PYI024",
+    "TC003",  # Consider: Move import into type-checking block
+    "PERF203",
     "RUF005",
     "RUF007", # Consider: itertools.pairwise(x) over zip(x[:-1], x[1:])
     "RUF012", # TODO: enable
@@ -193,7 +195,6 @@ ignore = [
     "RUF017", # TODO: enable
     "RUF059", # Consider: Unpacked variables never used
     "RUF061", # Consider: Use context-manager form of pytest.raises
-    "TC003",  # Consider: Move import into type-checking block
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
@@ -212,6 +213,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "doc/source/conf.py" = ["F401"]
+"tools/profile" = ["F821"]
 
 [tool.ruff.format]
 quote-style = "single"

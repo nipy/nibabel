@@ -20,10 +20,10 @@ repos:
       - id: check-merge-conflict
       - id: check-vcs-permalinks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 38bfb07c0c64c304f47eb52090f8288150c77730  # frozen: v0.17.1
+    rev: c0f278f1254ccc8fb09676bcdb8d847e7db493e5  # frozen: v0.17.4
     hooks:
       - id: ruff-check
-        args: [ --fix ]
+        args: [ --fix, --show-fixes ]
       - id: ruff-format
   # Use uv run so we can use uv pinning
   - repo: local
@@ -41,6 +41,17 @@ repos:
         additional_dependencies:
           - tomli
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0494aa7fa1314e98913a41227d8f0a515b2c1049  # frozen: 0.38.2
+    rev: 39478bf2c099a58683d3f1aedf675105318b078d  # frozen: 0.39.0
     hooks:
       - id: check-citation-file-format
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: 3a6eb0fadf60b3cccfd80bad9dbb6fae7e47b316  # frozen: v1.10.0
+    hooks:
+      - id: rst-backticks
+        exclude: "^doc/source/devel/biaps/biap_*"
+      - id: rst-directive-colons
+      - id: rst-inline-touching-normal
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: 06a39750ec31860bb44f2acf67182c40016cd1e7 # frozen: v1.32.0
+    hooks:
+      - id: zizmor

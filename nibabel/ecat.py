@@ -981,10 +981,10 @@ class EcatImage(SpatialImage):
             # Move to dictionary offset and write dictionary entry
             self._write_data(mlist[index], imgf, entry_pos, endianness='>')
 
-            entry_pos = entry_pos + 16
+            entry_pos += 16
 
-            current_dir[0] = current_dir[0] - 1
-            current_dir[3] = current_dir[3] + 1
+            current_dir[0] -= 1
+            current_dir[3] += 1
 
             # Create a new directory is previous one is full
             if current_dir[0] == 0:
@@ -1002,8 +1002,8 @@ class EcatImage(SpatialImage):
         while current_dir[0] > 0:
             entry_pos = dir_pos + 16 + (16 * current_dir[3])
             self._write_data(np.zeros(4, dtype=np.int32), imgf, entry_pos)
-            current_dir[0] = current_dir[0] - 1
-            current_dir[3] = current_dir[3] + 1
+            current_dir[0] -= 1
+            current_dir[3] += 1
 
         current_dir[0] = tmp_avail
         current_dir[3] = tmp_used

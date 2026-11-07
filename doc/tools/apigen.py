@@ -185,7 +185,7 @@ class ApiDocWriter:
             # nothing that we could handle here.
             return ([], [])
 
-        f = open(filename, 'rt')
+        f = open(filename)
         functions, classes = self._parse_lines(f)
         f.close()
         return functions, classes
@@ -274,7 +274,7 @@ class ApiDocWriter:
 
         # Make a shorter version of the uri that omits the package name for
         # titles
-        uri_short = re.sub(r'^%s\.' % self.package_name, '', uri)
+        uri_short = re.sub(rf'^{self.package_name}\.', '', uri)
 
         head = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
         body = ''
@@ -393,10 +393,10 @@ class ApiDocWriter:
                 f[:-3] for f in filenames if f.endswith('.py') and not f.startswith('__init__')
             ]
             for filename in filenames:
-                package_uri = '/'.join((dirpath, filename))
+                package_uri = f'{dirpath}/{filename}'
 
             for subpkg_name in dirnames + filenames:
-                package_uri = '.'.join((root_uri, subpkg_name))
+                package_uri = f'{root_uri}.{subpkg_name}'
                 package_path = self._uri2path(package_uri)
                 if package_path and self._survives_exclude(package_uri, 'package'):
                     modules.append(package_uri)
@@ -433,7 +433,7 @@ class ApiDocWriter:
 
             out_module = ulm + self.rst_extension
             outfile = os.path.join(outdir, out_module)
-            fileobj = open(outfile, 'wt')
+            fileobj = open(outfile, 'w')
 
             fileobj.writelines(document_head + document_body)
             fileobj.close()
@@ -491,7 +491,7 @@ class ApiDocWriter:
             relpath = (outdir + os.path.sep).replace(relative_to + os.path.sep, '')
         else:
             relpath = outdir
-        idx = open(path, 'wt')
+        idx = open(path, 'w')
         w = idx.write
         w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
 

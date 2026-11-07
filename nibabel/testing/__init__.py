@@ -73,7 +73,7 @@ def assert_allclose_safely(a, b, match_nans=True, rtol=1e-5, atol=1e-8):
         to_test = np.ones(a.shape, dtype=bool)
     # Deal with float128 inf comparisons (bug in numpy 1.9.2)
     # np.allclose(np.float128(np.inf), np.float128(np.inf)) == False
-    to_test = to_test & (a != b)
+    to_test &= a != b
     a = a[to_test]
     b = b[to_test]
     if a.dtype.kind in 'ui':

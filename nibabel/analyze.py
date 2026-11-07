@@ -700,7 +700,7 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
         zooms = np.asarray(zooms)
         if len(zooms) != ndim:
             raise HeaderDataError(f'Expecting {ndim} zoom values for ndim {ndim}')
-        if np.any(zooms < 0):
+        if np.any(zooms[:3] <= 0) or np.any(zooms[3:] < 0):
             raise HeaderDataError('zooms must be positive')
         pixdims = hdr['pixdim']
         pixdims[1 : ndim + 1] = zooms[:]
