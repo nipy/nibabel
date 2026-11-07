@@ -48,6 +48,10 @@ DEBUG = True
         # Complex comparison works as if they are floats
         ([[np.nan, -1 - 100j, 2], [-2, np.nan, 1 + 100j]], (-2, 2)),
         ([[np.nan, -1, 2 - 100j], [-2 + 100j, np.nan, 1]], (-2 + 100j, 2 - 100j)),
+        ([1 + 2j, complex(np.inf, 1), 3 + 4j], (1 + 2j, 3 + 4j)),
+        ([1 + 2j, complex(-np.inf, 1), 3 + 4j], (1 + 2j, 3 + 4j)),
+        ([1 + 2j, complex(0, np.inf), 3 + 4j], (1 + 2j, 3 + 4j)),
+        ([complex(np.inf, 1), complex(-np.inf, 1)], (np.inf, -np.inf)),
     ],
 )
 def test_finite_range(in_arr, res):
