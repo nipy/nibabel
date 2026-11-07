@@ -115,7 +115,8 @@ if __name__ == '__main__':
             sys.exit(1)
 
     if displaykcachegrinder:
-        if os.system(f'kcachegrind {kfilename}'):
+        cmd = f'kcachegrind {kfilename}'
+        if os.system(cmd):
             print('!!! Make sure to install kcachegrind ;-)')
             sys.exit(1)
 

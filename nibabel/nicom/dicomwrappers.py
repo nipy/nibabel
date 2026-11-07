@@ -463,13 +463,16 @@ class Wrapper:
         if (
             dcm_data.get('RescaleSlope') is not None
             or dcm_data.get('RescaleIntercept') is not None
-        ):
-            if self.vendor != Vendor.PHILIPS or dcm_data.get('RescaleType', 'US') not in (
+        ) and (
+            self.vendor != Vendor.PHILIPS
+            or dcm_data.get('RescaleType', 'US')
+            not in (
                 '',
                 'US',
                 'normalized',
-            ):
-                return (dcm_data.get('RescaleSlope', 1), dcm_data.get('RescaleIntercept', 0))
+            )
+        ):
+            return (dcm_data.get('RescaleSlope', 1), dcm_data.get('RescaleIntercept', 0))
 
     def _get_philips_scale_factor(self, dcm_data):
         """Return scale factors from Philips private element
@@ -713,9 +716,12 @@ class MultiframeWrapper(Wrapper):
             self.frames = [f for f in self.frames if filt.keep(f)]
         # Make sure there is only one StackID remaining
         first_fcs = self.frames[0].get('FrameContentSequence', (None,))[0]
-        if first_fcs is not None and hasattr(first_fcs, 'StackID'):
-            if len({frame.FrameContentSequence[0].StackID for frame in self.frames}) > 1:
-                raise WrapperError('More than one StackID remains after filtering')
+        if (
+            first_fcs is not None
+            and hasattr(first_fcs, 'StackID')
+            and len({frame.FrameContentSequence[0].StackID for frame in self.frames}) > 1
+        ):
+            raise WrapperError('More than one StackID remains after filtering')
         # Try to determine slice order and minimal image position patient
         self._frame_slc_ord = self._ipp = self._slice_spacing = None
         try:

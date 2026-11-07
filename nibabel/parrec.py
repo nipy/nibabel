@@ -336,9 +336,8 @@ def _split_header(fobj):
                     raise PARRECError(f'Cannot parse general information line: {line!r}')
                 key, value = match.groups()
                 gen_dict[key] = value
-        if state == 'comment-block':
-            if not line.startswith('#'):
-                state = 'image-info'
+        if state == 'comment-block' and not line.startswith('#'):
+            state = 'image-info'
         if state == 'image-info':
             if line.startswith('#'):
                 break

@@ -364,9 +364,8 @@ class DataobjImage(FileBasedImage):
         if not issubclass(dtype.type, np.inexact):
             raise ValueError(f'{dtype} should be floating point type')
         # Return cache if cache present and of correct dtype.
-        if self._fdata_cache is not None:
-            if self._fdata_cache.dtype.type == dtype.type:
-                return self._fdata_cache
+        if self._fdata_cache is not None and self._fdata_cache.dtype.type == dtype.type:
+            return self._fdata_cache
         # Always return requested data type
         # For array proxies, will attempt to confine data array to dtype
         # during scaling
