@@ -157,7 +157,7 @@ def test_inverse_1(M, q):
 def test_eye():
     qi = nq.eye()
     assert qi.dtype.kind == 'f'
-    assert np.all([1, 0, 0, 0] == qi)
+    assert np.all(qi == [1, 0, 0, 0])
     assert np.allclose(nq.quat2mat(qi), np.eye(3))
 
 

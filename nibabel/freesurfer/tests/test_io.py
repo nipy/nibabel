@@ -52,7 +52,7 @@ def test_geometry():
     """Test IO of .surf"""
     surf_path = pjoin(data_path, 'surf', 'lh.inflated')
     coords, faces = read_geometry(surf_path)
-    assert 0 == faces.min()
+    assert faces.min() == 0
     assert coords.shape[0] == faces.max() + 1
 
     surf_path = pjoin(data_path, 'surf', 'lh.sphere')
@@ -60,9 +60,9 @@ def test_geometry():
         surf_path, read_metadata=True, read_stamp=True
     )
 
-    assert 0 == faces.min()
+    assert faces.min() == 0
     assert coords.shape[0] == faces.max() + 1
-    assert 9 == len(volume_info)
+    assert len(volume_info) == 9
     assert np.array_equal([2, 0, 20], volume_info['head'])
     assert create_stamp == 'created by greve on Thu Jun  8 19:17:51 2006'
 
@@ -122,7 +122,7 @@ def test_quad_geometry():
         get_nibabel_data(), 'nitest-freesurfer', 'subjects', 'bert', 'surf', 'lh.inflated.nofix'
     )
     coords, faces = read_geometry(new_quad)
-    assert 0 == faces.min()
+    assert faces.min() == 0
     assert coords.shape[0] == (faces.max() + 1)
     with InTemporaryDirectory():
         new_path = 'test'
