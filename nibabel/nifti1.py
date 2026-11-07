@@ -1514,11 +1514,11 @@ class Nifti1Header(SpmAnalyzeHeader):
                 raise HeaderDataError('Inputs must be in [None, 0, 1, 2]')
         info = 0
         if freq is not None:
-            info = info | ((freq + 1) & 3)
+            info |= (freq + 1) & 3
         if phase is not None:
-            info = info | (((phase + 1) & 3) << 2)
+            info |= ((phase + 1) & 3) << 2
         if slice is not None:
-            info = info | (((slice + 1) & 3) << 4)
+            info |= ((slice + 1) & 3) << 4
         self._structarr['dim_info'] = info
 
     def get_intent(self, code_repr='label'):

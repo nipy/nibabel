@@ -142,7 +142,7 @@ class Spm99AnalyzeHeader(SpmAnalyzeHeader):
         origin = hdr['origin'][:3]
         dims = hdr['dim'][1:4]
         if np.any(origin) and np.all(origin > -dims) and np.all(origin < dims * 2):
-            origin = origin - 1
+            origin -= 1
         else:
             origin = (dims - 1) / 2.0
         aff = np.eye(4)
