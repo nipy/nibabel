@@ -623,7 +623,7 @@ class Nifti1DicomExtension(Nifti1Extension[DicomDataset]):
         valid VRs
         """
         potential_vr = content[4:6].decode()
-        return potential_vr not in pdcm.values.converters.keys()
+        return potential_vr not in pdcm.values.converters.keys()  # noqa: SIM118
 
     def _unmangle(self, obj: bytes) -> DicomDataset:
         return pdcm.filereader.read_dataset(

@@ -162,7 +162,7 @@ class PerArrayDict(SliceableDataDict):
             raise ValueError(msg)
 
         self.n_rows += other.n_rows
-        for key in other.keys():
+        for key in other.keys():  # noqa: SIM118
             if key not in self:
                 self[key] = other[key]
             else:

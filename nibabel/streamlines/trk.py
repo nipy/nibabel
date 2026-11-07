@@ -411,7 +411,7 @@ class TrkFile(TractogramFile):
 
         # Override hdr's fields by those contained in `header`.
         for k, v in self.header.items():
-            if k in header_2_dtype.fields.keys():
+            if k in header_2_dtype.fields.keys():  # noqa: SIM118
                 header[k] = v
 
         # By default, the voxel order is LPS.
