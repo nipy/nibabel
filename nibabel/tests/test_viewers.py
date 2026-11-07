@@ -201,7 +201,7 @@ def test_viewer_nonRAS_on_mouse():
     cor = o1._ims[1].get_array()
     axi = o1._ims[2].get_array()
 
-    assert_array_equal(sag, data1[i_target, :, :])  #
+    assert_array_equal(sag, data1[i_target, :, :])
     assert_array_equal(cor, data1[::-1, :, k_target].T)  # x flipped
     assert_array_equal(axi, data1[::-1, j_target, :].T)  # x flipped
 
