@@ -134,15 +134,15 @@ def types_filenames(
                 raise TypesFilenamesError(f'Confusing ignored suffix {ignored} without extension')
         # if we've got to here, we have a guessed name and a found
         # extension.
-    else:  # not enforcing extensions. If there's an extension, we set the
+    elif found_ext or ignored:
+        # Not enforcing extensions. If there's an extension, we set the
         # filename directly from input, for the first types_exts type
         # only.  Also, if there was no extension, but an ignored suffix
         # ('test.gz' type case), we set the filename directly.
         # Otherwise (no extension, no ignored suffix), we stay with the
         # default, which is to add the default extensions according to
         # type.
-        if found_ext or ignored:
-            direct_set_name = types_exts[0][0]
+        direct_set_name = types_exts[0][0]
     tfns = {}
     # now we have an extension case matching problem.  For example, if
     # we've found .IMG as the extension, we want .HDR as the matching
