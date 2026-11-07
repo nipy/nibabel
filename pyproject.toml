@@ -136,7 +136,7 @@ __version_tuple__ = version_tuple = {version_tuple!r}
 
 [tool.ruff]
 line-length = 99
-exclude = ["doc", "nibabel/externals", "tools", "version.py", "versioneer.py"]
+exclude = ["nibabel/externals", "tools", "version.py", "versioneer.py"]
 
 [tool.ruff.lint]
 select = [
