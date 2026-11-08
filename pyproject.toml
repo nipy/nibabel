@@ -190,6 +190,7 @@ ignore = [
     "SIM105",
     "SIM108",
     "SIM115",
+    "SIM300",
     "TC003",  # Consider: Move import into type-checking block
     "PERF203",
     "RUF005",

@@ -66,7 +66,7 @@ def io_orientation(affine, tol=None):
     # Threshold the singular values to determine the rank.
     if tol is None:
         tol = S.max() * max(RS.shape) * np.finfo(S.dtype).eps
-    keep = tol < S
+    keep = S > tol
     R = np.dot(P[:, keep], Qs[keep])
     # the matrix R is such that np.dot(R,R.T) is projection onto the
     # columns of P[:,keep] and np.dot(R.T,R) is projection onto the rows
