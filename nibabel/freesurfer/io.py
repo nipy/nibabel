@@ -320,7 +320,9 @@ def read_annot(filepath, orig_ids=False):
 
     An ``.annot`` file contains a sequence of vertices with a label (also known
     as an "annotation value") associated with each vertex, and then a sequence
-    of colors corresponding to each label.
+    of colors corresponding to each label. Labels are returned in vertex-number
+    order, regardless of record order in the file. If a vertex occurs more than
+    once, its last annotation is used; omitted vertices are unlabeled.
 
     Annotation file format versions 1 and 2 are supported, corresponding to
     the "old-style" and "new-style" color table layout.
@@ -361,6 +363,14 @@ def read_annot(filepath, orig_ids=False):
         # vertex ids + annotation values
         data = np.fromfile(fobj, dt, vnum * 2).reshape(vnum, 2)
         labels = data[:, 1]
+        if not np.array_equal(data[:, 0], np.arange(vnum)):
+            # Records need not be in vertex order. Select the last record for
+            # each vertex, as FreeSurfer does, leaving omitted vertices unlabeled.
+            vertices, reverse_indices = np.unique(data[::-1, 0], return_index=True)
+            if np.any((vertices < 0) | (vertices >= vnum)):
+                raise ValueError('Annotation vertex index out of range')
+            labels = np.zeros(vnum, dtype=dt)
+            labels[vertices] = data[::-1, 1][reverse_indices]
 
         # is there a color table?
         ctab_exists = np.fromfile(fobj, dt, 1)[0]

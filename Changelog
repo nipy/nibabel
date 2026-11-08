@@ -25,6 +25,16 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+Unreleased
+==========
+
+Bug fixes
+---------
+* Honor vertex numbers when reading FreeSurfer annotation records that are
+  out of order or repeated. Repeated vertices use their last annotation and
+  omitted vertices remain unlabeled, matching FreeSurfer's reader. Reject
+  out-of-range vertex references instead of silently misplacing labels.
+
 5.4.2 (Wednesday 11 March 2026)
 ===============================
 
