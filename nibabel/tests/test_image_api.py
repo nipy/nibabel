@@ -73,6 +73,7 @@ from .. import (
     minc2,
     parrec,
 )
+from ..arrayproxy import get_obj_dtype
 from ..casting import have_binary128, sctypes
 from ..spatialimages import SpatialImage
 from ..tmpdirs import InTemporaryDirectory
@@ -336,11 +337,11 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Check that caching refreshes for new floating point type.
         img.uncache()
         fdata = img.get_fdata()
-        assert fdata.dtype == np.float64
+        assert fdata.dtype == (np.float64 if not is_complex else np.complex128)
         fdata[:] = 42
         fdata_back = img.get_fdata()
         assert_array_equal(fdata_back, 42)
-        assert fdata_back.dtype == np.float64
+        assert fdata_back.dtype == (np.float64 if not is_complex else np.complex128)
         # New data dtype, no caching, doesn't use or alter cache
         with suppress_complex_warning(is_complex):
             fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
@@ -384,7 +385,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # old ``get_data`` method, or using newer ``get_fdata``
         # method, where original array was float64.
         arr_dtype = img.dataobj.dtype
-        dataobj_is_data = arr_dtype == np.float64
+        dataobj_is_data = arr_dtype in (np.float64, np.complex128)
         # Set something to the output array.
         data[:] = 42
         get_result_changed = np.all(get_data_func() == 42)
@@ -472,6 +473,27 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             with pytest.raises(ValueError):
                 img.__class__.from_filename(fname, mmap='invalid')
             del rt_img  # to allow windows to delete the directory
+
+    def validate_get_fdata_complex(self, imaker, params):
+        img = imaker()
+        for dtype in (np.complex64, np.complex128):
+            cdata = img.get_fdata(dtype=dtype)
+            assert cdata.dtype == dtype
+
+        if not get_obj_dtype(img.dataobj).kind == 'c':
+            return
+
+        data = img.get_fdata()
+        assert data.dtype == np.complex128
+        assert img.get_fdata(dtype=None) is data
+        assert img.get_fdata(dtype=np.complex128) is data
+
+        data = img.get_fdata(dtype=np.complex64)
+        assert data.dtype == np.complex64
+
+        with pytest.warns(ComplexWarning):
+            data = img.get_fdata(dtype=np.float64)
+        assert data.dtype == np.float64
 
 
 class HeaderShapeMixin:
