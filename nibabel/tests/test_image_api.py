@@ -263,6 +263,8 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     def _check_proxy_interface(self, imaker, meth_name):
         # Parameters assert this is an array proxy
         img = imaker()
+        # Unbound method takes instance as first argument
+        method = getattr(img.__class__, meth_name)
         # Does is_proxy agree?
         assert is_proxy(img.dataobj)
         # Confirm it is not a numpy array
@@ -273,12 +275,11 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Not yet cached, proxy image: in_memory is False
         assert not img.in_memory
         # Load with caching='unchanged'
-        method = getattr(img, meth_name)
-        data = method(caching='unchanged')
+        data = method(img, caching='unchanged')
         # Still not cached
         assert not img.in_memory
         # Default load, does caching
-        data = method()
+        data = method(img)
         # Data now cached. in_memory is True if either of the get_data
         # or get_fdata caches are not-None
         assert img.in_memory
@@ -290,10 +291,10 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # integers, but lets assume that's not true here.
         assert_array_equal(proxy_data, data)
         # Now caching='unchanged' does nothing, returns cached version
-        data_again = method(caching='unchanged')
+        data_again = method(img, caching='unchanged')
         assert data is data_again
         # caching='fill' does nothing because the cache is already full
-        data_yet_again = method(caching='fill')
+        data_yet_again = method(img, caching='fill')
         assert data is data_yet_again
         # changing array data does not change proxy data, or reloaded
         # data
@@ -301,19 +302,18 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert_array_equal(proxy_data, proxy_copy)
         assert_array_equal(np.asarray(img.dataobj), proxy_copy)
         # It does change the result of get_fdata
-        assert_array_equal(method(), 42)
+        assert_array_equal(method(img), 42)
         # until we uncache
         img.uncache()
         # Which unsets in_memory
         assert not img.in_memory
-        assert_array_equal(method(), proxy_copy)
+        assert_array_equal(method(img), proxy_copy)
         # Check caching='fill' does cache data
         img = imaker()
-        method = getattr(img, meth_name)
         assert not img.in_memory
-        data = method(caching='fill')
+        data = method(img, caching='fill')
         assert img.in_memory
-        data_again = method()
+        data_again = method(img)
         assert data is data_again
         # Check that caching refreshes for new floating point type.
         img.uncache()
