@@ -74,7 +74,7 @@ def test_fillpos():
     assert wxyz[0] == 0.0
 
 
-@pytest.mark.parametrize('dtype', ('f4', 'f8'))
+@pytest.mark.parametrize('dtype', ['f4', 'f8'])
 def test_fillpositive_plus_minus_epsilon(dtype):
     # Deterministic test for fillpositive threshold
     # We are trying to fill (x, y, z) with a w such that |(w, x, y, z)| == 1
@@ -101,7 +101,7 @@ def test_fillpositive_plus_minus_epsilon(dtype):
     assert nq.fillpositive(minus)[0] > 0.0
 
 
-@pytest.mark.parametrize('dtype', ('f4', 'f8'))
+@pytest.mark.parametrize('dtype', ['f4', 'f8'])
 def test_fillpositive_simulated_error(dtype):
     # Nondeterministic test for fillpositive threshold
     # Create random vectors, normalize to unit length, and count on floating point

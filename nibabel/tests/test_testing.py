@@ -152,13 +152,13 @@ def test_warn_ignore():
 @pytest.mark.parametrize(
     ('regex', 'entries'),
     [
-        ['.*', ''],
-        ['.*', ['any']],
-        ['ab', 'abc'],
+        ('.*', ''),
+        ('.*', ['any']),
+        ('ab', 'abc'),
         # Sufficient to have one entry matching
-        ['ab', ['', 'abc', 'laskdjf']],
+        ('ab', ['', 'abc', 'laskdjf']),
         # Tuples should be ok too
-        ['ab', ('', 'abc', 'laskdjf')],
+        ('ab', ('', 'abc', 'laskdjf')),
         # Should do match not search
         pytest.param('ab', 'cab', marks=pytest.mark.xfail),
         pytest.param('ab$', 'abc', marks=pytest.mark.xfail),

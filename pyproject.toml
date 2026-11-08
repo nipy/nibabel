@@ -171,7 +171,6 @@ ignore = [
     "C408",
     "PIE790",
     "PYI024",
-    "PT007",
     "PT010",  # Consider: Set expected exception in pytest.raises
     "PT011",
     "PT012",
