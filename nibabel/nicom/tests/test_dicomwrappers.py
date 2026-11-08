@@ -680,11 +680,11 @@ class TestMultiFrameWrapper(TestCase):
         div_seq = ((1, 1, 1), (2, 1, 1), (1, 1, 2), (2, 1, 2), (1, 1, 3), (2, 1, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1))
         assert MFW(fake_mf).image_shape == (32, 64, 2, 3)
-        # Check non-singular dimension preceding slice dim raises
+        # A non-singular dimension preceding the slice dim is supported by moving
+        # the slice dim to the front of the frame indices (gh-1388)
         div_seq = ((1, 1, 1), (1, 2, 1), (1, 1, 2), (1, 2, 2), (1, 1, 3), (1, 2, 3))
         fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0, slice_dim=2))
-        with pytest.raises(didw.WrapperError):
-            MFW(fake_mf).image_shape
+        assert MFW(fake_mf).image_shape == (32, 64, 3, 2)
         # Test with combo indices, here with the last two needing to be combined into
         # a single index corresponding to [(1, 1), (1, 1), (2, 1), (2, 1), (2, 2), (2, 2)]
         div_seq = (
@@ -1010,6 +1010,55 @@ class TestMultiFrameWrapper(TestCase):
         sorted_data = sorted_data[..., np.argsort(order)]
         fake_mf.pixel_array = np.rollaxis(sorted_data, 2)
         assert_array_equal(MFW(fake_mf).get_data(), data * 2.0 - 1)
+
+    @dicom_test
+    @pytest.mark.thread_unsafe
+    def test_data_fake_slice_dim_not_first(self):
+        # Frame indices that place a non-singular index (here a temporal index)
+        # before InStackPositionNumber must still produce correctly ordered data.
+        # Shape is unpacked with order='F', so frames have to sort slice-fastest
+        # regardless of the DimensionIndexSequence order (gh-1388).
+        fake_mf = deepcopy(self.MINIMAL_MF)
+        MFW = self.WRAPCLASS
+        fake_mf.Rows = 2
+        fake_mf.Columns = 3
+        shape = (2, 3, 4, 2)
+        data = np.arange(np.prod(shape)).reshape(shape)
+        # Columns are (TemporalPositionIndex, StackID, InStackPositionNumber),
+        # listed slice-fastest so they line up with an order='F' unpacking
+        div_seq = [(t, 1, s) for t in (1, 2) for s in (1, 2, 3, 4)]
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1, slice_dim=2))
+        assert MFW(fake_mf).image_shape == shape
+        sorted_data = data.reshape(shape[:2] + (-1,), order='F')
+        object.__setattr__(fake_mf, 'pixel_array', np.rollaxis(sorted_data, 2))
+        assert_array_equal(MFW(fake_mf).get_data(), data)
+        # Same volume with the frames stored in a scrambled order
+        order = [5, 0, 7, 2, 1, 4, 3, 6]
+        div_seq = [div_seq[i] for i in order]
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1, slice_dim=2))
+        object.__setattr__(fake_mf, 'pixel_array', np.rollaxis(sorted_data[..., order], 2))
+        assert_array_equal(MFW(fake_mf).get_data(), data)
+
+    @dicom_test
+    @pytest.mark.thread_unsafe
+    def test_data_fake_slice_dim_not_first_5d(self):
+        # As above, but with two differently sized non-slice dimensions after the
+        # slice index, so that any misordering *among* the non-slice axes shows up
+        # in the shape and the data, not just the slice axis (gh-1388).
+        fake_mf = deepcopy(self.MINIMAL_MF)
+        MFW = self.WRAPCLASS
+        fake_mf.Rows = 2
+        fake_mf.Columns = 3
+        shape = (2, 3, 4, 2, 3)
+        data = np.arange(np.prod(shape)).reshape(shape)
+        # Columns are (TemporalPositionIndex, StackID, InStackPositionNumber, B),
+        # listed slice-fastest, then temporal, then B, to match an order='F' unpacking
+        div_seq = [(t, 1, s, b) for b in (1, 2, 3) for t in (1, 2) for s in (1, 2, 3, 4)]
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=1, slice_dim=2))
+        assert MFW(fake_mf).image_shape == shape
+        sorted_data = data.reshape(shape[:2] + (-1,), order='F')
+        object.__setattr__(fake_mf, 'pixel_array', np.rollaxis(sorted_data, 2))
+        assert_array_equal(MFW(fake_mf).get_data(), data)
 
     @dicom_test
     def test_scale_data(self):

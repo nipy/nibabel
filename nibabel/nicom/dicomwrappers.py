@@ -33,6 +33,14 @@ class WrapperError(Exception):
     pass
 
 
+class SliceIndexOrderError(WrapperError):
+    """Raised when a non-singular index precedes the slice index
+
+    Internal to `MultiframeWrapper.image_shape`, which retries with the slice
+    index moved to the front.
+    """
+
+
 class WrapperPrecisionError(WrapperError):
     pass
 
@@ -767,7 +775,9 @@ class MultiframeWrapper(Wrapper):
         element in the *PerFrameFunctionalGroupsSequence*.  The first two
         axes of the returned shape correspond to the rows, and columns
         respectively. The remaining axes correspond to those of the frame
-        indices with order preserved.
+        indices with order preserved, except that a slice index preceded by a
+        non-singular index is moved ahead of it, so that the slice axis always
+        immediately follows the columns.
 
         What each axis in the frame indices refers to is given by the
         corresponding entry in the *DimensionIndexSequence* DICOM attribute.
@@ -802,14 +812,40 @@ class MultiframeWrapper(Wrapper):
             raise WrapperError("Can't find frame 'DimensionIndexValues'")
         if len(frame_indices.shape) == 1:
             frame_indices = frame_indices.reshape(frame_indices.shape + (1,))
+        dim_seq = [dim.DimensionIndexPointer for dim in self.get('DimensionIndexSequence')]
+        stackpos_tag = pydicom.datadict.tag_for_keyword('InStackPositionNumber')
+        slice_dim_idx = dim_seq.index(stackpos_tag)
+        try:
+            shape, frame_indices = self._calc_shape(rows, cols, frame_indices, slice_dim_idx)
+        except SliceIndexOrderError:
+            # The shape gains one axis per surviving column of `frame_indices`, in
+            # column order, and `frame_order` lexsorts those same columns, so the slice
+            # index must come first for frames to sort slice-fastest --
+            # `get_unscaled_data` reshapes with order='F'.  Some vendors order the
+            # dimension indices with a non-singular index (e.g. TemporalPositionIndex)
+            # ahead of InStackPositionNumber; retry those with the slice column moved to
+            # the front.  Files that already worked never raise, so they are unaffected.
+            n_dims = frame_indices.shape[1]
+            col_order = [slice_dim_idx] + [i for i in range(n_dims) if i != slice_dim_idx]
+            shape, frame_indices = self._calc_shape(rows, cols, frame_indices[:, col_order], 0)
+        # Store frame indices
+        self._frame_indices = frame_indices
+        return shape
+
+    def _calc_shape(self, rows, cols, frame_indices, slice_dim_idx):
+        """Determine the array shape and the frame indices that order it
+
+        Returns the shape, and the (possibly reduced) `frame_indices` whose columns
+        correspond in order to the shape axes following rows and columns.  Raises
+        `SliceIndexOrderError` if a non-singular index precedes the slice index; the
+        caller resolves that by reordering the columns.
+        """
         # Determine the shape and which indices to use
+        n_frames = len(frame_indices)
         shape = [rows, cols]
         curr_parts = n_frames
         frames_per_part = 1
         del_indices = {}
-        dim_seq = [dim.DimensionIndexPointer for dim in self.get('DimensionIndexSequence')]
-        stackpos_tag = pydicom.datadict.tag_for_keyword('InStackPositionNumber')
-        slice_dim_idx = dim_seq.index(stackpos_tag)
         for row_idx, row in enumerate(frame_indices.T):
             unique = np.unique(row)
             count = len(unique)
@@ -819,7 +855,7 @@ class MultiframeWrapper(Wrapper):
             # Replace slice indices with order determined from slice positions along normal
             if row_idx == slice_dim_idx:
                 if len(shape) > 2:
-                    raise WrapperError('Non-singular index precedes the slice index')
+                    raise SliceIndexOrderError('Non-singular index precedes the slice index')
                 row = self._frame_slc_ord
                 frame_indices.T[row_idx, :] = row
                 unique = np.unique(row)
@@ -879,9 +915,7 @@ class MultiframeWrapper(Wrapper):
                     )
         if curr_parts > 1:
             raise WrapperError('Unable to determine sorting of final dimension(s)')
-        # Store frame indices
-        self._frame_indices = frame_indices
-        return tuple(shape)
+        return tuple(shape), frame_indices
 
     @cached_property
     def image_orient_patient(self):
