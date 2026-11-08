@@ -81,13 +81,10 @@ def rst_table(
         row_strs = [val_fmt.format(val) for val in cell_values[row_no]]
         col_len = max(col_len, *map(len, row_strs))
         row_str_list.append(row_strs)
-    row_name_fmt = f'{{0:<{row_len}}}'
-    row_names = [row_name_fmt.format(name) for name in row_names]
-    col_name_fmt = f'{{0:^{col_len}}}'
-    col_names = [col_name_fmt.format(name) for name in col_names]
+    row_names = [f'{name:<{row_len}}' for name in row_names]
+    col_names = [f'{name:^{col_len}}' for name in col_names]
     col_headings = [' ' * row_len] + col_names
     col_header = down_joiner.join(col_headings)
-    row_val_fmt = f'{{0:<{col_len}}}'
     table_strs = []
     if title != '':
         table_strs += [
@@ -108,7 +105,7 @@ def rst_table(
         crossed_thick_line,
     ]
     for row_no, row_name in enumerate(row_names):
-        row_vals = [row_val_fmt.format(row_str) for row_str in row_str_list[row_no]]
+        row_vals = [f'{row_str:<{col_len}}' for row_str in row_str_list[row_no]]
         row_line = down_starter + down_joiner.join([row_name] + row_vals) + down_ender
         table_strs.append(row_line)
     table_strs.append(crossed_line)
