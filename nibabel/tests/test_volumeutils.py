@@ -784,6 +784,24 @@ def test_apply_scaling():
     assert_dt_equal(apply_read_scaling(np.zeros((1,), dtype=np.int64), 1.0, 1.0).dtype, float)
 
 
+@pytest.mark.parametrize('dtype', COMPLEX_TYPES)
+@pytest.mark.parametrize('byteorder', ('<', '>'))
+@pytest.mark.parametrize(
+    ('slope', 'inter', 'expected'),
+    (
+        (1, 3, [4 + 5j, 2 + 1j]),
+        (2, 3, [5 + 7j, 1 - 1j]),
+        (2, -3, [-1 + 1j, -5 - 7j]),
+        (2, 0, [2 + 4j, -2 - 4j]),
+    ),
+)
+def test_apply_read_scaling_complex(dtype, byteorder, slope, inter, expected):
+    arr = np.array([1 + 2j, -1 - 2j], dtype=np.dtype(dtype).newbyteorder(byteorder))
+    original = arr.copy()
+    assert_array_equal(apply_read_scaling(arr, slope, inter), expected)
+    assert_array_equal(arr, original)
+
+
 def test_apply_read_scaling_ints():
     # Test that apply_read_scaling copes with integer scaling inputs
     arr = np.arange(10, dtype=np.int16)

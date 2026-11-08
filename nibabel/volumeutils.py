@@ -882,6 +882,9 @@ def apply_read_scaling(
     the integer range, and upcast to a type such that the min, max of
     ``arr.dtype`` * scale + inter, will be finite.
 
+    For complex arrays, scaling is applied to both the real and imaginary
+    components.
+
     Parameters
     ----------
     arr : array-like
@@ -909,7 +912,8 @@ def apply_read_scaling(
     # Force float / float upcasting by promoting to arrays
     slope1d, inter1d = (np.atleast_1d(v) for v in (slope, inter))
     arr = np.atleast_1d(arr)
-    if arr.dtype.kind in 'iu':
+    in_kind = arr.dtype.kind
+    if in_kind in 'iu':
         # int to float; get enough precision to avoid infs
         # Find floating point type for which scaling does not overflow,
         # starting at given type
@@ -921,6 +925,8 @@ def apply_read_scaling(
         arr = arr * slope1d
     if inter1d != 0.0:
         arr = arr + inter1d
+        if in_kind == 'c':
+            arr.imag += inter1d.real
     return arr.reshape(shape)
 
 
