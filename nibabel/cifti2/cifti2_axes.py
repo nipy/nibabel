@@ -1430,7 +1430,7 @@ class SeriesAxis(Axis):
     def unit(self, value):
         if value.upper() not in ('SECOND', 'HERTZ', 'METER', 'RADIAN'):
             raise ValueError(
-                'SeriesAxis unit should be one of ' + "('second', 'hertz', 'meter', or 'radian'"
+                "SeriesAxis unit should be one of ('second', 'hertz', 'meter', or 'radian'"
             )
         self._unit = value.upper()
 

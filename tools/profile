@@ -74,7 +74,7 @@ if __name__ == '__main__':
         raise RuntimeError('No hotshot')
 
     if pfilename is None:
-        pfilename = cmdname + '.prof'
+        pfilename = f'{cmdname}.prof'
 
     if run:
         exec(f'import {root} as runnable')
@@ -107,7 +107,7 @@ if __name__ == '__main__':
         if pstatsfilename:
             stats.dump_stats(pstatsfilename)
 
-    kfilename = pfilename + '.kcache'
+    kfilename = f'{pfilename}.kcache'
     if convert2kcache:
         cmd = f'hotshot2calltree -o {kfilename} {pfilename}'
         if os.system(cmd):

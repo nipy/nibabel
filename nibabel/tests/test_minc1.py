@@ -177,7 +177,7 @@ class TestMinc1File(_TestMincFile):
                 openers_exts += [(zstd.ZstdFile, '.zst')]
             with InTemporaryDirectory():
                 for opener, ext in openers_exts:
-                    fname = 'test.mnc' + ext
+                    fname = f'test.mnc{ext}'
                     fobj = opener(fname, 'wb')
                     fobj.write(content)
                     fobj.close()

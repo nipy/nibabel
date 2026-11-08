@@ -402,7 +402,7 @@ class ArraySequence:
 
         raise TypeError(
             'Index must be either an int, a slice, a list of int'
-            ' or a ndarray of bool! Not ' + str(type(idx))
+            f' or a ndarray of bool! Not {type(idx)}'
         )
 
     def __setitem__(self, idx, elements):
@@ -445,7 +445,7 @@ class ArraySequence:
         else:
             raise TypeError(
                 'Index must be either an int, a slice, a list of int'
-                ' or a ndarray of bool! Not ' + str(type(idx))
+                f' or a ndarray of bool! Not {type(idx)}'
             )
 
         if is_array_sequence(elements):

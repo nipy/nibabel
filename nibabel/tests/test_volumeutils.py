@@ -82,7 +82,7 @@ def test__is_compressed_fobj():
         if HAVE_ZSTD:
             file_openers += [('.zst', zstd.ZstdFile, True)]
         for ext, opener, compressed in file_openers:
-            fname = 'test.bin' + ext
+            fname = f'test.bin{ext}'
             for mode in ('wb', 'rb'):
                 fobj = opener(fname, mode)
                 assert _is_compressed_fobj(fobj) == compressed
@@ -244,7 +244,7 @@ def test_array_from_file_openers():
         if HAVE_ZSTD:
             extensions += ['.zst']
         for ext, offset in itertools.product(extensions, (0, 5, 10)):
-            fname = 'test.bin' + ext
+            fname = f'test.bin{ext}'
             with Opener(fname, 'wb') as out_buf:
                 if offset != 0:  # avoid https://bugs.python.org/issue16828
                     out_buf.write(b' ' * offset)

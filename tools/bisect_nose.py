@@ -82,7 +82,7 @@ def main():
     try:
         os.chdir(tmpdir)
         print('Testing')
-        proc = popener('nosetests ' + path)
+        proc = popener(f'nosetests {path}')
         stdout, stderr = proc.communicate()
     finally:
         os.chdir(cwd)

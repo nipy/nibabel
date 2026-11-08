@@ -157,11 +157,11 @@ class ApiDocWriter:
         """
         if uri == self.package_name:
             return os.path.join(self.root_path, '__init__.py')
-        path = uri.replace(self.package_name + '.', '')
+        path = uri.replace(f'{self.package_name}.', '')
         path = path.replace('.', os.path.sep)
         path = os.path.join(self.root_path, path)
         # XXX maybe check for extensions as well?
-        if os.path.exists(path + '.py'):  # file
+        if os.path.exists(f'{path}.py'):  # file
             path += '.py'
         elif os.path.exists(os.path.join(path, '__init__.py')):
             path = os.path.join(path, '__init__.py')
@@ -282,20 +282,23 @@ class ApiDocWriter:
         # Set the chapter title to read 'module' for all modules except for the
         # main packages
         if '.' in uri_short:
-            title = 'Module: :mod:`' + uri_short + '`'
-            head += title + '\n' + self.rst_section_levels[2] * len(title)
+            title = f'Module: :mod:`{uri_short}`'
+            underline = self.rst_section_levels[2] * len(title)
+            head += f'{title}\n{underline}'
         else:
-            title = ':mod:`' + uri_short + '`'
-            head += title + '\n' + self.rst_section_levels[1] * len(title)
+            title = f':mod:`{uri_short}`'
+            underline = self.rst_section_levels[1] * len(title)
+            head += f'{title}\n{underline}'
 
-        head += '\n.. automodule:: ' + uri + '\n'
-        head += '\n.. currentmodule:: ' + uri + '\n'
-        body += '\n.. currentmodule:: ' + uri + '\n\n'
+        head += f'\n.. automodule:: {uri}\n'
+        head += f'\n.. currentmodule:: {uri}\n'
+        body += f'\n.. currentmodule:: {uri}\n\n'
         for c in classes:
-            body += '\n:class:`' + c + '`\n' + self.rst_section_levels[3] * (len(c) + 9) + '\n\n'
-            body += '\n.. autoclass:: ' + c + '\n'
-            # must NOT exclude from index to keep cross-refs working
+            underline = self.rst_section_levels[3] * (len(c) + 9)
             body += (
+                f'\n:class:`{c}`\n{underline}\n\n'
+                f'\n.. autoclass:: {c}\n'
+                # must NOT exclude from index to keep cross-refs working
                 '  :members:\n'
                 '  :undoc-members:\n'
                 '  :show-inheritance:\n'
@@ -304,14 +307,13 @@ class ApiDocWriter:
             )
         head += '.. autosummary::\n\n'
         for f in classes + functions:
-            head += '   ' + f + '\n'
+            head += f'   {f}\n'
         head += '\n'
 
         for f in functions:
             # must NOT exclude from index to keep cross-refs working
-            body += f + '\n'
-            body += self.rst_section_levels[3] * len(f) + '\n'
-            body += '\n.. autofunction:: ' + f + '\n\n'
+            underline = self.rst_section_levels[3] * len(f)
+            body += f'{f}\n{underline}\n\n.. autofunction:: {f}\n\n'
 
         return head, body
 
@@ -425,7 +427,7 @@ class ApiDocWriter:
             document_body = []
 
             for m in mods:
-                print('  -> ' + m)
+                print(f'  -> {m}')
                 head, body = self.generate_api_doc(m)
 
                 document_head.append(head)
@@ -496,7 +498,7 @@ class ApiDocWriter:
         w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
 
         title = 'API Reference'
-        w(title + '\n')
+        w(f'{title}\n')
         w('=' * len(title) + '\n\n')
         w('.. toctree::\n\n')
         for f in self.written_modules:

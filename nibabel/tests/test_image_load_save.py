@@ -271,7 +271,7 @@ def test_filename_save():
         img = inklass(data, affine)
         try:
             pth = mkdtemp()
-            fname = pjoin(pth, 'image' + out_ext)
+            fname = pjoin(pth, f'image{out_ext}')
             for path in (fname, pathlib.Path(fname)):
                 nils.save(img, path)
                 rt_img = nils.load(path)

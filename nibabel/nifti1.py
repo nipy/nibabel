@@ -1559,7 +1559,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             if known_intent:
                 label = recoder.label[code]
             else:
-                label = 'unknown code ' + str(code)
+                label = f'unknown code {code}'
         else:
             raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code]) if known_intent else 0
@@ -1623,7 +1623,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             # We can set intent via an unknown integer code, but can't via an
             # unknown string label
             if not allow_unknown or isinstance(code, str):
-                raise KeyError('Unknown intent code: ' + str(code))
+                raise KeyError(f'Unknown intent code: {code}')
         if known_intent:
             icode = intent_codes.code[code]
             p_descr = intent_codes.parameters[code]

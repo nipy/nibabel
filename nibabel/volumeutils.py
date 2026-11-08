@@ -330,7 +330,7 @@ def pretty_mapping(
     >>> def getter(obj, key):
     ...     # Look for any 'get_<name>' methods
     ...     try:
-    ...         return obj.__getattribute__('get_' + key)()
+    ...         return obj.__getattribute__(f'get_{key}')()
     ...     except AttributeError:
     ...         return obj[key]
     >>> print(pretty_mapping(C(), getter))

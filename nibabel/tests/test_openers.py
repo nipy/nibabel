@@ -224,7 +224,7 @@ def test_compressionlevel():
             for opener, default_val in ((Opener, 1), (MyOpener, 5)):
                 sizes = {}
                 for compresslevel in ('default', 1, 5):
-                    fname = 'test.' + ext
+                    fname = f'test.{ext}'
                     kwargs = {'mode': 'wb'}
                     if compresslevel != 'default':
                         kwargs['compresslevel'] = compresslevel
@@ -253,7 +253,7 @@ def test_compressed_ext_case():
         with open(__file__, 'rb') as a_file:
             file_class = type(a_file)
         for ext in exts:
-            fname = 'test.' + ext
+            fname = f'test.{ext}'
             with Opener(fname, 'wb') as fobj:
                 fobj.write(contents)
             with Opener(fname, 'rb') as fobj:

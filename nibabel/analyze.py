@@ -804,10 +804,10 @@ class AnalyzeHeader(LabeledWrapStruct, SpatialHeader):
         if hdr['sizeof_hdr'] == klass.sizeof_hdr:
             return hdr, rep
         rep.problem_level = 30
-        rep.problem_msg = 'sizeof_hdr should be ' + str(klass.sizeof_hdr)
+        rep.problem_msg = f'sizeof_hdr should be {klass.sizeof_hdr}'
         if fix:
             hdr['sizeof_hdr'] = klass.sizeof_hdr
-            rep.fix_msg = 'set sizeof_hdr to ' + str(klass.sizeof_hdr)
+            rep.fix_msg = f'set sizeof_hdr to {klass.sizeof_hdr}'
         return hdr, rep
 
     @classmethod

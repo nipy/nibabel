@@ -109,7 +109,7 @@ class TestAnalyzeHeader(tws._TestLabeledWrapStruct):
         hdr = hdr_t.copy()
         hdr['sizeof_hdr'] = 1
         with suppress_warnings():
-            assert self._dxer(hdr) == 'sizeof_hdr should be ' + str(self.sizeof_hdr)
+            assert self._dxer(hdr) == f'sizeof_hdr should be {self.sizeof_hdr}'
         hdr = hdr_t.copy()
         hdr['datatype'] = 0
         assert self._dxer(hdr) == 'data code 0 not supported\nbitpix does not match datatype'
@@ -819,7 +819,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
                 for compressed_ext in compressed_exts:
                     img = img_klass(arr, aff)
                     img.header.set_data_offset(offset)
-                    fname = 'test' + img_ext + compressed_ext
+                    fname = f'test{img_ext}{compressed_ext}'
                     img.to_filename(fname)
                     img_back = img_klass.from_filename(fname)
                     assert_array_equal(arr, img_back.dataobj)
@@ -900,7 +900,7 @@ class TestAnalyzeImage(tsi.TestSpatialImage, tsi.MmapImageMixin):
         arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
         aff = np.eye(4)
         img = img_klass(arr, aff)
-        fname = 'test' + img_klass.files_types[0][1]
+        fname = f'test{img_klass.files_types[0][1]}'
         with InTemporaryDirectory():
             for dtype in self.supported_np_types:
                 img.to_filename(fname, dtype=dtype)

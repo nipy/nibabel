@@ -31,8 +31,8 @@ import nibabel.cmdline.utils
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage=f'{sys.argv[0]} [OPTIONS] [FILE ...]\n\n' + __doc__,
-        version='%prog ' + nib.__version__,
+        usage=f'{sys.argv[0]} [OPTIONS] [FILE ...]\n\n{__doc__}',
+        version=f'%prog {nib.__version__}',
     )
 
     p.add_options(

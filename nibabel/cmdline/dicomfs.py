@@ -193,7 +193,7 @@ def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
         usage=f'{os.path.basename(sys.argv[0])} [OPTIONS] <DIRECTORY CONTAINING DICOMSs> <mount point>',
-        version='%prog ' + nib.__version__,
+        version=f'%prog {nib.__version__}',
     )
 
     p.add_options(
