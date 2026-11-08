@@ -185,7 +185,6 @@ ignore = [
     "SIM300",
     "RUF005",
     "RUF012", # TODO: enable
-    "RUF015",
     "RUF017", # TODO: enable
     "RUF059", # Consider: Unpacked variables never used
     "RUF061", # Consider: Use context-manager form of pytest.raises
