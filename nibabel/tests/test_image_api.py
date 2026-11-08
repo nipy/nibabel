@@ -73,7 +73,7 @@ from .. import (
     minc2,
     parrec,
 )
-from ..casting import sctypes
+from ..casting import have_binary128, sctypes
 from ..spatialimages import SpatialImage
 from ..tmpdirs import InTemporaryDirectory
 from .test_api_validators import ValidateAPI
@@ -398,7 +398,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             img.uncache()
             assert_array_equal(get_data_func(), 42)
         else:
-            assert not data is img.dataobj
+            assert data is not img.dataobj
             assert not np.all(np.asarray(img.dataobj) == 42)
             # Uncache does have an effect
             img.uncache()
@@ -796,6 +796,16 @@ class TestSpm2AnalyzeAPI(TestSpm99AnalyzeAPI):
 class TestNifti1PairAPI(TestSpm99AnalyzeAPI):
     klass = image_maker = Nifti1Pair
     can_save = True
+    storable_dtypes = TestAnalyzeAPI.storable_dtypes + (
+        np.int8,
+        np.uint16,
+        np.uint32,
+        np.int64,
+        np.uint64,
+        np.complex128,
+    )
+    if have_binary128():
+        storable_dtypes += (np.float128, np.complex256)
 
 
 class TestNifti1API(TestNifti1PairAPI, SerializeMixin):
