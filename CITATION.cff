@@ -184,7 +184,8 @@ authors:
     given-names: Eric M.
   - family-names: Koudoro
     given-names: Serge
-  - alias: Siddhardha Nanda
+  - family-names: Nanda
+    given-names: Siddhardha
   - family-names: Hayashi
     given-names: Soichi
   - family-names: Pinsard
@@ -193,7 +194,8 @@ authors:
     given-names: Christian
   - family-names: Hymers
     given-names: Mark
-  - alias: Michael Krause
+  - family-names: Krause
+    given-names: Michael
   - family-names: Esteban
     given-names: Oscar
     affiliation: Department of Psychology, Stanford University, CA, USA
@@ -222,7 +224,8 @@ authors:
     given-names: Horea
   - family-names: Nimmo-Smith
     given-names: Ian
-  - alias: Jeffrey D. Cooney
+  - family-names: Cooney
+    given-names: Jeffrey D.
   - family-names: Gunalan
     given-names: Kabilar
     affiliation: McGovern Institute for Brain Research, Massachusetts Institute of Technology,
@@ -247,7 +250,8 @@ authors:
     orcid: https://orcid.org/0000-0002-2500-6375
   - family-names: Garyfallidis
     given-names: Eleftherios
-  - alias: Erfan Mohamadboland
+  - family-names: Mohamadboland
+    given-names: Erfan
   - family-names: Varoquaux
     given-names: Gael
     affiliation: INRIA
@@ -269,10 +273,12 @@ authors:
     given-names: Bennet
   - family-names: Dewey
     given-names: Blake
-  - alias: Don Yin
+  - family-names: Yin
+    given-names: Don
   - family-names: Perez
     given-names: Fabian
-  - alias: Gabriel Demetrios Lafis
+  - family-names: Lafis
+    given-names: Gabriel Demetrios
   - family-names: Roberts
     given-names: Jacob
   - family-names: Poline
@@ -309,12 +315,14 @@ authors:
     given-names: Bertrand
     affiliation: INRIA
     orcid: https://orcid.org/0000-0001-5018-7895
-  - alias: Bhaskar Gurram
+  - family-names: Gurram
+    given-names: Bhaskar
   - family-names: Gauthier
     given-names: Carl
   - family-names: Notte
     given-names: Clorindo
-  - alias: Duy Dong Nguyen
+  - family-names: Nguyen
+    given-names: Duy Dong
   - family-names: Solovey
     given-names: Igor
   - family-names: Gonzalez
@@ -327,7 +335,8 @@ authors:
     given-names: Jon
   - family-names: Lecher
     given-names: Justin
-  - alias: Karolina Surma
+  - family-names: Surma
+    given-names: Karolina
   - family-names: Leinweber
     given-names: Katrin
     affiliation: TIB – Leibniz Information Centre for Science and Technology and University Library,
@@ -338,9 +347,12 @@ authors:
     affiliation: National Technical University of Athens, Greece
   - family-names: Calábková
     given-names: Markéta
-  - alias: Nagizaaz Shaik
-  - alias: Nathan Chandrasekar
-  - alias: Nathan Suttie
+  - family-names: Shaik
+    given-names: Nagizaaz
+  - family-names: Chandrasekar
+    given-names: Nathan
+  - family-names: Suttie
+    given-names: Nathan
   - family-names: Fischer
     given-names: Peter
     affiliation: Friedrich-Alexander-Universität Erlangen-Nürnberg, Erlangen, Germany
@@ -353,7 +365,8 @@ authors:
     given-names: Thomas
   - family-names: Roos
     given-names: Thomas
-  - alias: Venish Paneliya
+  - family-names: Paneliya
+    given-names: Venish
   - family-names: Reddam
     given-names: Venkateswara Reddy
     affiliation: National Institute of Mental Health and Neuro-Sciences, India
