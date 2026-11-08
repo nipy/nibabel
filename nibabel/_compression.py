@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import bz2
 import gzip
-import io
 import typing as ty
 
 try:
@@ -26,6 +25,8 @@ from .deprecated import alert_future_error
 from .optpkg import optional_package
 
 if ty.TYPE_CHECKING:
+    import io
+
     import indexed_gzip  # type: ignore[import]
 
     if not HAVE_ZSTD:  # PY313
