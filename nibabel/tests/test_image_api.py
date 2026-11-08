@@ -27,6 +27,7 @@ import io
 import pathlib
 import sys
 import warnings
+from contextlib import contextmanager
 from functools import partial
 from itertools import product
 
@@ -40,6 +41,7 @@ _, have_h5py, _ = optional_package('h5py')
 import unittest
 
 import pytest
+from numpy.exceptions import ComplexWarning
 from numpy.testing import assert_allclose, assert_almost_equal, assert_array_equal
 
 from nibabel.arraywriters import WriterError
@@ -71,7 +73,7 @@ from .. import (
     minc2,
     parrec,
 )
-from ..casting import sctypes
+from ..casting import have_binary128, sctypes
 from ..spatialimages import SpatialImage
 from ..tmpdirs import InTemporaryDirectory
 from .test_api_validators import ValidateAPI
@@ -79,6 +81,16 @@ from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
+
+
+@contextmanager
+def suppress_complex_warning(is_complex: bool):
+    if is_complex:
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=ComplexWarning)
+            yield
+    else:
+        yield
 
 
 class GenericImageAPI(ValidateAPI):
@@ -144,7 +156,9 @@ class GenericImageAPI(ValidateAPI):
         if not self.can_save:
             raise unittest.SkipTest
         img = imaker()
-        img.set_data_dtype(np.float32)  # to avoid rounding in load / save
+        img.set_data_dtype(
+            np.float32 if img.get_data_dtype().kind != 'c' else np.complex64
+        )  # to avoid rounding in load / save
         # Make sure the object does not have a file_map
         img.file_map = None
         # The bytesio_round_trip helper tests bytesio load / save via file_map
@@ -214,13 +228,14 @@ class GetSetDtypeMixin:
             with np.errstate(invalid='ignore'):
                 rt_img = bytesio_round_trip(img)
             assert rt_img.get_data_dtype().type == params['dtype']
-        # Setting to a different dtype
-        img.set_data_dtype(np.float32)  # assumed supported for all formats
-        assert img.get_data_dtype().type == np.float32
+        # Setting to a widely available, compatible dtype
+        common_dtype = np.float32 if np.dtype(params['dtype']).kind != 'c' else np.complex64
+        img.set_data_dtype(common_dtype)
+        assert img.get_data_dtype().type == common_dtype
         # dtype survives round trip
         if self.can_save:
             rt_img = bytesio_round_trip(img)
-            assert rt_img.get_data_dtype().type == np.float32
+            assert rt_img.get_data_dtype().type == common_dtype
 
 
 class DataInterfaceMixin(GetSetDtypeMixin):
@@ -263,6 +278,11 @@ class DataInterfaceMixin(GetSetDtypeMixin):
     def _check_proxy_interface(self, imaker, meth_name):
         # Parameters assert this is an array proxy
         img = imaker()
+        # Unbound method takes instance as first argument
+        method = getattr(img.__class__, meth_name)
+
+        is_complex = img.get_data_dtype().kind == 'c'
+
         # Does is_proxy agree?
         assert is_proxy(img.dataobj)
         # Confirm it is not a numpy array
@@ -273,12 +293,11 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # Not yet cached, proxy image: in_memory is False
         assert not img.in_memory
         # Load with caching='unchanged'
-        method = getattr(img, meth_name)
-        data = method(caching='unchanged')
+        data = method(img, caching='unchanged')
         # Still not cached
         assert not img.in_memory
         # Default load, does caching
-        data = method()
+        data = method(img)
         # Data now cached. in_memory is True if either of the get_data
         # or get_fdata caches are not-None
         assert img.in_memory
@@ -290,10 +309,10 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # integers, but lets assume that's not true here.
         assert_array_equal(proxy_data, data)
         # Now caching='unchanged' does nothing, returns cached version
-        data_again = method(caching='unchanged')
+        data_again = method(img, caching='unchanged')
         assert data is data_again
         # caching='fill' does nothing because the cache is already full
-        data_yet_again = method(caching='fill')
+        data_yet_again = method(img, caching='fill')
         assert data is data_yet_again
         # changing array data does not change proxy data, or reloaded
         # data
@@ -301,19 +320,18 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert_array_equal(proxy_data, proxy_copy)
         assert_array_equal(np.asarray(img.dataobj), proxy_copy)
         # It does change the result of get_fdata
-        assert_array_equal(method(), 42)
+        assert_array_equal(method(img), 42)
         # until we uncache
         img.uncache()
         # Which unsets in_memory
         assert not img.in_memory
-        assert_array_equal(method(), proxy_copy)
+        assert_array_equal(method(img), proxy_copy)
         # Check caching='fill' does cache data
         img = imaker()
-        method = getattr(img, meth_name)
         assert not img.in_memory
-        data = method(caching='fill')
+        data = method(img, caching='fill')
         assert img.in_memory
-        data_again = method()
+        data_again = method(img)
         assert data is data_again
         # Check that caching refreshes for new floating point type.
         img.uncache()
@@ -324,26 +342,30 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         assert_array_equal(fdata_back, 42)
         assert fdata_back.dtype == np.float64
         # New data dtype, no caching, doesn't use or alter cache
-        fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
-        # We get back the original read, not the modified cache
-        # Allow for small rounding error when the data is scaled with 32-bit
-        # factors, rather than 64-bit factors and then cast to float-32
-        # Use rtol/atol from numpy.allclose
-        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
+        with suppress_complex_warning(is_complex):
+            fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
+            # We get back the original read, not the modified cache
+            # Allow for small rounding error when the data is scaled with 32-bit
+            # factors, rather than 64-bit factors and then cast to float-32
+            # Use rtol/atol from numpy.allclose
+            assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
         assert fdata_new_dt.dtype == np.float32
         # The original cache stays in place, for default float64
         assert_array_equal(img.get_fdata(), 42)
         # And for not-default float32, because we haven't cached
         fdata_new_dt[:] = 43
-        fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
-        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
+        with suppress_complex_warning(is_complex):
+            fdata_new_dt = img.get_fdata(caching='unchanged', dtype='f4')
+            assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
         # Until we reset with caching='fill', at which point we
         # drop the original float64 cache, and have a float32 cache
-        fdata_new_dt = img.get_fdata(caching='fill', dtype='f4')
-        assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
+        with suppress_complex_warning(is_complex):
+            fdata_new_dt = img.get_fdata(caching='fill', dtype='f4')
+            assert_allclose(fdata_new_dt, proxy_data.astype('f4'), rtol=1e-05, atol=1e-08)
         # We're using the cache, for dtype='f4' reads
         fdata_new_dt[:] = 43
-        assert_array_equal(img.get_fdata(dtype='f4'), 43)
+        with suppress_complex_warning(is_complex):
+            assert_array_equal(img.get_fdata(dtype='f4'), 43)
         # We've lost the cache for float64 reads (no longer 42)
         assert_array_equal(img.get_fdata(), proxy_data)
 
@@ -362,7 +384,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
         # old ``get_data`` method, or using newer ``get_fdata``
         # method, where original array was float64.
         arr_dtype = img.dataobj.dtype
-        dataobj_is_data = arr_dtype == np.float64 or method == img.get_data
+        dataobj_is_data = arr_dtype == np.float64
         # Set something to the output array.
         data[:] = 42
         get_result_changed = np.all(get_data_func() == 42)
@@ -376,7 +398,7 @@ class DataInterfaceMixin(GetSetDtypeMixin):
             img.uncache()
             assert_array_equal(get_data_func(), 42)
         else:
-            assert not data is img.dataobj
+            assert data is not img.dataobj
             assert not np.all(np.asarray(img.dataobj) == 42)
             # Uncache does have an effect
             img.uncache()
@@ -700,8 +722,11 @@ class DtypeOverrideMixin(GetSetDtypeMixin):
 
     def validate_init_dtype_override(self, imaker, params):
         img = imaker()
+        is_complex = img.get_data_dtype().kind == 'c'
         klass = img.__class__
         for dtype in self.storable_dtypes:
+            if is_complex and np.dtype(dtype).kind != 'c':
+                continue
             if hasattr(img, 'affine'):
                 new_img = klass(img.dataobj, img.affine, header=img.header, dtype=dtype)
             else:  # XXX This is for CIFTI-2, these validators might need refactoring
@@ -754,7 +779,7 @@ class TestAnalyzeAPI(TestSpatialImageAPI, DtypeOverrideMixin):
     can_save = True
     standard_extension = '.img'
     # Supported dtypes for storing to disk
-    storable_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.float64)
+    storable_dtypes = (np.uint8, np.int16, np.int32, np.float32, np.float64, np.complex64)
 
 
 class TestSpm99AnalyzeAPI(TestAnalyzeAPI):
@@ -771,6 +796,16 @@ class TestSpm2AnalyzeAPI(TestSpm99AnalyzeAPI):
 class TestNifti1PairAPI(TestSpm99AnalyzeAPI):
     klass = image_maker = Nifti1Pair
     can_save = True
+    storable_dtypes = TestAnalyzeAPI.storable_dtypes + (
+        np.int8,
+        np.uint16,
+        np.uint32,
+        np.int64,
+        np.uint64,
+        np.complex128,
+    )
+    if have_binary128():
+        storable_dtypes += (np.float128, np.complex256)
 
 
 class TestNifti1API(TestNifti1PairAPI, SerializeMixin):
