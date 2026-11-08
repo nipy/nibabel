@@ -29,6 +29,7 @@ from .casting import have_binary128
 from .deprecated import alert_future_error
 from .filebasedimages import ImageFileError, SerializableImage
 from .optpkg import optional_package
+from .orientations import inv_ornt_aff
 from .quaternions import fillpositive, mat2quat, quat2mat
 from .spatialimages import HeaderDataError
 from .spm99analyze import SpmAnalyzeHeader
@@ -2405,6 +2406,19 @@ class Nifti1Pair(analyze.AnalyzeImage):
         ]
 
         img.header.set_dim_info(*new_dim)
+
+        # Reorienting the affine will set the qform and sform to the new affine,
+        # with codes 0 and 2, respectively.
+        # For the purposes of this function, no orientation information has been
+        # lost, so reorient the qform and sform individually and restore their codes,
+        # if they had non-zero codes.
+        vox_ornt = inv_ornt_aff(ornt, self.shape)
+        sform, sform_code = self.header.get_sform(coded=True)
+        qform, qform_code = self.header.get_qform(coded=True)
+        if sform_code != 0:
+            img.header.set_sform(sform @ vox_ornt, code=int(sform_code))
+        if qform_code != 0:
+            img.header.set_qform(qform @ vox_ornt, code=int(qform_code))
 
         return img
 
