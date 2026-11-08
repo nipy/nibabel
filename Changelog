@@ -25,6 +25,98 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+5.5.0 (To be determined)
+========================
+
+New feature release in the 5.5.x series.
+
+This release requires a minimum Python of 3.11 and NumPy 2.0, and has been
+tested up to Python 3.15 and NumPy 2.5.
+
+New features
+------------
+* The :class:`~nibabel.nicom.dicomwrappers.FilterMultiOrient` frame filter
+  allows extracting a volume of consistent orientation from a DICOM containing
+  mixed orienations (pr/1485) (Michael Krause, reviewed by Basile Pinsard and CM)
+
+Enhancements
+------------
+* :meth:`~nibabel.dataobj_images.DataobjImage.get_fdata` now returns
+  :class:`~numpy.complex128` arrays by default for complex images. Note that
+  passing :class:`~numpy.float64` explicitly still results in ``float64`` arrays.
+  (pr/1592) (Bhaskar Gurram, reviewed by CM)
+* Cifti2 ``*Axis`` classes now accept any :class:`~numbers.Integral` indices,
+  allowing them to be indexed by NumPy integers (pr/1581) (Don Yin, reviewed by CM)
+* Update :meth:`~nibabel.nifti1.Nifti1Image.as_reoriented()` to reorient sform
+  and qform independently and preserve (q/s)form codes (pr/1546) (Cedric Conday,
+  reviewed by CM)
+* Validate SpatialHeader zooms are positive in spatial dimensions, non-negative in other
+  dimensions (Siddhardha Nanda, reviewed by CM) (pr/1596)
+* Improved errors for malformed PAR/REC headers (pr/1573, pr/1574) (Erfan Mohamadboland,
+  reviewed by CM)
+* Support for empty :class:`~nibabel.cifti2.cifti2_axes.BrainModelAxis` (pr/1555)
+  (Nathan Suttie, reviewed by CM)
+* Support for rescaling N-to-N affines in :func:`~nibabel.affines.rescale_affine`
+  (pr/1553) (Siddhardha Nanda, reviewed by CM)
+* Improved documentation of :meth:`~nibabel.cifti2.cifti2_axes.BrainModelAxis.iter_structures`
+  (pr/1550) (Nagizaaz Shaik, reviewed by CM)
+* Documentation has been modernized with a new theme and improved navigation
+  (pr/1484) (Leonardo Ayala, reviewed by CM)
+
+Bug fixes
+---------
+* Preserve array shape for single-vertex labels in :func:`~nibabel.freesurfer.io.read_label`
+  (pr/1582) (Jeffrey Cooney, reviewed by CM)
+* Validate common shapes when calling
+  :meth:`~nibabel.streamlines.array_sequence.ArraySequence.append` with
+  `cache_build=True` (pr/1583) (Jeffrey Cooney, reviewed by CM)
+* Fix slicing of :class:`~nibabel.cifti2.cifti2_axes.SeriesAxis` to match slicing
+  its underlying NumPy array (pr/1580) (Don Yin, reviewed by CM)
+* Avoid overflow when passing integer affines to :func:`~nibabel.affines.voxel_sizes`
+  (pr/1586) (Gabriel Lafis, reviewed by CM)
+* Fix handling of negative slices and steps in
+  :attr:`~nibabel.spatialimages.SpatialImage.slicer` (pr/1534) (Duy Dong Nguyen,
+  reviewed by Arthur031221 and CM)
+* Handle data arrays with complex infinities correctly during write (pr/1588)
+  (Gabriel Lafis, reviewed by CM)
+* Calculate orientation from float64-cast affine to avoid SVD issues on 32-bit
+  systems (pr/1601) (CM, reviewed by Andreas Tille)
+* Reject undersized NIfTI extensions before reading payloads (pr/1568)
+  (Jeffrey Cooney, reviewed by CM)
+* Validate affine shape in :meth:`~nibabel.nifti1.Nifti1Header.set_sform`,
+  matching :meth:`~nibabel.nifti1.Nifti1Header.set_qform` (pr/1562)
+  (Siddhardha Nanda, reviewed by CM)
+* Fix docstrings that mismatched function signatures (pr/1552) (Venish Paneliya,
+  reviewed by CM)
+* Fix rendering of docstrings of deprecated functions/classes (pr/1545) (CM,
+  reviewed by Mathias Goncalves)
+* Correct dtype of ECAT ``patient_birth_date`` field (``int32``) (pr/1522)
+  (Cedric Conday, reviewed by CM)
+* Set the gzip compression level to the default for the current Python version,
+  which changed from 9 to 6 in Python 3.15 (pr/1509) (Karolina Surma, reviewed by CM)
+* Outdated references to Travis CI were removed from our developer docs
+  (pr/1506) (Dimitri Papadopoulos, reviewed by CM)
+* Typos in documentation (pr/1499) (Dimitri Papadopoulos, reviewed by CM) and
+  (pr/1500) (Kabilar Gunalan, reviewied by CM)
+
+Maintenance
+-----------
+* Additional pre-commit hooks and linting rules (pr/1598, pr/1599, pr/1600, pr/1602,
+  pr/1603, pr/1604, pr/1605, pr/1607, pr/1609) (Dimitri Papadopoulos, reviewed by CM)
+* Set minimum tested ``indexed-gzip`` version to 1.9.1 (pr/1554) (CM)
+* Testing on ARM64 Linux runners (pr/1496) (Leonardo Ayala, reviewed by CM)
+* Transitioned from ``.zenodo.json`` to ``CITATION.cff`` (pr/1494) (CM,
+  at least discussed with Rémi Gau)
+* Remove deprecated use of ``__package__`` constant (pr/1487)
+  (Dimitri Papadopoulos, reviewed by CM)
+* Publish docs automatically on tags or triggers (pr/1482) (CM)
+* Mark thread-unsafe tests as such, and run a weekly multithreaded test job
+  (pr/1455) (Rémi Gau, reviewed by CM)
+
+API changes and deprecations
+----------------------------
+* Drop support for Python 3.10, Numpy < 2.0 (pr/1570) (CM)
+
 5.4.2 (Wednesday 11 March 2026)
 ===============================
 
