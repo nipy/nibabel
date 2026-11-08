@@ -623,7 +623,7 @@ class Nifti1DicomExtension(Nifti1Extension[DicomDataset]):
         valid VRs
         """
         potential_vr = content[4:6].decode()
-        return potential_vr not in pdcm.values.converters.keys()
+        return potential_vr not in pdcm.values.converters.keys()  # noqa: SIM118
 
     def _unmangle(self, obj: bytes) -> DicomDataset:
         return pdcm.filereader.read_dataset(
@@ -1619,14 +1619,13 @@ class Nifti1Header(SpmAnalyzeHeader):
         """
         hdr = self._structarr
         known_intent = code in intent_codes
-        if not known_intent:
-            # We can set intent via an unknown integer code, but can't via an
-            # unknown string label
-            if not allow_unknown or isinstance(code, str):
-                raise KeyError(f'Unknown intent code: {code}')
         if known_intent:
             icode = intent_codes.code[code]
             p_descr = intent_codes.parameters[code]
+        elif not allow_unknown or isinstance(code, str):
+            # We can set intent via an unknown integer code, but can't via an
+            # unknown string label
+            raise KeyError(f'Unknown intent code: {code}')
         else:
             icode = code
             p_descr = ('p1', 'p2', 'p3')

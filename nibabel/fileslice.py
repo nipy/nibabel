@@ -115,14 +115,11 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
         try:  # test for integer indexing
             slicer = int(slicer)
         except TypeError:  # should be slice object
-            if slicer != slice(None):
+            if slicer != slice(None) and (
                 # Could this be full slice?
-                if (
-                    slicer.stop == dim_len
-                    and slicer.start in (None, 0)
-                    and slicer.step in (None, 1)
-                ):
-                    slicer = slice(None)
+                slicer.stop == dim_len and slicer.start in (None, 0) and slicer.step in (None, 1)
+            ):
+                slicer = slice(None)
         else:
             if slicer < 0:
                 slicer = dim_len + slicer

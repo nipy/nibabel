@@ -305,16 +305,15 @@ def proc_file(infile, opts):
         in_data = apply_orientation(in_data, ornt)
 
     bvals, bvecs = pr_hdr.get_bvals_bvecs()
-    if not opts.keep_trace:  # discard Philips DTI trace if present
-        if bvecs is not None:
-            bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
-            if bad_mask.sum() > 0:
-                pl = 's' if bad_mask.sum() != 1 else ''
-                verbose(f'Removing {bad_mask.sum()} DTI trace volume{pl}')
-                good_mask = ~bad_mask
-                in_data = in_data[..., good_mask]
-                bvals = bvals[good_mask]
-                bvecs = bvecs[good_mask]
+    if not opts.keep_trace and bvecs is not None:
+        # discard Philips DTI trace if present
+        bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
+        if n_bad := bad_mask.sum():
+            verbose(f'Removing {n_bad} DTI trace volume{"s" if n_bad != 1 else ""}')
+            good_mask = ~bad_mask
+            in_data = in_data[..., good_mask]
+            bvals = bvals[good_mask]
+            bvecs = bvecs[good_mask]
 
     # Make corresponding NIfTI image
     nimg = nifti1.Nifti1Image(in_data, affine, pr_hdr)

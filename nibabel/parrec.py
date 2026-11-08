@@ -336,9 +336,8 @@ def _split_header(fobj):
                     raise PARRECError(f'Cannot parse general information line: {line!r}')
                 key, value = match.groups()
                 gen_dict[key] = value
-        if state == 'comment-block':
-            if not line.startswith('#'):
-                state = 'image-info'
+        if state == 'comment-block' and not line.startswith('#'):
+            state = 'image-info'
         if state == 'image-info':
             if line.startswith('#'):
                 break
@@ -391,7 +390,7 @@ def _process_image_lines(image_lines, version):
             if len(props) == 2:
                 name, np_type = props
                 value = items[item_counter]
-                if not np.dtype(np_type).kind == 'S':
+                if np.dtype(np_type).kind != 'S':
                     value = np_type(value)
                 item_counter += 1
             elif len(props) == 3:
@@ -463,7 +462,7 @@ def vol_is_full(slice_nos, slice_max, slice_min=1):
     is_full = np.ones(slice_nos.shape, dtype=bool)
     for vol_no in set(vol_nos):
         ours = vol_nos == vol_no
-        if not set(slice_nos[ours]) == slice_set:
+        if set(slice_nos[ours]) != slice_set:
             is_full[ours] = False
     return is_full
 

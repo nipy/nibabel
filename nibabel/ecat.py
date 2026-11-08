@@ -285,10 +285,10 @@ class EcatHeader(WrapStruct, SpatialHeader):
     @classmethod
     def guessed_endian(klass, hdr):
         """Guess endian from MAGIC NUMBER value of header data"""
-        if not hdr['sw_version'] == 74:
-            return swapped_code
-        else:
+        if hdr['sw_version'] == 74:
             return native_code
+        else:
+            return swapped_code
 
     @classmethod
     def default_structarr(klass, endianness=None):
@@ -384,7 +384,7 @@ def read_mlist(fileobj, endianness):
         rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
         # First row special, points to next mlist entries if present
         n_unused, mlist_block_no, _, n_rows = rows[0]
-        if not (n_unused + n_rows) == 31:  # Some error condition here?
+        if n_unused + n_rows != 31:  # Some error condition here?
             mlist = []
             return mlist
         # Use all but first housekeeping row

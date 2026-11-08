@@ -446,7 +446,7 @@ class BrainModelAxis(Axis):
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_BRAIN_MODELS')
         for name, to_slice, bm in self.iter_structures():
-            is_surface = name in self.nvertices.keys()
+            is_surface = name in self.nvertices
             if is_surface:
                 voxels = None
                 vertices = cifti2.Cifti2VertexIndices(bm.vertex)
@@ -569,16 +569,14 @@ class BrainModelAxis(Axis):
         """
         (N, ) boolean array which is true for any element on the surface
         """
-        return np.vectorize(lambda name: name in self.nvertices.keys(), otypes=[bool])(self.name)
+        return np.vectorize(lambda name: name in self.nvertices, otypes=[bool])(self.name)
 
     @property
     def volume_mask(self):
         """
         (N, ) boolean array which is true for any element on the surface
         """
-        return np.vectorize(lambda name: name not in self.nvertices.keys(), otypes=[bool])(
-            self.name
-        )
+        return np.vectorize(lambda name: name not in self.nvertices, otypes=[bool])(self.name)
 
     _affine = None
 
@@ -677,7 +675,7 @@ class BrainModelAxis(Axis):
 
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
-            if name in nvertices.keys() and nvertices[name] != value:
+            if name in nvertices and nvertices[name] != value:
                 raise ValueError(
                     'Trying to concatenate two BrainModels with '
                     f'inconsistent number of vertices for {name}'
@@ -739,7 +737,7 @@ class BrainModelAxis(Axis):
         - structure.BrainStructure object describing the brain structure the element was taken from
         """
         element_type = 'CIFTI_MODEL_TYPE_' + (
-            'SURFACE' if self.name[index] in self.nvertices.keys() else 'VOXELS'
+            'SURFACE' if self.name[index] in self.nvertices else 'VOXELS'
         )
         struct = self.vertex if 'SURFACE' in element_type else self.voxel
         return element_type, struct[index], self.name[index]
@@ -841,8 +839,8 @@ class ParcelsAxis(Axis):
 
             vertices = {}
             for name, _, bm_part in bm.iter_structures():
-                if name in bm.nvertices.keys():
-                    if name in nvertices.keys() and nvertices[name] != bm.nvertices[name]:
+                if name in bm.nvertices:
+                    if name in nvertices and nvertices[name] != bm.nvertices[name]:
                         raise ValueError(
                             'Got multiple conflicting number of '
                             f'vertices for surface structure {name}'
@@ -886,7 +884,7 @@ class ParcelsAxis(Axis):
             for vertex in parcel.vertices:
                 name = vertex.brain_structure
                 vertices[vertex.brain_structure] = np.array(vertex)
-                if name not in nvertices.keys():
+                if name not in nvertices:
                     raise ValueError(
                         f'Number of vertices for surface structure {name} not defined'
                     )
@@ -982,7 +980,7 @@ class ParcelsAxis(Axis):
         for vert1, vert2 in zip(self.vertices, other.vertices):
             if len(vert1) != len(vert2):
                 return False
-            for name in vert1.keys():
+            for name in vert1:
                 if name not in vert2 or not np.array_equal(vert1[name], vert2[name]):
                     return False
         return True
@@ -1014,7 +1012,7 @@ class ParcelsAxis(Axis):
                 )
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
-            if name in nvertices.keys() and nvertices[name] != value:
+            if name in nvertices and nvertices[name] != value:
                 raise ValueError(
                     'Trying to concatenate two ParcelsAxis with '
                     f'inconsistent number of vertices for {name}'

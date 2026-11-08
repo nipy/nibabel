@@ -396,12 +396,17 @@ class Cifti2Parser(xml.XmlParser):
         if self.verbose > 0:
             print('End element:\n\t', repr(name))
 
-        if name == 'CIFTI':
+        if name in {
+            'CIFTI',
+            'Matrix',
+            'MatrixIndicesMap',
+            'NamedMap',
+            'LabelTable',
+            'Parcel',
+            'Volume',
+            'BrainModel',
+        }:
             # remove last element of the list
-            self.fsm_state.pop()
-            self.struct_state.pop()
-
-        elif name == 'Matrix':
             self.fsm_state.pop()
             self.struct_state.pop()
 
@@ -417,23 +422,8 @@ class Cifti2Parser(xml.XmlParser):
             meta = self.struct_state[-1]
             meta[pair[0]] = pair[1]
 
-        elif name == 'Name':
+        elif name in {'Name', 'Value'}:
             self.write_to = None
-
-        elif name == 'Value':
-            self.write_to = None
-
-        elif name == 'MatrixIndicesMap':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-
-        elif name == 'NamedMap':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-
-        elif name == 'LabelTable':
-            self.fsm_state.pop()
-            self.struct_state.pop()
 
         elif name == 'Label':
             self.fsm_state.pop()
@@ -446,34 +436,12 @@ class Cifti2Parser(xml.XmlParser):
             self.fsm_state.pop()
             self.write_to = None
 
-        elif name == 'Parcel':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-
-        elif name == 'Vertices':
+        elif name in {'Vertices', 'TransformationMatrixVoxelIndicesIJKtoXYZ', 'VertexIndices'}:
             self.fsm_state.pop()
             self.struct_state.pop()
             self.write_to = None
 
         elif name == 'VoxelIndicesIJK':
-            self.write_to = None
-
-        elif name == 'Volume':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-
-        elif name == 'TransformationMatrixVoxelIndicesIJKtoXYZ':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-            self.write_to = None
-
-        elif name == 'BrainModel':
-            self.fsm_state.pop()
-            self.struct_state.pop()
-
-        elif name == 'VertexIndices':
-            self.fsm_state.pop()
-            self.struct_state.pop()
             self.write_to = None
 
     def CharacterDataHandler(self, data):

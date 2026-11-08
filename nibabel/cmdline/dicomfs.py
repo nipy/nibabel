@@ -116,7 +116,7 @@ class DICOMFS(fuse.Fuse):
         if matched_path is None:
             return -errno.ENOENT
         logger.debug(f'matched {matched_path}')
-        fnames = [k.encode('ascii', 'replace') for k in matched_path.keys()]
+        fnames = [k.encode('ascii', 'replace') for k in matched_path]
         fnames.extend(('.', '..'))
         return [fuse.Direntry(f) for f in fnames]
 
