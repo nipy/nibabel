@@ -162,7 +162,6 @@ select = [
     "RUF",
 ]
 ignore = [
-    "B006",   # TODO: enable
     "B008",   # TODO: enable
     "B007",
     "B011",
@@ -219,7 +218,7 @@ ignore = [
 "__init__.py" = ["F401"]
 "doc/source/conf.py" = ["F401"]
 "tools/profile" = ["F821"]
-"nibabel/**/tests/*.py" = ["SIM117", "SIM118", "SIM201", "SIM202"]
+"nibabel/**/tests/*.py" = ["B006", "SIM117", "SIM118", "SIM201", "SIM202"]
 
 [tool.ruff.format]
 quote-style = "single"
