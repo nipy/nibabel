@@ -241,7 +241,7 @@ class _StorageInstance:
 
 def _get_subdirs(base_dir, files_dict=None, followlinks=False):
     dirs = []
-    for dirpath, dirnames, filenames in os.walk(base_dir, followlinks=followlinks):
+    for dirpath, _dirnames, filenames in os.walk(base_dir, followlinks=followlinks):
         abs_dir = os.path.realpath(dirpath)
         if abs_dir in dirs:
             raise CachingError(f'link cycle detected under {base_dir}')

@@ -469,7 +469,7 @@ def test_input_ranges():
     bio = BytesIO()
     working_type = np.float32
     work_eps = np.finfo(working_type).eps
-    for out_type, offset in itertools.product(IUINT_TYPES, range(-1000, 1000, 100)):
+    for out_type, _offset in itertools.product(IUINT_TYPES, range(-1000, 1000, 100)):
         aw = SlopeInterArrayWriter(arr, out_type)
         aw.to_fileobj(bio)
         arr2 = array_from_file(arr.shape, out_type, bio)

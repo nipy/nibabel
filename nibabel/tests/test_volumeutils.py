@@ -1260,7 +1260,7 @@ def test__ftype4scaled_finite_warningfilters():
             # 200 loops through the function takes ~10ms
             # The highest number of iterations I've seen before hitting interference
             # is 131, with 99% under 30, so this should be reasonably reliable.
-            for i in range(200):
+            for _ in range(200):
                 try:
                     # Use float16 to ensure two failures and increase time in function
                     _ftype4scaled_finite(tst_arr, 2.0, 1.0, default=np.float16)

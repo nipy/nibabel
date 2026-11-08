@@ -1545,7 +1545,7 @@ class TestNifti1General:
         for in_dt in (np.float32, np.float64):
             finf = type_info(in_dt)
             arr = np.array([finf['min'], finf['max']], dtype=in_dt)
-            for out_dt in IUINT_TYPES:
+            for _out_dt in IUINT_TYPES:
                 img = self.single_class(arr, aff)
                 img_back = bytesio_round_trip(img)
                 arr_back_sc = img_back.get_fdata()
@@ -1559,7 +1559,7 @@ class TestNifti1General:
         aff = np.eye(4)
         for in_dt in (np.float32, np.float64):
             arr_t = arr.astype(in_dt)
-            for out_dt in IUINT_TYPES:
+            for _out_dt in IUINT_TYPES:
                 img = self.single_class(arr_t, aff)
                 img_back = bytesio_round_trip(img)
                 arr_back_sc = img_back.get_fdata()
@@ -1581,7 +1581,7 @@ class TestNifti1General:
         aff = np.eye(4)
         for in_dt in (np.float32, np.float64):
             arr_t = arr.astype(in_dt)
-            for out_dt in IUINT_TYPES:
+            for _out_dt in IUINT_TYPES:
                 img = self.single_class(arr_t, aff)
                 img_back = bytesio_round_trip(img)
                 arr_back_sc = img_back.get_fdata()

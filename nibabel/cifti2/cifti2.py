@@ -1122,7 +1122,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
     def volume(self, volume):
         if not isinstance(volume, Cifti2Volume):
             raise ValueError('You can only set a volume with a volume')
-        for i, v in enumerate(self):
+        for i, v in enumerate(self):  # noqa: B007  # self is not empty
             if isinstance(v, Cifti2Volume):
                 break
         else:
@@ -1132,7 +1132,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
 
     @volume.deleter
     def volume(self):
-        for i, v in enumerate(self):
+        for i, v in enumerate(self):  # noqa: B007  # self is not empty
             if isinstance(v, Cifti2Volume):
                 break
         else:
