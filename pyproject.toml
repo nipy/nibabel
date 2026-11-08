@@ -169,7 +169,6 @@ ignore = [
     "B905",  # Consider: add explicit strict kwarg to zip calls
     "C401",
     "C408",
-    "C416",
     "PIE790",
     "PYI024",
     "PT007",
@@ -213,7 +212,7 @@ ignore = [
 "__init__.py" = ["F401"]
 "doc/source/conf.py" = ["F401"]
 "tools/profile" = ["F821"]
-"nibabel/**/tests/*.py" = ["B006", "B018", "SIM117", "SIM118", "SIM201", "SIM202"]
+"nibabel/**/tests/*.py" = ["B006", "B018", "C416", "SIM117", "SIM118", "SIM201", "SIM202"]
 
 [tool.ruff.format]
 quote-style = "single"
