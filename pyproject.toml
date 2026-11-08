@@ -163,7 +163,6 @@ select = [
 ]
 ignore = [
     "B017",   # TODO: enable
-    "B020",
     "B023",   # TODO: enable
     "B028",
     "B904",
