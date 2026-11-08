@@ -18,10 +18,10 @@ from operator import getitem, mul
 from os.path import exists, splitext
 
 import numpy as np
+from ordered_set import OrderedSet
 
 from ._compression import COMPRESSED_FILE_LIKES
 from .casting import OK_FLOATS, shared_range
-from .externals.oset import OrderedSet
 
 if ty.TYPE_CHECKING:
     import io

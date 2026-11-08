@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -1481,6 +1481,7 @@ dependencies = [
     { name = "importlib-resources", marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "ordered-set" },
     { name = "packaging" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
@@ -1565,6 +1566,7 @@ requires-dist = [
     { name = "indexed-gzip", marker = "extra == 'indexed-gzip'", specifier = ">=1.9.1" },
     { name = "matplotlib", marker = "extra == 'viewers'", specifier = ">=3.9" },
     { name = "numpy", specifier = ">=2.0" },
+    { name = "ordered-set" },
     { name = "packaging", specifier = ">=20" },
     { name = "pillow", marker = "extra == 'all'", specifier = ">=10.2" },
     { name = "pillow", marker = "extra == 'dicomfs'", specifier = ">=10.2" },
@@ -1790,6 +1792,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c4/2f/5e9bf8ed0a93587b8089242b4926dfd04d4b3b0b65f04345d219a1225f03/numpydoc-1.11.0.tar.gz", hash = "sha256:26db0adaac8087e98da05c86b11198defd962aef7c21f4dffd2703c8c6eb4187", size = 101575, upload-time = "2026-09-15T16:31:08.905Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fb/e5/f5c38d4899cd8edd5b522071c5658202077d113c3225484d779cf257970e/numpydoc-1.11.0-py3-none-any.whl", hash = "sha256:493ad2ce0d8275ca5da484ec37dbdbbc1334c3a6968dffd10ec729b51753e15e", size = 71464, upload-time = "2026-09-15T16:31:07.521Z" },
+]
+
+[[package]]
+name = "ordered-set"
+version = "4.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4c/ca/bfac8bc689799bcca4157e0e0ced07e70ce125193fc2e166d2e685b7e2fe/ordered-set-4.1.0.tar.gz", hash = "sha256:694a8e44c87657c59292ede72891eb91d34131f6531463aab3009191c77364a8", size = 12826, upload-time = "2022-01-26T14:38:56.6Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/55/af02708f230eb77084a299d7b08175cff006dea4f2721074b92cdb0296c0/ordered_set-4.1.0-py3-none-any.whl", hash = "sha256:046e1132c71fcf3330438a539928932caf51ddbc582496833e23de611de14562", size = 7634, upload-time = "2022-01-26T14:38:48.677Z" },
 ]
 
 [[package]]
