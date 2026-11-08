@@ -120,6 +120,7 @@ like:
 """
 
 import abc
+from numbers import Integral
 from operator import xor
 
 import numpy as np
@@ -709,7 +710,7 @@ class BrainModelAxis(Axis):
 
         Otherwise returns a new BrainModelAxis
         """
-        if isinstance(item, (int, np.integer)):
+        if isinstance(item, Integral):
             return self.get_element(item)
         if isinstance(item, str):
             raise IndexError('Can not index an Axis with a string (except for ParcelsAxis)')
@@ -1044,7 +1045,7 @@ class ParcelsAxis(Axis):
             if len(idx) > 1:
                 raise IndexError(f'Multiple parcels with name {item} found')
             return self.voxels[idx[0]], self.vertices[idx[0]]
-        if isinstance(item, (int, np.integer)):
+        if isinstance(item, Integral):
             return self.get_element(item)
         return self.__class__(
             self.name[item],
@@ -1180,7 +1181,7 @@ class ScalarAxis(Axis):
         )
 
     def __getitem__(self, item):
-        if isinstance(item, (int, np.integer)):
+        if isinstance(item, Integral):
             return self.get_element(item)
         return self.__class__(self.name[item], self.meta[item])
 
@@ -1326,7 +1327,7 @@ class LabelAxis(Axis):
         )
 
     def __getitem__(self, item):
-        if isinstance(item, (int, np.integer)):
+        if isinstance(item, Integral):
             return self.get_element(item)
         return self.__class__(self.name[item], self.label[item], self.meta[item])
 
@@ -1484,7 +1485,7 @@ class SeriesAxis(Axis):
             return SeriesAxis(
                 idx_start * self.step + self.start, self.step * step, nelements, self.unit
             )
-        elif isinstance(item, (int, np.integer)):
+        elif isinstance(item, Integral):
             return self.get_element(int(item))
         raise IndexError(
             'SeriesAxis can only be indexed with integers or slices '

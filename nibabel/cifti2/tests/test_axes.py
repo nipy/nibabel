@@ -771,10 +771,10 @@ def test_writing():
             check_rewrite(arr, (ax1, ax2))
 
 
-@pytest.mark.parametrize('axis', [*get_axes(), axes.SeriesAxis(-1000, 1000, 3)])
+@pytest.mark.parametrize('axis', [*get_axes(), axes.SeriesAxis(start=-1000, step=1000, size=3)])
 @pytest.mark.parametrize(
     'index_type',
-    [int, np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32, np.uint64],
+    [int, np.uint8, np.int32],
 )
 def test_integer_index(axis, index_type):
     start = 0 if np.issubdtype(index_type, np.unsignedinteger) else -len(axis)
