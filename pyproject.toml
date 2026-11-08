@@ -184,7 +184,6 @@ ignore = [
     "SIM115",
     "SIM300",
     "RUF005",
-    "RUF007", # Consider: itertools.pairwise(x) over zip(x[:-1], x[1:])
     "RUF012", # TODO: enable
     "RUF015",
     "RUF017", # TODO: enable
