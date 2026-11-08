@@ -107,18 +107,13 @@ if __name__ == '__main__':
         if pstatsfilename:
             stats.dump_stats(pstatsfilename)
 
-    kfilename = f'{pfilename}.kcache'
-    if convert2kcache:
-        cmd = f'hotshot2calltree -o {kfilename} {pfilename}'
-        if os.system(cmd):
-            print('!!! Make sure to install kcachegrind-converters ;-)')
-            sys.exit(1)
+    if convert2kcache and os.system(f'hotshot2calltree -o {pfilename}.kcache {pfilename}'):
+        print('!!! Make sure to install kcachegrind-converters ;-)')
+        sys.exit(1)
 
-    if displaykcachegrinder:
-        cmd = f'kcachegrind {kfilename}'
-        if os.system(cmd):
-            print('!!! Make sure to install kcachegrind ;-)')
-            sys.exit(1)
+    if displaykcachegrinder and os.system(f'kcachegrind {pfilename}.kcache'):
+        print('!!! Make sure to install kcachegrind ;-)')
+        sys.exit(1)
 
 else:
     print('Go away -- nothing to look here for as a module')
