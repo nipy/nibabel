@@ -162,7 +162,6 @@ select = [
     "RUF",
 ]
 ignore = [
-    "B008",   # TODO: enable
     "B007",
     "B011",
     "B017",   # TODO: enable
