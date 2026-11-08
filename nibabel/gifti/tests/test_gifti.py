@@ -112,19 +112,22 @@ def test_gifti_image():
 def test_gifti_image_bad_inputs():
     img = GiftiImage()
     # Try to set a non-data-array
-    pytest.raises(TypeError, img.add_gifti_data_array, 'not-a-data-array')
+    with pytest.raises(TypeError):
+        img.add_gifti_data_array('not-a-data-array')
 
     # Try to set to non-table
     def assign_labeltable(val):
         img.labeltable = val
 
-    pytest.raises(TypeError, assign_labeltable, 'not-a-table')
+    with pytest.raises(TypeError):
+        assign_labeltable('not-a-table')
 
     # Try to set to non-table
     def assign_metadata(val):
         img.meta = val
 
-    pytest.raises(TypeError, assign_metadata, 'not-a-meta')
+    with pytest.raises(TypeError):
+        assign_metadata('not-a-meta')
 
 
 @pytest.mark.parametrize('label', data_type_codes.value_set('label'))
@@ -187,15 +190,18 @@ def test_dataarray_init():
     arr = np.arange(12, dtype=np.float32).reshape((3, 4))
     assert_array_equal(gda(arr).data, arr)
     # Intents
-    pytest.raises(KeyError, gda, intent=1)  # Invalid code
-    pytest.raises(KeyError, gda, intent='not an intent')  # Invalid string
+    with pytest.raises(KeyError):
+        gda(intent=1)  # Invalid code
+    with pytest.raises(KeyError):
+        gda(intent='not an intent')  # Invalid string
     assert gda(intent=2).intent == 2
     assert gda(intent='correlation').intent == 2
     assert gda(intent='NIFTI_INTENT_CORREL').intent == 2
     # Datatype
     assert gda(datatype=2).datatype == 2
     assert gda(datatype='uint8').datatype == 2
-    pytest.raises(KeyError, gda, datatype='not_datatype')
+    with pytest.raises(KeyError):
+        gda(datatype='not_datatype')
     # Float32 datatype comes from array if datatype not set
     assert gda(arr).datatype == 16
     # Can be overridden by init
@@ -204,12 +210,14 @@ def test_dataarray_init():
     assert gda(encoding=1).encoding == 1
     assert gda(encoding='ASCII').encoding == 1
     assert gda(encoding='GIFTI_ENCODING_ASCII').encoding == 1
-    pytest.raises(KeyError, gda, encoding='not an encoding')
+    with pytest.raises(KeyError):
+        gda(encoding='not an encoding')
     # Endian
     assert gda(endian=1).endian == 1
     assert gda(endian='big').endian == 1
     assert gda(endian='GIFTI_ENDIAN_BIG').endian == 1
-    pytest.raises(KeyError, gda, endian='not endian code')
+    with pytest.raises(KeyError):
+        gda(endian='not endian code')
     # CoordSys
     aff = np.diag([2, 3, 4, 1])
     cs = GiftiCoordSystem(1, 2, aff)
@@ -221,7 +229,8 @@ def test_dataarray_init():
     assert gda(ordering=2).ind_ord == 2
     assert gda(ordering='F').ind_ord == 2
     assert gda(ordering='ColumnMajorOrder').ind_ord == 2
-    pytest.raises(KeyError, gda, ordering='not an ordering')
+    with pytest.raises(KeyError):
+        gda(ordering='not an ordering')
     # metadata
     meta_dict = dict(one=1, two=2)
     assert gda(meta=GiftiMetaData(meta_dict)).meta == meta_dict
@@ -394,8 +403,10 @@ def test_gifti_label_rgba():
         gl.rgba = val
 
     gl3 = GiftiLabel(**kwargs)
-    pytest.raises(ValueError, assign_rgba, gl3, rgba[:2])
-    pytest.raises(ValueError, assign_rgba, gl3, rgba.tolist() + rgba.tolist())
+    with pytest.raises(ValueError):
+        assign_rgba(gl3, rgba[:2])
+    with pytest.raises(ValueError):
+        assign_rgba(gl3, rgba.tolist() + rgba.tolist())
 
     # Test default value
     gl4 = GiftiLabel()

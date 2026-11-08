@@ -187,7 +187,6 @@ ignore = [
     "RUF012", # TODO: enable
     "RUF017", # TODO: enable
     "RUF059", # Consider: Unpacked variables never used
-    "RUF061", # Consider: Use context-manager form of pytest.raises
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",

@@ -320,14 +320,22 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         assert hdr.get_data_shape() == (too_big, 1, 1, 4)
         assert_array_equal(hdr['dim'][:5], np.array([4, -1, 1, 1, 4]))
         # This only works when the first 3 dimensions are -1, 1, 1
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (too_big,))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (too_big, 1))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (too_big, 1, 2))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (too_big, 2, 1))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (1, too_big))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (1, too_big, 1))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (1, 1, too_big))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (1, 1, 1, too_big))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((too_big,))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((too_big, 1))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((too_big, 1, 2))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((too_big, 2, 1))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((1, too_big))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((1, too_big, 1))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((1, 1, too_big))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((1, 1, 1, too_big))
         # Outside range of glmin raises error
         far_too_big = int(np.iinfo(glmin).max) + 1
         with suppress_warnings():
@@ -360,14 +368,21 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
             assert hdr.get_data_shape() == full_shape[:dim]
             assert_array_equal(hdr._structarr['dim'], expected_dim)
         # Only works on dimensions >= 3
-        pytest.raises(HeaderDataError, hdr.set_data_shape, full_shape[:1])
-        pytest.raises(HeaderDataError, hdr.set_data_shape, full_shape[:2])
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape(full_shape[:1])
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape(full_shape[:2])
         # Bad shapes
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (163842, 2, 1))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (163842, 1, 2))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (1, 163842, 1))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (1, 1, 163842))
-        pytest.raises(HeaderDataError, hdr.set_data_shape, (1, 1, 1, 163842))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((163842, 2, 1))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((163842, 1, 2))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((1, 163842, 1))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((1, 1, 163842))
+        with pytest.raises(HeaderDataError):
+            hdr.set_data_shape((1, 1, 1, 163842))
         # Test consistency of data in .mgh and mri_convert produced .nii
         nitest_path = os.path.join(get_nibabel_data(), 'nitest-freesurfer')
         mgh = mghload(os.path.join(nitest_path, 'fsaverage', 'surf', 'lh.orig.avg.area.mgh'))
@@ -673,15 +688,20 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         hdr.set_data_shape([1, 1, 7])
         hdr.set_slice_duration(0.1)
         times = [0] * 6
-        pytest.raises(HeaderDataError, hdr.set_slice_times, times)
+        with pytest.raises(HeaderDataError):
+            hdr.set_slice_times(times)
         times = [None] * 7
-        pytest.raises(HeaderDataError, hdr.set_slice_times, times)
+        with pytest.raises(HeaderDataError):
+            hdr.set_slice_times(times)
         times = [None, 0, 1, None, 3, 4, None]
-        pytest.raises(HeaderDataError, hdr.set_slice_times, times)
+        with pytest.raises(HeaderDataError):
+            hdr.set_slice_times(times)
         times = [None, 0, 1, 2.1, 3, 4, None]
-        pytest.raises(HeaderDataError, hdr.set_slice_times, times)
+        with pytest.raises(HeaderDataError):
+            hdr.set_slice_times(times)
         times = [None, 0, 4, 3, 2, 1, None]
-        pytest.raises(HeaderDataError, hdr.set_slice_times, times)
+        with pytest.raises(HeaderDataError):
+            hdr.set_slice_times(times)
         times = [0, 1, 2, 3, 4, 5, 6]
         hdr.set_slice_times(times)
         assert hdr['slice_code'] == 1
