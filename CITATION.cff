@@ -29,16 +29,16 @@ authors:
     given-names: Marc-Alexandre
     affiliation: Microsoft Research, Montréal, Québec, Canada
     orcid: https://orcid.org/0000-0002-5147-7859
+  - family-names: Papadopoulos Orfanos
+    given-names: Dimitri
+    affiliation: CEA
+    orcid: https://orcid.org/0000-0002-1242-8990
   - family-names: Cipollini
     given-names: Ben
     affiliation: UC San Diego
     orcid: https://orcid.org/0000-0002-7782-0790
   - family-names: McCarthy
     given-names: Paul
-  - family-names: Papadopoulos Orfanos
-    given-names: Dimitri
-    affiliation: CEA
-    orcid: https://orcid.org/0000-0002-1242-8990
   - family-names: Jarecka
     given-names: Dorota
     affiliation: MIT
@@ -157,15 +157,15 @@ authors:
     orcid: https://orcid.org/0000-0001-7003-9822
   - family-names: Subramaniam
     given-names: Krish
+  - family-names: Ayala
+    given-names: Leonardo
+    orcid: https://orcid.org/0000-0002-3574-2085
   - family-names: Van
     given-names: Andrew
   - family-names: Gorgolewski
     given-names: Krzysztof J.
     affiliation: Google
     orcid: https://orcid.org/0000-0003-3321-7583
-  - family-names: Ayala
-    given-names: Leonardo
-    orcid: https://orcid.org/0000-0002-3574-2085
   - family-names: Raamana
     given-names: Pradeep Reddy
     affiliation: Rotman Research Institute, Baycrest Health Sciences, Toronto, ON, Canada
@@ -184,6 +184,10 @@ authors:
     given-names: Eric M.
   - family-names: Koudoro
     given-names: Serge
+  - family-names: Nanda
+    given-names: Siddhardha
+    affiliation: Columbia University
+    orcid: https://orcid.org/0009-0007-3825-0098
   - family-names: Hayashi
     given-names: Soichi
   - family-names: Pinsard
@@ -192,6 +196,10 @@ authors:
     given-names: Christian
   - family-names: Hymers
     given-names: Mark
+  - family-names: Krause
+    given-names: Michael
+    affiliation: Max Planck Institute for Human Development
+    orcid: https://orcid.org/0000-0002-3878-6542
   - family-names: Esteban
     given-names: Oscar
     affiliation: Department of Psychology, Stanford University, CA, USA
@@ -214,10 +222,19 @@ authors:
     given-names: Benjamin
     affiliation: Tohoku University
     orcid: https://orcid.org/0000-0001-6748-8192
+  - family-names: Conday
+    given-names: Cedric
   - family-names: Christian
     given-names: Horea
   - family-names: Nimmo-Smith
     given-names: Ian
+  - family-names: Cooney
+    given-names: Jeffrey D.
+  - family-names: Gunalan
+    given-names: Kabilar
+    affiliation: McGovern Institute for Brain Research, Massachusetts Institute of Technology,
+      Cambridge, MA, USA
+    orcid: https://orcid.org/0000-0001-6964-4865
   - family-names: Nguyen
     given-names: Ly
   - family-names: Suter
@@ -237,6 +254,8 @@ authors:
     orcid: https://orcid.org/0000-0002-2500-6375
   - family-names: Garyfallidis
     given-names: Eleftherios
+  - family-names: Mohamadboland
+    given-names: Erfan
   - family-names: Varoquaux
     given-names: Gael
     affiliation: INRIA
@@ -258,8 +277,12 @@ authors:
     given-names: Bennet
   - family-names: Dewey
     given-names: Blake
+  - family-names: Yin
+    given-names: Don
   - family-names: Perez
     given-names: Fabian
+  - family-names: Lafis
+    given-names: Gabriel Demetrios
   - family-names: Roberts
     given-names: Jacob
   - family-names: Poline
@@ -286,6 +309,7 @@ authors:
     given-names: Valentin
   - family-names: Schwartz
     given-names: Yannick
+  - alias: Arthur031221
   - family-names: Beasley
     given-names: Benjamin A.
   - family-names: Darwin
@@ -295,10 +319,14 @@ authors:
     given-names: Bertrand
     affiliation: INRIA
     orcid: https://orcid.org/0000-0001-5018-7895
+  - family-names: Gurram
+    given-names: Bhaskar
   - family-names: Gauthier
     given-names: Carl
   - family-names: Notte
     given-names: Clorindo
+  - family-names: Nguyen
+    given-names: Duy Dong
   - family-names: Solovey
     given-names: Igor
   - family-names: Gonzalez
@@ -311,6 +339,8 @@ authors:
     given-names: Jon
   - family-names: Lecher
     given-names: Justin
+  - family-names: Surma
+    given-names: Karolina
   - family-names: Leinweber
     given-names: Katrin
     affiliation: TIB – Leibniz Information Centre for Science and Technology and University Library,
@@ -321,6 +351,12 @@ authors:
     affiliation: National Technical University of Athens, Greece
   - family-names: Calábková
     given-names: Markéta
+  - family-names: Shaik
+    given-names: Nagizaaz
+  - family-names: Chandrasekar
+    given-names: Nathan
+  - family-names: Suttie
+    given-names: Nathan
   - family-names: Fischer
     given-names: Peter
     affiliation: Friedrich-Alexander-Universität Erlangen-Nürnberg, Erlangen, Germany
@@ -333,14 +369,10 @@ authors:
     given-names: Thomas
   - family-names: Roos
     given-names: Thomas
+  - family-names: Paneliya
+    given-names: Venish
   - family-names: Reddam
     given-names: Venkateswara Reddy
     affiliation: National Institute of Mental Health and Neuro-Sciences, India
     orcid: https://orcid.org/0000-0001-6817-2966
   - alias: freec84
-  - family-names: Gunalan
-    given-names: Kabilar
-    affiliation: McGovern Institute for Brain Research, Massachusetts Institute of Technology, Cambridge, MA, USA
-    orcid: https://orcid.org/0000-0001-6964-4865
-  - family-names: Conday
-    given-names: Cedric

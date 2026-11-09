@@ -238,3 +238,6 @@ ignore-words-list = "ans,te,ue,ist,nin,nd,ccompiler,ser"
 
 [tool.uv.pip]
 only-binary = ["numpy", "scipy", "h5py"]
+
+[tool.check-wheel-contents]
+ignore = ['W002']
