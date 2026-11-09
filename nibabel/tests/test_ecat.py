@@ -279,3 +279,11 @@ class TestEcatImage(TestCase):
     def test_mlist_regression(self):
         # Test mlist is as same as for nibabel 1.3.0
         assert_array_equal(self.img.get_mlist(), [[16842758, 3, 3011, 1]])
+
+
+def test_array_copy_false_raises():
+    # gh-1318: every frame is read from file into a new array, so there is no
+    # existing array for copy=False to return a view on.
+    img = EcatImage.from_filename(ecat_file)
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        img.dataobj.__array__(copy=False)

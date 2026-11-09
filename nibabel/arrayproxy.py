@@ -80,11 +80,15 @@ class ArrayLike(ty.Protocol):
 
     # If no dtype is passed, any dtype might be returned, depending on the array-like
     @ty.overload
-    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
+    def __array__(
+        self, dtype: None = ..., /, *, copy: bool | None = ...
+    ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
 
     # Any dtype might be passed, and *that* dtype must be returned
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...
+    def __array__(
+        self, dtype: _DType, /, *, copy: bool | None = ...
+    ) -> np.ndarray[ty.Any, _DType]: ...
 
     def __getitem__(self, key, /) -> npt.NDArray: ...
 
@@ -431,7 +435,7 @@ class ArrayProxy(ArrayLike):
         """
         return self._get_unscaled(slicer=())
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         """Read data from file and apply scaling, casting to ``dtype``
 
         If ``dtype`` is unspecified, the dtype of the returned array is the
@@ -446,12 +450,23 @@ class ArrayProxy(ArrayLike):
         ----------
         dtype : numpy dtype specifier, optional
             A numpy dtype specifier specifying the type of the returned array.
+        copy : {None, True, False}, optional
+            Part of the numpy array protocol.  ``False`` asks for an array that
+            shares memory with this object, which it cannot provide, and so
+            raises ``ValueError``.  ``None`` and ``True`` both return a new
+            array.
 
         Returns
         -------
         array
             Scaled image data with type `dtype`.
         """
+        if copy is False:
+            raise ValueError(
+                'Unable to avoid copy while creating an array as requested.\n'
+                'The data is read from file and scaled on the way out, so there is '
+                'no existing array to return a view on.'
+            )
         arr = self._get_scaled(dtype=dtype, slicer=())
         if dtype is not None:
             arr = arr.astype(dtype, copy=False)
