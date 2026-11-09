@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 
@@ -8,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>ecat &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+    <title>ecat &#8212; NiBabel 5.5.0 documentation</title>
   
   
   
@@ -27,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
@@ -38,12 +37,12 @@
     <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=317b4947" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=252e4b93"></script>
+    <script src="../_static/documentation_options.js?v=a385a3de"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,8 +57,9 @@
     <link rel="prev" title="nifti2" href="nibabel.nifti2.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  <meta name="docsearch:version" content="5.5.0" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -79,7 +79,9 @@
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -110,7 +112,7 @@
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -197,7 +199,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -207,11 +209,18 @@
       
         <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
       
         <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -224,8 +233,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -236,8 +244,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -248,8 +255,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -260,8 +266,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -272,8 +277,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
       
@@ -284,7 +288,7 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -293,7 +297,7 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -307,7 +311,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
@@ -369,11 +373,18 @@
         
           <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
         
           <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -386,8 +397,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -398,8 +408,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -410,8 +419,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -422,8 +430,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -434,8 +441,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
         
@@ -464,7 +470,7 @@
 <li class="toctree-l1"><a class="reference internal" href="nibabel.nicom.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nicom</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel.nifti1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti1</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel.nifti2.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nifti2</span></code></a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel.parrec.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">parrec</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel.streamlines.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">streamlines</span></code></a></li>
 </ul>
@@ -525,7 +531,7 @@
 <li class="toctree-l2"><a class="reference internal" href="nibabel.deprecated.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecated</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.deprecator.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">deprecator</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.dft.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dft</span></code></a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></li>
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ecat</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">environment</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.eulerangles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">eulerangles</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.filebasedimages.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filebasedimages</span></code></a></li>
@@ -606,7 +612,7 @@
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
+        <i class="fa-solid fa-house"></i>
       </a>
     </li>
     
@@ -782,7 +788,7 @@ in header, not always reliable</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.ecat.EcatHeader.template_dtype">
-<span class="sig-name descname"><span class="pre">template_dtype</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">dtype([('magic_number',</span> <span class="pre">'S14'),</span> <span class="pre">('original_filename',</span> <span class="pre">'S32'),</span> <span class="pre">('sw_version',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('system_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('file_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('serial_number',</span> <span class="pre">'S10'),</span> <span class="pre">('scan_start_time',</span> <span class="pre">'&lt;u4'),</span> <span class="pre">('isotope_name',</span> <span class="pre">'S8'),</span> <span class="pre">('isotope_halflife',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('radiopharmaceutical',</span> <span class="pre">'S32'),</span> <span class="pre">('gantry_tilt',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('gantry_rotation',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('bed_elevation',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('intrinsic_tilt',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('wobble_speed',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('transm_source_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('distance_scanned',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('transaxial_fov',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('angular_compression',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('coin_samp_mode',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('axial_samp_mode',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('ecat_calibration_factor',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('calibration_unitS',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('calibration_units_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('compression_code',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('study_type',</span> <span class="pre">'S12'),</span> <span class="pre">('patient_id',</span> <span class="pre">'S16'),</span> <span class="pre">('patient_name',</span> <span class="pre">'S32'),</span> <span class="pre">('patient_sex',</span> <span class="pre">'S1'),</span> <span class="pre">('patient_dexterity',</span> <span class="pre">'S1'),</span> <span class="pre">('patient_age',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('patient_height',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('patient_weight',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('patient_birth_date',</span> <span class="pre">'&lt;u4'),</span> <span class="pre">('physician_name',</span> <span class="pre">'S32'),</span> <span class="pre">('operator_name',</span> <span class="pre">'S32'),</span> <span class="pre">('study_description',</span> <span class="pre">'S32'),</span> <span class="pre">('acquisition_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('patient_orientation',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('facility_name',</span> <span class="pre">'S20'),</span> <span class="pre">('num_planes',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('num_frames',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('num_gates',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('num_bed_pos',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('init_bed_position',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('bed_position',</span> <span class="pre">'&lt;f4',</span> <span class="pre">(15,)),</span> <span class="pre">('plane_separation',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('lwr_sctr_thres',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('lwr_true_thres',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('upr_true_thres',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('user_process_code',</span> <span class="pre">'S10'),</span> <span class="pre">('acquisition_mode',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('bin_size',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('branching_fraction',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('dose_start_time',</span> <span class="pre">'&lt;u4'),</span> <span class="pre">('dosage',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('well_counter_corr_factor',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('data_units',</span> <span class="pre">'S32'),</span> <span class="pre">('septa_state',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('fill',</span> <span class="pre">'S12')])</span></span><a class="headerlink" href="#nibabel.ecat.EcatHeader.template_dtype" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">template_dtype</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">dtype([('magic_number',</span> <span class="pre">'S14'),</span> <span class="pre">('original_filename',</span> <span class="pre">'S32'),</span> <span class="pre">('sw_version',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('system_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('file_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('serial_number',</span> <span class="pre">'S10'),</span> <span class="pre">('scan_start_time',</span> <span class="pre">'&lt;u4'),</span> <span class="pre">('isotope_name',</span> <span class="pre">'S8'),</span> <span class="pre">('isotope_halflife',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('radiopharmaceutical',</span> <span class="pre">'S32'),</span> <span class="pre">('gantry_tilt',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('gantry_rotation',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('bed_elevation',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('intrinsic_tilt',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('wobble_speed',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('transm_source_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('distance_scanned',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('transaxial_fov',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('angular_compression',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('coin_samp_mode',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('axial_samp_mode',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('ecat_calibration_factor',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('calibration_unitS',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('calibration_units_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('compression_code',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('study_type',</span> <span class="pre">'S12'),</span> <span class="pre">('patient_id',</span> <span class="pre">'S16'),</span> <span class="pre">('patient_name',</span> <span class="pre">'S32'),</span> <span class="pre">('patient_sex',</span> <span class="pre">'S1'),</span> <span class="pre">('patient_dexterity',</span> <span class="pre">'S1'),</span> <span class="pre">('patient_age',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('patient_height',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('patient_weight',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('patient_birth_date',</span> <span class="pre">'&lt;i4'),</span> <span class="pre">('physician_name',</span> <span class="pre">'S32'),</span> <span class="pre">('operator_name',</span> <span class="pre">'S32'),</span> <span class="pre">('study_description',</span> <span class="pre">'S32'),</span> <span class="pre">('acquisition_type',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('patient_orientation',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('facility_name',</span> <span class="pre">'S20'),</span> <span class="pre">('num_planes',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('num_frames',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('num_gates',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('num_bed_pos',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('init_bed_position',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('bed_position',</span> <span class="pre">'&lt;f4',</span> <span class="pre">(15,)),</span> <span class="pre">('plane_separation',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('lwr_sctr_thres',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('lwr_true_thres',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('upr_true_thres',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('user_process_code',</span> <span class="pre">'S10'),</span> <span class="pre">('acquisition_mode',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('bin_size',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('branching_fraction',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('dose_start_time',</span> <span class="pre">'&lt;u4'),</span> <span class="pre">('dosage',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('well_counter_corr_factor',</span> <span class="pre">'&lt;f4'),</span> <span class="pre">('data_units',</span> <span class="pre">'S32'),</span> <span class="pre">('septa_state',</span> <span class="pre">'&lt;u2'),</span> <span class="pre">('fill',</span> <span class="pre">'S12')])</span></span><a class="headerlink" href="#nibabel.ecat.EcatHeader.template_dtype" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -827,7 +833,7 @@ stored in header or subheader</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nibabel_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ecat</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="s1">&#39;tinypet.v&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">'tests'</span><span class="p">,</span><span class="s1">'data'</span><span class="p">,</span><span class="s1">'tinypet.v'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">ecat</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ecat_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frame0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_frame</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frame0</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -872,7 +878,7 @@ stored in header or subheader</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nibabel_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ecat</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="s1">&#39;tinypet.v&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">'tests'</span><span class="p">,</span><span class="s1">'data'</span><span class="p">,</span><span class="s1">'tinypet.v'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">ecat</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ecat_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frame0</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_frame</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">frame0</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -1049,7 +1055,7 @@ The default value (<code class="docutils literal notranslate"><span class="pre">
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.ecat.EcatImageArrayProxy">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">EcatImageArrayProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subheader</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatImageArrayProxy" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Ecat implementation of array proxy protocol</p>
 <p>The array proxy allows us to freeze the passed fileobj and
 header such that it returns the expected data array.</p>
@@ -1081,7 +1087,7 @@ header such that it returns the expected data array.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.ecat.EcatSubHeader">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.ecat.</span></span><span class="sig-name descname"><span class="pre">EcatSubHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hdr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.ecat.EcatSubHeader" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>parses the subheaders in the ecat (.v) file
 there is one subheader for each frame in the ecat file</p>
 <dl class="field-list simple">
@@ -1091,7 +1097,7 @@ there is one subheader for each frame in the ecat file</p>
 </dd>
 <dt><strong>mlist</strong><span class="classifier">array shape (N, 4)</span></dt><dd><p>Matrix list</p>
 </dd>
-<dt><strong>fileobj</strong><span class="classifier">ECAT file &lt;filename&gt;.v  fileholder or file object</span></dt><dd><p>with read, seek methods</p>
+<dt><strong>fileobj</strong><span class="classifier">ECAT file &lt;filename&gt;.v fileholder or file object</span></dt><dd><p>with read, seek methods</p>
 </dd>
 </dl>
 </dd>
@@ -1108,7 +1114,7 @@ there is one subheader for each frame in the ecat file</p>
 </dd>
 <dt><strong>mlist</strong><span class="classifier">array shape (N, 4)</span></dt><dd><p>Matrix list</p>
 </dd>
-<dt><strong>fileobj</strong><span class="classifier">ECAT file &lt;filename&gt;.v  fileholder or file object</span></dt><dd><p>with read, seek methods</p>
+<dt><strong>fileobj</strong><span class="classifier">ECAT file &lt;filename&gt;.v fileholder or file object</span></dt><dd><p>with read, seek methods</p>
 </dd>
 </dl>
 </dd>
@@ -1206,7 +1212,7 @@ in correct order</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nibabel_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ecat</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="s1">&#39;tinypet.v&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">'tests'</span><span class="p">,</span><span class="s1">'data'</span><span class="p">,</span><span class="s1">'tinypet.v'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">ecat</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ecat_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mlist</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_mlist</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">get_frame_order</span><span class="p">(</span><span class="n">mlist</span><span class="p">)</span>
@@ -1241,7 +1247,7 @@ collected in the series
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nib</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nibabel_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">nib</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">ecat</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">&#39;tests&#39;</span><span class="p">,</span><span class="s1">&#39;data&#39;</span><span class="p">,</span><span class="s1">&#39;tinypet.v&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ecat_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">nibabel_dir</span><span class="p">,</span><span class="s1">'tests'</span><span class="p">,</span><span class="s1">'data'</span><span class="p">,</span><span class="s1">'tinypet.v'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">img</span> <span class="o">=</span> <span class="n">ecat</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ecat_file</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mlist</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">get_mlist</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">get_series_framenumbers</span><span class="p">(</span><span class="n">mlist</span><span class="p">)</span>
@@ -1374,7 +1380,7 @@ allow 1 or 0 to signal no more entries;</p></li>
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
@@ -1486,8 +1492,8 @@ allow 1 or 0 to signal no more entries;</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1507,8 +1513,7 @@ allow 1 or 0 to signal no more entries;</p></li>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
-    <br/>
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
   </p>
 </div>
       
@@ -1521,7 +1526,7 @@ allow 1 or 0 to signal no more entries;</p></li>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
 </p></div>
       
     </div>

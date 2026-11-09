@@ -14,7 +14,7 @@ Getting Started
 ***************
 
 NiBabel supports an ever growing collection of neuroimaging file formats. Every
-file format format has its own features and peculiarities that need to be taken
+file format has its own features and peculiarities that need to be taken
 care of to get the most out of it. To this end, NiBabel offers both high-level
 format-independent access to neuroimages, as well as an API with various levels
 of format-specific access to all available information in a particular file
@@ -32,7 +32,7 @@ To start the code examples, we load some useful libraries:
 >>> import os
 >>> import numpy as np
 
-Then we fine the nibabel directory containing the example data:
+Then we find the nibabel directory containing the example data:
 
 >>> from nibabel.testing import data_path
 

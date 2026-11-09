@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 
@@ -8,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Working with NIfTI images &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+    <title>Working with NIfTI images &#8212; NiBabel 5.5.0 documentation</title>
   
   
   
@@ -27,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
@@ -38,12 +37,12 @@
     <link rel="stylesheet" type="text/css" href="_static/custom.css?v=317b4947" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=252e4b93"></script>
+    <script src="_static/documentation_options.js?v=a385a3de"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,8 +57,9 @@
     <link rel="prev" title="Images and memory" href="images_and_memory.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  <meta name="docsearch:version" content="5.5.0" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -79,7 +79,9 @@
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -110,7 +112,7 @@
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -197,7 +199,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -207,11 +209,18 @@
       
         <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
       
         <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -224,8 +233,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -236,8 +244,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -248,8 +255,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -260,8 +266,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -272,8 +277,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
       
@@ -284,7 +288,7 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -293,7 +297,7 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -307,7 +311,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
@@ -369,11 +373,18 @@
         
           <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
         
           <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -386,8 +397,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -398,8 +408,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -410,8 +419,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -422,8 +430,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -434,8 +441,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
         
@@ -454,7 +460,7 @@
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel_images.html">Nibabel images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="images_and_memory.html">Images and memory</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Working with NIfTI images</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Working with NIfTI images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="image_orientation.html">Image voxel orientation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="legal.html">Copyright and Licenses</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">NiBabel Development Changelog</a></li>
@@ -495,7 +501,7 @@
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
+        <i class="fa-solid fa-house"></i>
       </a>
     </li>
     
@@ -542,14 +548,14 @@ form:</p>
 </pre></div>
 </div>
 <p>This is the example NIfTI 1 image:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_ni1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;example4d.nii.gz&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_ni1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">'example4d.nii.gz'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">n1_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_ni1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">n1_img</span>
 <span class="go">&lt;nibabel.nifti1.Nifti1Image object at ...&gt;</span>
 </pre></div>
 </div>
 <p>Here is the NIfTI 2 example image:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_ni2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;example_nifti2.nii.gz&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_ni2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">'example_nifti2.nii.gz'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">n2_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_ni2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">n2_img</span>
 <span class="go">&lt;nibabel.nifti2.Nifti2Image object at ...&gt;</span>
@@ -562,13 +568,13 @@ form:</p>
 following fields:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span> <span class="o">=</span> <span class="n">n1_img</span><span class="o">.</span><span class="n">header</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="p">)</span>
-<span class="go">&lt;class &#39;nibabel.nifti1.Nifti1Header&#39;&gt; object, endian=&#39;&lt;&#39;</span>
+<span class="go">&lt;class 'nibabel.nifti1.Nifti1Header'&gt; object, endian='&lt;'</span>
 <span class="go">sizeof_hdr      : 348</span>
-<span class="go">data_type       : b&#39;&#39;</span>
-<span class="go">db_name         : b&#39;&#39;</span>
+<span class="go">data_type       : b''</span>
+<span class="go">db_name         : b''</span>
 <span class="go">extents         : 0</span>
 <span class="go">session_error   : 0</span>
-<span class="go">regular         : b&#39;r&#39;</span>
+<span class="go">regular         : b'r'</span>
 <span class="go">dim_info        : 57</span>
 <span class="go">dim             : [  4 128  96  24   2   1   1   1]</span>
 <span class="go">intent_p1       : 0.0</span>
@@ -591,8 +597,8 @@ following fields:</p>
 <span class="go">toffset         : 0.0</span>
 <span class="go">glmax           : 0</span>
 <span class="go">glmin           : 0</span>
-<span class="go">descrip         : b&#39;FSL3.3\x00 v2.25 NIfTI-1 Single file format&#39;</span>
-<span class="go">aux_file        : b&#39;&#39;</span>
+<span class="go">descrip         : b'FSL3.3\x00 v2.25 NIfTI-1 Single file format'</span>
+<span class="go">aux_file        : b''</span>
 <span class="go">qform_code      : scanner</span>
 <span class="go">sform_code      : scanner</span>
 <span class="go">quatern_b       : -1.94510681403e-26</span>
@@ -604,16 +610,16 @@ following fields:</p>
 <span class="go">srow_x          : [  -2.      0.      0.    117.86]</span>
 <span class="go">srow_y          : [ -0.     1.97  -0.36 -35.72]</span>
 <span class="go">srow_z          : [ 0.    0.32  2.17 -7.25]</span>
-<span class="go">intent_name     : b&#39;&#39;</span>
-<span class="go">magic           : b&#39;n+1&#39;</span>
+<span class="go">intent_name     : b''</span>
+<span class="go">magic           : b'n+1'</span>
 </pre></div>
 </div>
 <p>The NIfTI 2 header is similar, but of length 540 bytes, with fewer fields:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">n2_header</span> <span class="o">=</span> <span class="n">n2_img</span><span class="o">.</span><span class="n">header</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n2_header</span><span class="p">)</span>
-<span class="go">    &lt;class &#39;nibabel.nifti2.Nifti2Header&#39;&gt; object, endian=&#39;&lt;&#39;</span>
+<span class="go">    &lt;class 'nibabel.nifti2.Nifti2Header'&gt; object, endian='&lt;'</span>
 <span class="go">    sizeof_hdr      : 540</span>
-<span class="go">    magic           : b&#39;n+2&#39;</span>
+<span class="go">    magic           : b'n+2'</span>
 <span class="go">    eol_check       : [13 10 26 10]</span>
 <span class="go">    datatype        : int16</span>
 <span class="go">    bitpix          : 16</span>
@@ -631,8 +637,8 @@ following fields:</p>
 <span class="go">    toffset         : 0.0</span>
 <span class="go">    slice_start     : 0</span>
 <span class="go">    slice_end       : 23</span>
-<span class="go">    descrip         : b&#39;FSL3.3\x00 v2.25 NIfTI-1 Single file format&#39;</span>
-<span class="go">    aux_file        : b&#39;&#39;</span>
+<span class="go">    descrip         : b'FSL3.3\x00 v2.25 NIfTI-1 Single file format'</span>
+<span class="go">    aux_file        : b''</span>
 <span class="go">    qform_code      : scanner</span>
 <span class="go">    sform_code      : scanner</span>
 <span class="go">    quatern_b       : -1.94510681403e-26</span>
@@ -647,17 +653,17 @@ following fields:</p>
 <span class="go">    slice_code      : unknown</span>
 <span class="go">    xyzt_units      : 10</span>
 <span class="go">    intent_code     : none</span>
-<span class="go">    intent_name     : b&#39;&#39;</span>
+<span class="go">    intent_name     : b''</span>
 <span class="go">    dim_info        : 57</span>
-<span class="go">    unused_str      : b&#39;&#39;</span>
+<span class="go">    unused_str      : b''</span>
 </pre></div>
 </div>
 <p>You can get and set individual fields in the header using dict (mapping-type)
 item access.  For example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span><span class="p">[</span><span class="s1">&#39;cal_max&#39;</span><span class="p">]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span><span class="p">[</span><span class="s1">'cal_max'</span><span class="p">]</span>
 <span class="go">array(1162., dtype=float32)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span><span class="p">[</span><span class="s1">&#39;cal_max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1200</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span><span class="p">[</span><span class="s1">&#39;cal_max&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span><span class="p">[</span><span class="s1">'cal_max'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1200</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span><span class="p">[</span><span class="s1">'cal_max'</span><span class="p">]</span>
 <span class="go">array(1200., dtype=float32)</span>
 </pre></div>
 </div>
@@ -683,7 +689,7 @@ coordinates to world coordinates in RAS+ space:</p>
 <p>Unlike other formats, the NIfTI header format can specify this affine in one
 of three ways — the <em>sform</em> affine, the <em>qform</em> affine and the <em>fall-back
 header</em> affine.</p>
-<p>Nibabel uses an <a class="reference internal" href="#choosing-image-affine"><span class="std std-ref">algorithm</span></a> to chose which of
+<p>Nibabel uses an <a class="reference internal" href="#choosing-image-affine"><span class="std std-ref">algorithm</span></a> to choose which of
 these three it will use for the overall image <code class="docutils literal notranslate"><span class="pre">affine</span></code>.</p>
 <section id="the-sform-affine">
 <h3>The sform affine<a class="headerlink" href="#the-sform-affine" title="Link to this heading">#</a></h3>
@@ -694,11 +700,11 @@ fourth row because it is always <code class="docutils literal notranslate"><span
 <p>You can get the sform affine specifically with the <code class="docutils literal notranslate"><span class="pre">get_sform()</span></code> method of
 the image or the header.</p>
 <p>For example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="p">[</span><span class="s1">&#39;srow_x&#39;</span><span class="p">])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="p">[</span><span class="s1">'srow_x'</span><span class="p">])</span>
 <span class="go">[ -2.     0.     0.   117.86]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="p">[</span><span class="s1">&#39;srow_y&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="p">[</span><span class="s1">'srow_y'</span><span class="p">])</span>
 <span class="go">[ -0.     1.97  -0.36 -35.72]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="p">[</span><span class="s1">&#39;srow_z&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="p">[</span><span class="s1">'srow_z'</span><span class="p">])</span>
 <span class="go">[ 0.    0.32  2.17 -7.25]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="o">.</span><span class="n">get_sform</span><span class="p">())</span>
 <span class="go">[[ -2.     0.     0.   117.86]</span>
@@ -708,7 +714,7 @@ the image or the header.</p>
 </pre></div>
 </div>
 <p>This affine is valid only if the <code class="docutils literal notranslate"><span class="pre">sform_code</span></code> is not zero.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="p">[</span><span class="s1">&#39;sform_code&#39;</span><span class="p">])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">n1_header</span><span class="p">[</span><span class="s1">'sform_code'</span><span class="p">])</span>
 <span class="go">1</span>
 </pre></div>
 </div>
@@ -766,7 +772,7 @@ the image.</p>
 </pre></div>
 </div>
 <p>Set the affine and code using the <code class="docutils literal notranslate"><span class="pre">code</span></code> parameter to <code class="docutils literal notranslate"><span class="pre">set_sform()</span></code>:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span><span class="o">.</span><span class="n">set_sform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">code</span><span class="o">=</span><span class="s1">&#39;mni&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span><span class="o">.</span><span class="n">set_sform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">code</span><span class="o">=</span><span class="s1">'mni'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">n1_header</span><span class="o">.</span><span class="n">get_sform</span><span class="p">(</span><span class="n">coded</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="go">(array([[3., 0., 0., 0.],</span>
 <span class="go">       [0., 4., 0., 0.],</span>
@@ -792,7 +798,7 @@ the sform: <code class="docutils literal notranslate"><span class="pre">get_qfor
 </pre></div>
 </div>
 <p>The qform also has a corresponding <code class="docutils literal notranslate"><span class="pre">qform_code</span></code> with the same interpretation
-as the <cite>sform_code</cite>.</p>
+as the <code class="docutils literal notranslate"><span class="pre">sform_code</span></code>.</p>
 </section>
 <section id="the-fall-back-header-affine">
 <h3>The fall-back header affine<a class="headerlink" href="#the-fall-back-header-affine" title="Link to this heading">#</a></h3>
@@ -815,7 +821,7 @@ Again like SPM, we prefer to assume LAS+ voxel orientation by default.</p>
 <section id="choosing-the-image-affine">
 <span id="choosing-image-affine"></span><h3>Choosing the image affine<a class="headerlink" href="#choosing-the-image-affine" title="Link to this heading">#</a></h3>
 <p>Given there are three possible affines defined in the NIfTI header, nibabel
-has to chose which of these to use for the image <code class="docutils literal notranslate"><span class="pre">affine</span></code>.</p>
+has to choose which of these to use for the image <code class="docutils literal notranslate"><span class="pre">affine</span></code>.</p>
 <p>The algorithm is defined in the <code class="docutils literal notranslate"><span class="pre">get_best_affine()</span></code> method.  It is:</p>
 <ol class="arabic simple">
 <li><p>If <code class="docutils literal notranslate"><span class="pre">sform_code</span></code> != 0 (‘unknown’) use the sform affine; else</p></li>
@@ -851,7 +857,7 @@ furthermore, the qform cannot be used to store an arbitrary affine transform,
 as it is unable to encode shears. So the provided affine will be stored in the
 sform, and the qform will be left uninitialised.</p>
 <p>If you create a new image and specify an existing header, e.g.:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_ni1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">&#39;example4d.nii.gz&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">example_ni1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="s1">'example4d.nii.gz'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">n1_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_ni1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_header</span> <span class="o">=</span> <span class="n">header</span><span class="o">=</span><span class="n">n1_img</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n1_img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
@@ -893,7 +899,7 @@ by <code class="docutils literal notranslate"><span class="pre">get_data_dtype()
 <li><p>Reshaping to the output image shape;</p></li>
 <li><p>Multiplying the result by the header <code class="docutils literal notranslate"><span class="pre">scl_slope</span></code> value, if
 both of <code class="docutils literal notranslate"><span class="pre">scl_slope</span></code> and <code class="docutils literal notranslate"><span class="pre">scl_inter</span></code> are defined;</p></li>
-<li><p>Adding the value header <code class="docutils literal notranslate"><span class="pre">scl_inter</span></code> value to the result, if both of
+<li><p>Adding the header <code class="docutils literal notranslate"><span class="pre">scl_inter</span></code> value to the result, if both of
 <code class="docutils literal notranslate"><span class="pre">scl_slope</span></code> and <code class="docutils literal notranslate"><span class="pre">scl_inter</span></code> are defined;</p></li>
 </ol>
 <p>‘Defined’ means, the value is not NaN (not a number).</p>
@@ -910,9 +916,9 @@ array proxy object.</p>
 </pre></div>
 </div>
 <p>The default scaling values are NaN (undefined):</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="p">[</span><span class="s1">&#39;scl_slope&#39;</span><span class="p">]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="p">[</span><span class="s1">'scl_slope'</span><span class="p">]</span>
 <span class="go">array(nan, dtype=float32)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="p">[</span><span class="s1">&#39;scl_inter&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="p">[</span><span class="s1">'scl_inter'</span><span class="p">]</span>
 <span class="go">array(nan, dtype=float32)</span>
 </pre></div>
 </div>
@@ -928,9 +934,9 @@ image is written.  We can do this by setting the fields directly, or with
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="o">.</span><span class="n">set_slope_inter</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="o">.</span><span class="n">get_slope_inter</span><span class="p">()</span>
 <span class="go">(2.0, 10.0)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="p">[</span><span class="s1">&#39;scl_slope&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="p">[</span><span class="s1">'scl_slope'</span><span class="p">]</span>
 <span class="go">array(2., dtype=float32)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="p">[</span><span class="s1">&#39;scl_inter&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">array_header</span><span class="p">[</span><span class="s1">'scl_inter'</span><span class="p">]</span>
 <span class="go">array(10., dtype=float32)</span>
 </pre></div>
 </div>
@@ -947,8 +953,8 @@ we save and load again:</p>
 </pre></div>
 </div>
 <p>Now we save the image and load it again:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">array_img</span><span class="p">,</span> <span class="s1">&#39;scaled_image.nii&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">scaled_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;scaled_image.nii&#39;</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nib</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">array_img</span><span class="p">,</span> <span class="s1">'scaled_image.nii'</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scaled_img</span> <span class="o">=</span> <span class="n">nib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">'scaled_image.nii'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The data array has the scaling applied:</p>
@@ -1018,7 +1024,7 @@ when loading the image, or creating a new image, this is the default behavior.</
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
@@ -1067,8 +1073,8 @@ when loading the image, or creating a new image, this is the default behavior.</
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1088,8 +1094,7 @@ when loading the image, or creating a new image, this is the default behavior.</
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
-    <br/>
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
   </p>
 </div>
       
@@ -1102,7 +1107,7 @@ when loading the image, or creating a new image, this is the default behavior.</
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
 </p></div>
       
     </div>

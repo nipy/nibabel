@@ -163,7 +163,7 @@ mni_icbm152_t1_tal_nlin_asym_09a
 The file ``doc/source/someone.nii.gz`` is a subsampled version of the file
 ``mni_icbm152_t1_tal_nlin_asym_09a.nii`` from the MNI non-linear templates
 archive ``mni_icbm152_t1_tal_nlin_asym_09a``.  The original image has the
-following license (where 'softwware' refers to the image):
+following license (where 'software' refers to the image):
 
 ::
 

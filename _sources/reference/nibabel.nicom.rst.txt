@@ -74,6 +74,7 @@ Module: :mod:`nicom.dicomwrappers`
 .. autosummary::
 
    FilterDwiIso
+   FilterMultiOrient
    FilterMultiStack
    FrameFilter
    MosaicWrapper
@@ -316,6 +317,18 @@ slices_to_series
 
 
 .. autoclass:: FilterDwiIso
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+
+:class:`FilterMultiOrient`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: FilterMultiOrient
   :members:
   :undoc-members:
   :show-inheritance:

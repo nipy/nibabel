@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 
@@ -8,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>cifti2 &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+    <title>cifti2 &#8212; NiBabel 5.5.0 documentation</title>
   
   
   
@@ -27,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
@@ -38,12 +37,12 @@
     <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=317b4947" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=252e4b93"></script>
+    <script src="../_static/documentation_options.js?v=a385a3de"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -58,8 +57,9 @@
     <link rel="prev" title="spm99analyze" href="nibabel.spm99analyze.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  <meta name="docsearch:version" content="5.5.0" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -79,7 +79,9 @@
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -110,7 +112,7 @@
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -197,7 +199,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -207,11 +209,18 @@
       
         <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
       
         <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -224,8 +233,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -236,8 +244,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -248,8 +255,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -260,8 +266,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -272,8 +277,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
       
@@ -284,7 +288,7 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -293,7 +297,7 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -307,7 +311,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
@@ -369,11 +373,18 @@
         
           <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
         
           <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -386,8 +397,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -398,8 +408,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -410,8 +419,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -422,8 +430,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -434,8 +441,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
         
@@ -456,7 +462,7 @@
 <li class="toctree-l1"><a class="reference internal" href="nibabel.analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">analyze</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel.spm2analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm2analyze</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel.spm99analyze.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">spm99analyze</span></code></a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel.gifti.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gifti</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel.freesurfer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">freesurfer</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="nibabel.minc1.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">minc1</span></code></a></li>
@@ -518,7 +524,7 @@
 <li class="toctree-l2"><a class="reference internal" href="nibabel.brikhead.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">brikhead</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.caret.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">caret</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.casting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">casting</span></code></a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></li>
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cifti2</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.cmdline.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cmdline</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.data.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">data</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="nibabel.dataobj_images.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dataobj_images</span></code></a></li>
@@ -606,7 +612,7 @@
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
+        <i class="fa-solid fa-house"></i>
       </a>
     </li>
     
@@ -769,9 +775,9 @@ indices of a surface</p></li>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">nibabel</span><span class="w"> </span><span class="kn">import</span> <span class="n">cifti2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bm_cortex</span> <span class="o">=</span> <span class="n">cifti2</span><span class="o">.</span><span class="n">BrainModelAxis</span><span class="o">.</span><span class="n">from_mask</span><span class="p">([</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
-<span class="gp">... </span>                                            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cortex_left&#39;</span><span class="p">)</span>
+<span class="gp">... </span>                                            <span class="n">name</span><span class="o">=</span><span class="s1">'cortex_left'</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">bm_thal</span> <span class="o">=</span> <span class="n">cifti2</span><span class="o">.</span><span class="n">BrainModelAxis</span><span class="o">.</span><span class="n">from_mask</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span> <span class="n">affine</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span>
-<span class="gp">... </span>                                          <span class="n">name</span><span class="o">=</span><span class="s1">&#39;thalamus_left&#39;</span><span class="p">)</span>
+<span class="gp">... </span>                                          <span class="n">name</span><span class="o">=</span><span class="s1">'thalamus_left'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In this very simple case <code class="docutils literal notranslate"><span class="pre">bm_cortex</span></code> describes a left cortical surface skipping the second
@@ -789,8 +795,8 @@ simply adding them together</p>
 volumetric and surface brain models together like this (or by reading one from an already
 existing HCP file).</p>
 <p>Getting a specific brain region from the full brain model is as simple as:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">bm_full</span><span class="p">[</span><span class="n">bm_full</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;CIFTI_STRUCTURE_CORTEX_LEFT&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">bm_cortex</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">bm_full</span><span class="p">[</span><span class="n">bm_full</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;CIFTI_STRUCTURE_THALAMUS_LEFT&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">bm_thal</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">bm_full</span><span class="p">[</span><span class="n">bm_full</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">'CIFTI_STRUCTURE_CORTEX_LEFT'</span><span class="p">]</span> <span class="o">==</span> <span class="n">bm_cortex</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">bm_full</span><span class="p">[</span><span class="n">bm_full</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">'CIFTI_STRUCTURE_THALAMUS_LEFT'</span><span class="p">]</span> <span class="o">==</span> <span class="n">bm_thal</span>
 </pre></div>
 </div>
 <p>You can also iterate over all brain structures in a brain model:</p>
@@ -798,8 +804,8 @@ existing HCP file).</p>
 <span class="gp">... </span>    <span class="nb">print</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">slc</span><span class="p">))</span>
 <span class="gp">... </span>    <span class="k">assert</span> <span class="n">bm</span> <span class="o">==</span> <span class="n">bm_full</span><span class="p">[</span><span class="n">slc</span><span class="p">]</span>
 <span class="gp">... </span>    <span class="k">assert</span> <span class="n">bm</span> <span class="o">==</span> <span class="n">bm_cortex</span> <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">bm_thal</span>
-<span class="go">(&#39;CIFTI_STRUCTURE_CORTEX_LEFT&#39;, slice(0, 3, None))</span>
-<span class="go">(&#39;CIFTI_STRUCTURE_THALAMUS_LEFT&#39;, slice(3, None, None))</span>
+<span class="go">('CIFTI_STRUCTURE_CORTEX_LEFT', slice(0, 3, None))</span>
+<span class="go">('CIFTI_STRUCTURE_THALAMUS_LEFT', slice(3, None, None))</span>
 </pre></div>
 </div>
 <p>In this case there will be two iterations, namely:
@@ -808,9 +814,9 @@ and
 (‘CIFTI_STRUCTURE_THALAMUS_LEFT’, slice(&lt;size of cortex mask&gt;, None), bm_thal)</p>
 <p>ParcelsAxis can be constructed from selections of these brain models:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parcel</span> <span class="o">=</span> <span class="n">cifti2</span><span class="o">.</span><span class="n">ParcelsAxis</span><span class="o">.</span><span class="n">from_brain_models</span><span class="p">([</span>
-<span class="gp">... </span>       <span class="p">(</span><span class="s1">&#39;surface_parcel&#39;</span><span class="p">,</span> <span class="n">bm_cortex</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span>  <span class="c1"># contains first 2 cortical vertices</span>
-<span class="gp">... </span>       <span class="p">(</span><span class="s1">&#39;volume_parcel&#39;</span><span class="p">,</span> <span class="n">bm_thal</span><span class="p">),</span>  <span class="c1"># contains thalamus</span>
-<span class="gp">... </span>       <span class="p">(</span><span class="s1">&#39;combined_parcel&#39;</span><span class="p">,</span> <span class="n">bm_full</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">]]),</span>  <span class="c1"># contains selected voxels/vertices</span>
+<span class="gp">... </span>       <span class="p">(</span><span class="s1">'surface_parcel'</span><span class="p">,</span> <span class="n">bm_cortex</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span>  <span class="c1"># contains first 2 cortical vertices</span>
+<span class="gp">... </span>       <span class="p">(</span><span class="s1">'volume_parcel'</span><span class="p">,</span> <span class="n">bm_thal</span><span class="p">),</span>  <span class="c1"># contains thalamus</span>
+<span class="gp">... </span>       <span class="p">(</span><span class="s1">'combined_parcel'</span><span class="p">,</span> <span class="n">bm_full</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">]]),</span>  <span class="c1"># contains selected voxels/vertices</span>
 <span class="gp">... </span>   <span class="p">])</span>
 </pre></div>
 </div>
@@ -822,14 +828,14 @@ and
 <p>So a header for fMRI data with a TR of 100 ms covering the left cortex and thalamus with
 5000 timepoints could be created with</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">cifti2</span><span class="o">.</span><span class="n">Cifti2Header</span><span class="o">.</span><span class="n">from_axes</span><span class="p">((</span><span class="n">series</span><span class="p">,</span> <span class="n">bm_cortex</span> <span class="o">+</span> <span class="n">bm_thal</span><span class="p">)))</span>
-<span class="go">&lt;class &#39;nibabel.cifti2.cifti2.Cifti2Header&#39;&gt;</span>
+<span class="go">&lt;class 'nibabel.cifti2.cifti2.Cifti2Header'&gt;</span>
 </pre></div>
 </div>
 <p>Similarly the curvature and cortical thickness on the left cortex could be stored using a header
 like:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">cifti2</span><span class="o">.</span><span class="n">Cifti2Header</span><span class="o">.</span><span class="n">from_axes</span><span class="p">((</span><span class="n">cifti2</span><span class="o">.</span><span class="n">ScalarAxis</span><span class="p">([</span><span class="s1">&#39;curvature&#39;</span><span class="p">,</span> <span class="s1">&#39;thickness&#39;</span><span class="p">]),</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">cifti2</span><span class="o">.</span><span class="n">Cifti2Header</span><span class="o">.</span><span class="n">from_axes</span><span class="p">((</span><span class="n">cifti2</span><span class="o">.</span><span class="n">ScalarAxis</span><span class="p">([</span><span class="s1">'curvature'</span><span class="p">,</span> <span class="s1">'thickness'</span><span class="p">]),</span>
 <span class="gp">... </span>                                    <span class="n">bm_cortex</span><span class="p">)))</span>
-<span class="go">&lt;class &#39;nibabel.cifti2.cifti2.Cifti2Header&#39;&gt;</span>
+<span class="go">&lt;class 'nibabel.cifti2.cifti2.Cifti2Header'&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -1059,7 +1065,7 @@ the given index.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.cifti2.cifti2.Cifti2HeaderError">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.cifti2.</span></span><span class="sig-name descname"><span class="pre">Cifti2HeaderError</span></span><a class="headerlink" href="#nibabel.cifti2.cifti2.Cifti2HeaderError" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#Exception" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
 <p>Error in CIFTI-2 header</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.cifti2.cifti2.Cifti2HeaderError.__init__">
@@ -1329,7 +1335,7 @@ range 0.0 to 1.0.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.cifti2.cifti2.Cifti2LabelTable">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.cifti2.</span></span><span class="sig-name descname"><span class="pre">Cifti2LabelTable</span></span><a class="headerlink" href="#nibabel.cifti2.cifti2.Cifti2LabelTable" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
 <p>CIFTI-2 label table: a sequence of <code class="docutils literal notranslate"><span class="pre">Cifti2Label</span></code>s</p>
 <ul>
 <li><p>Description - Used by NamedMap when IndicesMapToDataType is
@@ -1366,7 +1372,7 @@ by CIFTI-2.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.cifti2.cifti2.Cifti2Matrix">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.cifti2.</span></span><span class="sig-name descname"><span class="pre">Cifti2Matrix</span></span><a class="headerlink" href="#nibabel.cifti2.cifti2.Cifti2Matrix" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
 <p>CIFTI-2 Matrix object</p>
 <p>This is a list-like container where the elements are instances of
 <a class="reference internal" href="#nibabel.cifti2.cifti2.Cifti2MatrixIndicesMap" title="nibabel.cifti2.cifti2.Cifti2MatrixIndicesMap"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cifti2MatrixIndicesMap</span></code></a>.</p>
@@ -1465,7 +1471,7 @@ the given index.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.cifti2.cifti2.Cifti2MatrixIndicesMap">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.cifti2.</span></span><span class="sig-name descname"><span class="pre">Cifti2MatrixIndicesMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">applies_to_matrix_dimension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices_map_to_data_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_series_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">series_exponent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">series_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">series_step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">series_unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cifti2.cifti2.Cifti2MatrixIndicesMap" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
 <p>Class for Matrix Indices Map</p>
 <ul>
 <li><p>Description - Provides a mapping between matrix indices and their
@@ -1851,7 +1857,7 @@ form a 4x4 homogeneous transformation matrix.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.cifti2.cifti2.Cifti2VertexIndices">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.cifti2.</span></span><span class="sig-name descname"><span class="pre">Cifti2VertexIndices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cifti2.cifti2.Cifti2VertexIndices" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
 <p>CIFTI-2 vertex indices: vertex indices for an associated brain model</p>
 <p>The vertex indices (which are independent for each surface, and
 zero-based) that are used in this brain model[.] The parent
@@ -1887,7 +1893,7 @@ content.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.cifti2.cifti2.Cifti2Vertices">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.cifti2.</span></span><span class="sig-name descname"><span class="pre">Cifti2Vertices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">brain_structure</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cifti2.cifti2.Cifti2Vertices" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
 <p>CIFTI-2 vertices - association of brain structure and a list of vertices</p>
 <ul>
 <li><p>Description - Contains a BrainStructure type and a list of vertex indices
@@ -1985,7 +1991,7 @@ must be within these dimensions.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.cifti2.cifti2.Cifti2VoxelIndicesIJK">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.cifti2.</span></span><span class="sig-name descname"><span class="pre">Cifti2VoxelIndicesIJK</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cifti2.cifti2.Cifti2VoxelIndicesIJK" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="nibabel.xmlutils.html#nibabel.xmlutils.XmlSerializable" title="nibabel.xmlutils.XmlSerializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmlSerializable</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableSequence" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableSequence</span></code></a></p>
 <p>CIFTI-2 VoxelIndicesIJK: Set of voxel indices contained in a structure</p>
 <ul class="simple">
 <li><p>Description - Identifies the voxels that model a brain structure, or
@@ -2037,7 +2043,7 @@ the number of triplets (IJK indices) in this element’s content.</p></li>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.cifti2.cifti2_axes.Axis">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.cifti2_axes.</span></span><span class="sig-name descname"><span class="pre">Axis</span></span><a class="headerlink" href="#nibabel.cifti2.cifti2_axes.Axis" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
 <p>Abstract class for any object describing the rows or columns of a CIFTI-2 vector/matrix</p>
 <p>Mainly used for type checking.</p>
 <p>Base class for the following concrete CIFTI-2 axes:</p>
@@ -2258,7 +2264,7 @@ Argument will be ignored for surface masks</p>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>brain model covering that specific brain structure</dt><dd></dd>
+<dt><a class="reference internal" href="#nibabel.cifti2.cifti2_axes.BrainModelAxis" title="nibabel.cifti2.cifti2_axes.BrainModelAxis"><code class="xref py py-class docutils literal notranslate"><span class="pre">BrainModelAxis</span></code></a> covering that specific brain structure</dt><dd></dd>
 </dl>
 </li>
 </ul>
@@ -2902,7 +2908,7 @@ Defaults to empty dictionary</p>
 <h3><a class="reference internal" href="#nibabel.cifti2.parse_cifti2.Cifti2Extension" title="nibabel.cifti2.parse_cifti2.Cifti2Extension"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cifti2Extension</span></code></a><a class="headerlink" href="#cifti2extension" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="nibabel.cifti2.parse_cifti2.Cifti2Extension">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.parse_cifti2.</span></span><span class="sig-name descname"><span class="pre">Cifti2Extension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cifti2.parse_cifti2.Cifti2Extension" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">nibabel.cifti2.parse_cifti2.</span></span><span class="sig-name descname"><span class="pre">Cifti2Extension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><span class="pre">bytes</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nibabel.cifti2.parse_cifti2.Cifti2Extension" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="nibabel.nifti1.html#nibabel.nifti1.Nifti1Extension" title="nibabel.nifti1.Nifti1Extension"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nifti1Extension</span></code></a>[<a class="reference internal" href="#nibabel.cifti2.cifti2.Cifti2Header" title="nibabel.cifti2.cifti2.Cifti2Header"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cifti2Header</span></code></a>]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2920,7 +2926,7 @@ either as integer or corresponding label
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nibabel.cifti2.parse_cifti2.Cifti2Extension.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.cifti2.parse_cifti2.Cifti2Extension.__init__" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.15)"><span class="pre">bytes</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.15)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#nibabel.cifti2.parse_cifti2.Cifti2Extension.__init__" title="Link to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -2939,7 +2945,7 @@ either as integer or corresponding label
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nibabel.cifti2.parse_cifti2.Cifti2Extension.code">
-<span class="sig-name descname"><span class="pre">code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#nibabel.cifti2.parse_cifti2.Cifti2Extension.code" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.15)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></span><a class="headerlink" href="#nibabel.cifti2.parse_cifti2.Cifti2Extension.code" title="Link to this definition">#</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -3057,7 +3063,7 @@ or end tags.</p>
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
@@ -3374,8 +3380,8 @@ or end tags.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -3395,8 +3401,7 @@ or end tags.</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
-    <br/>
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
   </p>
 </div>
       
@@ -3409,7 +3414,7 @@ or end tags.</p>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
 </p></div>
       
     </div>

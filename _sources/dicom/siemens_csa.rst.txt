@@ -84,7 +84,7 @@ the whole header) then we break from the item reading loop,
 setting the value below to ''.
 
 Then we calculate ``item_len`` rounded up to the nearest 4 byte boundary
-tp get ``next_item_pos``.
+to get ``next_item_pos``.
 
 2. value : uint8, ``item_len``.
 

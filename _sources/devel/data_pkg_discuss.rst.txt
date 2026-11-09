@@ -376,7 +376,7 @@ Discovery
     to.  For example, I might think that ``release-0.3`` of ``some-package``
     refers to package state identified by revision id ``af5bd6``, but you might
     think that ``release-0.3`` of ``some-package`` refers to some other package
-    state.  In this case you and are are both a *tag sources* for the package.
+    state.  In this case you and I are both *tag sources* for the package.
     The state that particular tag refers to can depend then on the source from
     which the tag came.
 

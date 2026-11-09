@@ -183,7 +183,7 @@ Images with an array proxy object like this one are called *proxy images*
 because the image data is not yet an array, but the array proxy points to
 (proxies) the array data on disk.
 
-You can test if the image has a array proxy like this:
+You can test if the image has an array proxy like this:
 
 >>> nib.is_proxy(img.dataobj)
 True
@@ -350,10 +350,10 @@ affine matrix:
 >>> nib.orientations.aff2axcodes(ras.affine)
 ('R', 'A', 'S')
 >>> ras.affine
-array([[  2.  ,   0.  ,   0.  , 117.86],
-       [  0.  ,   1.97,  -0.36, -35.72],
-       [ -0.  ,   0.32,   2.17,  -7.25],
-       [  0.  ,   0.  ,   0.  ,   1.  ]])
+array([[   2.  ,    0.  ,    0.  , -136.14],
+       [   0.  ,    1.97,   -0.36,  -35.72],
+       [  -0.  ,    0.32,    2.17,   -7.25],
+       [   0.  ,    0.  ,    0.  ,    1.  ]])
 
 
 ******************

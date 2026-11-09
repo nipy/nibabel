@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 
@@ -8,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>BIAP9 - The Coordinate Image API &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+    <title>BIAP9 - The Coordinate Image API &#8212; NiBabel 5.5.0 documentation</title>
   
   
   
@@ -27,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
@@ -38,12 +37,12 @@
     <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=317b4947" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=252e4b93"></script>
+    <script src="../../_static/documentation_options.js?v=a385a3de"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,8 +58,9 @@
     <link rel="prev" title="BIAP8 - Always load image data as floating point" href="biap_0008.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  <meta name="docsearch:version" content="5.5.0" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -80,7 +80,9 @@
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -111,7 +113,7 @@
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -198,7 +200,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -208,11 +210,18 @@
       
         <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
       
         <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -225,8 +234,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -237,8 +245,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -249,8 +256,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -261,8 +267,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -273,8 +278,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
       
@@ -285,7 +289,7 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -294,7 +298,7 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -308,7 +312,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
@@ -370,11 +374,18 @@
         
           <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
         
           <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -387,8 +398,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -399,8 +409,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -411,8 +420,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -423,8 +431,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -435,8 +442,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
         
@@ -484,7 +490,7 @@
 <li class="toctree-l2"><a class="reference internal" href="biap_0006.html">BIAP6 - Identifying image axes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="biap_0007.html">BIAP7 - Loading multiple images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="biap_0008.html">BIAP8 - Always load image data as floating point</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">BIAP9 - The Coordinate Image API</a></li>
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">BIAP9 - The Coordinate Image API</a></li>
 <li class="toctree-l2"><a class="reference internal" href="biap_template.html">BIAP X — Template and Instructions</a></li>
 </ul>
 </details></li>
@@ -536,7 +542,7 @@
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="../../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
+        <i class="fa-solid fa-house"></i>
       </a>
     </li>
     
@@ -723,90 +729,90 @@ make sense for NiBabel to provide methods.</p>
 <p>A <code class="docutils literal notranslate"><span class="pre">CoordinateImage</span></code> is an N-dimensional array, where one axis corresponds
 to a sequence of points in one or more parcels.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CoordinateImage</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    header : a file-specific header</span>
 <span class="sd">    coordaxis : ``CoordinateAxis``</span>
 <span class="sd">    dataobj : array-like</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">CoordinateAxis</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    parcels : list of ``Parcel`` objects</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">load_structures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mapping</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Associate parcels to ``Pointset`` structures</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slicer</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return a sub-sampled CoordinateAxis containing structures</span>
 <span class="sd">        matching the indices provided.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parcel</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return the indices in the full axis that correspond to the</span>
 <span class="sd">        requested parcel. If indices are provided, further subsample</span>
 <span class="sd">        the requested parcel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Parcel</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    name : str</span>
 <span class="sd">    structure : ``Pointset``</span>
 <span class="sd">    indices : object that selects a subset of coordinates in structure</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 </pre></div>
 </div>
 <p>To describe coordinate geometry, the following structures are proposed:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Pointset</span><span class="p">:</span>
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Number of coordinates &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Number of coordinates """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Nx3 array of coordinates in RAS+ space &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Nx3 array of coordinates in RAS+ space """</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">TriangularMesh</span><span class="p">(</span><span class="n">Pointset</span><span class="p">):</span>
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">n_triangles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Number of faces &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Number of faces """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_triangles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Mx3 array of indices into coordinate table &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Mx3 array of indices into coordinate table """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_coords</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_triangles</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; List of surface names that can be passed to</span>
+<span class="w">        </span><span class="sd">""" List of surface names that can be passed to</span>
 <span class="sd">        ``get_{coords,triangles,mesh}``</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">decimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">n_coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ratio</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return a TriangularMesh with a smaller number of vertices that</span>
-<span class="sd">        preserves the geometry of the original &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Return a TriangularMesh with a smaller number of vertices that</span>
+<span class="sd">        preserves the geometry of the original """</span>
         <span class="c1"># To be overridden when a format provides optimization opportunities</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">NdGrid</span><span class="p">(</span><span class="n">Pointset</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    shape : 3-tuple</span>
 <span class="sd">        number of coordinates in each dimension of grid</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; 4x4 array &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" 4x4 array """</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">NdGrid</span></code> class allows raveled volumetric data to be treated the same as
@@ -814,16 +820,16 @@ triangular mesh or other coordinate data.</p>
 <p>Finally, a structure for containing a collection of related geometric files is
 defined:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">GeometryCollection</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    structures : dict</span>
 <span class="sd">        Mapping from structure names to ``Pointset``</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_spec</span><span class="p">(</span><span class="n">klass</span><span class="p">,</span> <span class="n">pathlike</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Load a collection of geometries from a specification. &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Load a collection of geometries from a specification. """</span>
 </pre></div>
 </div>
 <p>The canonical example of a geometry collection is a left hemisphere mesh,
@@ -833,11 +839,11 @@ right hemisphere mesh.</p>
 <h3>Modeling<a class="headerlink" href="#modeling" title="Link to this heading">#</a></h3>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">nilearn.glm.first_level</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_first_level_design_matrix</span><span class="p">,</span> <span class="n">run_glm</span>
 
-<span class="n">bold</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="s2">&quot;/data/func/hemi-L_bold.func.gii&quot;</span><span class="p">)</span>
+<span class="n">bold</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="s2">"/data/func/hemi-L_bold.func.gii"</span><span class="p">)</span>
 <span class="n">dm</span> <span class="o">=</span> <span class="n">make_first_level_design_matrix</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="n">labels</span><span class="p">,</span> <span class="n">results</span> <span class="o">=</span> <span class="n">run_glm</span><span class="p">(</span><span class="n">bold</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(),</span> <span class="n">dm</span><span class="p">)</span>
-<span class="n">betas</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;betas&quot;</span><span class="p">],</span> <span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="p">,</span> <span class="n">bold</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
-<span class="n">betas</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="s2">&quot;/data/stats/hemi-L_betas.mgz&quot;</span><span class="p">)</span>
+<span class="n">betas</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s2">"betas"</span><span class="p">],</span> <span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="p">,</span> <span class="n">bold</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
+<span class="n">betas</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="s2">"/data/stats/hemi-L_betas.mgz"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In this case, no reference to the surface structure is needed, as the operations
@@ -850,16 +856,16 @@ API.</p>
 </section>
 <section id="smoothing">
 <h3>Smoothing<a class="headerlink" href="#smoothing" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bold</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="s2">&quot;/data/func/hemi-L_bold.func.gii&quot;</span><span class="p">)</span>
-<span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">load_structures</span><span class="p">({</span><span class="s2">&quot;lh&quot;</span><span class="p">:</span> <span class="s2">&quot;/data/anat/hemi-L_midthickness.surf.gii&quot;</span><span class="p">})</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bold</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="s2">"/data/func/hemi-L_bold.func.gii"</span><span class="p">)</span>
+<span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">load_structures</span><span class="p">({</span><span class="s2">"lh"</span><span class="p">:</span> <span class="s2">"/data/anat/hemi-L_midthickness.surf.gii"</span><span class="p">})</span>
 <span class="c1"># Not implementing networkx weighted graph here, so assume we have a function</span>
 <span class="c1"># that retrieves a graph for each structure</span>
 <span class="n">graphs</span> <span class="o">=</span> <span class="n">get_graphs</span><span class="p">(</span><span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="p">)</span>
-<span class="n">distances</span> <span class="o">=</span> <span class="n">distance_matrix</span><span class="p">(</span><span class="n">graphs</span><span class="p">[</span><span class="s1">&#39;lh&#39;</span><span class="p">])</span>  <span class="c1"># n_coords x n_coords matrix</span>
+<span class="n">distances</span> <span class="o">=</span> <span class="n">distance_matrix</span><span class="p">(</span><span class="n">graphs</span><span class="p">[</span><span class="s1">'lh'</span><span class="p">])</span>  <span class="c1"># n_coords x n_coords matrix</span>
 <span class="n">weights</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">gaussian</span><span class="p">(</span><span class="n">distances</span><span class="p">,</span> <span class="n">sigma</span><span class="p">))</span>
 <span class="c1"># Wildly inefficient smoothing algorithm</span>
 <span class="n">smoothed</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="p">(</span><span class="n">weights</span> <span class="o">@</span> <span class="n">bold</span><span class="o">.</span><span class="n">get_fdata</span><span class="p">(),</span> <span class="n">bold</span><span class="o">.</span><span class="n">coordaxis</span><span class="p">,</span> <span class="n">bold</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
-<span class="n">smoothed</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/data/func/hemi-L_smooth-</span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">_bold.func.gii&quot;</span><span class="p">)</span>
+<span class="n">smoothed</span><span class="o">.</span><span class="n">to_filename</span><span class="p">(</span><span class="sa">f</span><span class="s2">"/data/func/hemi-L_smooth-</span><span class="si">{</span><span class="n">sigma</span><span class="si">}</span><span class="s2">_bold.func.gii"</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -868,7 +874,7 @@ API.</p>
 <p>Nilearn currently provides a
 <a class="reference external" href="https://nilearn.github.io/modules/generated/nilearn.plotting.plot_surf.html">plot_surf</a> function.
 With the proposed API, we could interface as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">plot_surf_img</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s2">&quot;inflated&quot;</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">plot_surf_img</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="s2">"inflated"</span><span class="p">):</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">nilearn.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_surf</span>
     <span class="n">coords</span><span class="p">,</span> <span class="n">triangles</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">parcels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_mesh</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">surface</span><span class="p">)</span>
 
@@ -876,19 +882,19 @@ With the proposed API, we could interface as follows:</p>
 
     <span class="k">return</span> <span class="n">plot_surf</span><span class="p">((</span><span class="n">triangles</span><span class="p">,</span> <span class="n">coords</span><span class="p">),</span> <span class="n">data</span><span class="p">)</span>
 
-<span class="n">tstats</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="s2">&quot;/data/stats/hemi-L_contrast-taskVsBase_tstat.mgz&quot;</span><span class="p">)</span>
+<span class="n">tstats</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="o">.</span><span class="n">from_filename</span><span class="p">(</span><span class="s2">"/data/stats/hemi-L_contrast-taskVsBase_tstat.mgz"</span><span class="p">)</span>
 <span class="c1"># Assume a GeometryCollection that reads a FreeSurfer subject directory</span>
-<span class="n">fs_subject</span> <span class="o">=</span> <span class="n">FreeSurferSubject</span><span class="o">.</span><span class="n">from_spec</span><span class="p">(</span><span class="s2">&quot;/data/subjects/fsaverage5&quot;</span><span class="p">)</span>
-<span class="n">tstats</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">load_structures</span><span class="p">(</span><span class="n">fs_subject</span><span class="o">.</span><span class="n">get_structure</span><span class="p">(</span><span class="s2">&quot;lh&quot;</span><span class="p">))</span>
+<span class="n">fs_subject</span> <span class="o">=</span> <span class="n">FreeSurferSubject</span><span class="o">.</span><span class="n">from_spec</span><span class="p">(</span><span class="s2">"/data/subjects/fsaverage5"</span><span class="p">)</span>
+<span class="n">tstats</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">load_structures</span><span class="p">(</span><span class="n">fs_subject</span><span class="o">.</span><span class="n">get_structure</span><span class="p">(</span><span class="s2">"lh"</span><span class="p">))</span>
 <span class="n">plot_surf_img</span><span class="p">(</span><span class="n">tstats</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="subsampling-cifti-2">
 <h3>Subsampling CIFTI-2<a class="headerlink" href="#subsampling-cifti-2" title="Link to this heading">#</a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">img</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sub-01_task-rest_bold.dtseries.nii&quot;</span><span class="p">)</span>  <span class="c1"># Assume CIFTI CoordinateImage</span>
-<span class="n">parcel</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;sub-fsLR_hemi-L_label-DLPFC_mask.label.gii&quot;</span><span class="p">)</span> <span class="c1"># GiftiImage</span>
-<span class="n">structure</span> <span class="o">=</span> <span class="n">parcel</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;AnatomicalStructurePrimary&#39;</span><span class="p">]</span> <span class="c1"># &quot;CortexLeft&quot;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">img</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">"sub-01_task-rest_bold.dtseries.nii"</span><span class="p">)</span>  <span class="c1"># Assume CIFTI CoordinateImage</span>
+<span class="n">parcel</span> <span class="o">=</span> <span class="n">nb</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">"sub-fsLR_hemi-L_label-DLPFC_mask.label.gii"</span><span class="p">)</span> <span class="c1"># GiftiImage</span>
+<span class="n">structure</span> <span class="o">=</span> <span class="n">parcel</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">'AnatomicalStructurePrimary'</span><span class="p">]</span> <span class="c1"># "CortexLeft"</span>
 <span class="n">vtx_idcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">parcel</span><span class="o">.</span><span class="n">agg_data</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">dlpfc_idcs</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">get_indices</span><span class="p">(</span><span class="n">parcel</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="n">vtx_idcs</span><span class="p">)</span>
 
@@ -896,7 +902,7 @@ With the proposed API, we could interface as follows:</p>
 <span class="n">dlpfc_img</span> <span class="o">=</span> <span class="n">CoordinateImage</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">dataobj</span><span class="p">[</span><span class="n">dlpfc_idcs</span><span class="p">],</span> <span class="n">img</span><span class="o">.</span><span class="n">coordaxis</span><span class="p">[</span><span class="n">dlpfc_idcs</span><span class="p">],</span> <span class="n">img</span><span class="o">.</span><span class="n">header</span><span class="p">)</span>
 
 <span class="c1"># Now load geometry so we can plot</span>
-<span class="n">wbspec</span> <span class="o">=</span> <span class="n">CaretSpec</span><span class="p">(</span><span class="s2">&quot;fsLR.wb.spec&quot;</span><span class="p">)</span>
+<span class="n">wbspec</span> <span class="o">=</span> <span class="n">CaretSpec</span><span class="p">(</span><span class="s2">"fsLR.wb.spec"</span><span class="p">)</span>
 <span class="n">dlpfc_img</span><span class="o">.</span><span class="n">coordaxis</span><span class="o">.</span><span class="n">load_structures</span><span class="p">(</span><span class="n">wbspec</span><span class="p">)</span>
 <span class="o">...</span>
 </pre></div>
@@ -940,7 +946,7 @@ With the proposed API, we could interface as follows:</p>
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
@@ -995,8 +1001,8 @@ With the proposed API, we could interface as follows:</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
-<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1016,8 +1022,7 @@ With the proposed API, we could interface as follows:</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
-    <br/>
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
   </p>
 </div>
       
@@ -1030,7 +1035,7 @@ With the proposed API, we could interface as follows:</p>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
 </p></div>
       
     </div>

@@ -57,6 +57,10 @@ Release checklist
 * Use the opportunity to update the ``.mailmap`` file if there are any
   duplicate authors listed from ``git shortlog -nse``.
 
+* Refresh the ``CITATION.cff`` file::
+
+    uv run tools/prep_citation_cff.py
+
 * Refresh the ``README.rst`` text from the ``LONG_DESCRIPTION`` in ``info.py``
   by running ``make refresh-readme``.
 
@@ -75,9 +79,8 @@ Release checklist
 
     tox
 
-* Make sure you have travis-ci_ building set up for your own repo. Make a new
-  ``release-check`` (or similar) branch, and push the code in its current
-  state to a branch that will build, e.g::
+* Make a new ``release-check`` (or similar) branch, and push the code in
+  its current state to a branch that will build, e.g::
 
     git branch -D release-check # in case branch already exists
     git co -b release-check
@@ -98,7 +101,7 @@ Release checklist
 
 * Set up maintenance / development branches
 
-  If this is this is a full release you need to set up two branches, one for
+  If this is a full release you need to set up two branches, one for
   further substantial development (often called 'trunk') and another for
   maintenance releases.
 

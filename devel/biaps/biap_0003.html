@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 
 
@@ -8,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>BIAP3 - A JSON nifti header extension &#8212; NiBabel 0.1.0.dev1+gabe5e8e0c documentation</title>
+    <title>BIAP3 - A JSON nifti header extension &#8212; NiBabel 5.5.0 documentation</title>
   
   
   
@@ -27,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=7f76b32a3354e82990f2" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
@@ -38,12 +37,12 @@
     <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=317b4947" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../_static/scripts/fontawesome.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2" />
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=252e4b93"></script>
+    <script src="../../_static/documentation_options.js?v=a385a3de"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -59,8 +58,9 @@
     <link rel="prev" title="BIAP2 - Slicecopy" href="biap_0002.html" />
   
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.0.dev1+gabe5e8e0c" />
+  <meta name="docsearch:version" content="5.5.0" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -80,7 +80,9 @@
   
   <button type="button" class="btn rounded-pill" id="pst-back-to-top">
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-
+  
+  
+  
   
   <dialog id="pst-search-dialog">
     
@@ -111,7 +113,7 @@
   
     <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
 <div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
     <span class="fa-solid fa-bars"></span>
   </button>
   
@@ -198,7 +200,7 @@
         <div class="navbar-item navbar-persistent--container">
           
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -208,11 +210,18 @@
       
         <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
       
         <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -225,8 +234,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -237,8 +245,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -249,8 +256,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -261,8 +267,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -273,8 +278,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
       
@@ -285,7 +289,7 @@
   
     <div class="navbar-persistent--mobile">
 
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
  <i class="fa-solid fa-magnifying-glass"></i>
  <span class="search-button__default-text">Search</span>
  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
@@ -294,7 +298,7 @@
   
 
   
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
       <span class="fa-solid fa-outdent"></span>
     </button>
   
@@ -308,7 +312,7 @@
       
       
       
-      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
@@ -370,11 +374,18 @@
         
           <div class="navbar-item">
 
-<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
-  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
-  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
-  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
-</button></div>
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
         
           <div class="navbar-item"><ul class="navbar-icon-links"
     aria-label="Icon Links">
@@ -387,8 +398,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">GitHub</span></a>
+          <a href="https://github.com/nipy/nibabel" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
         </li>
         <li class="nav-item">
           
@@ -399,8 +409,7 @@
           
           
           
-          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">PyPI</span></a>
+          <a href="https://pypi.org/project/nibabel/" title="PyPI" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-box fa-lg" aria-hidden="true"></i><span class="visually-hidden">PyPI</span></a>
         </li>
         <li class="nav-item">
           
@@ -411,8 +420,7 @@
           
           
           
-          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Mailing List</span></a>
+          <a href="https://mail.python.org/mailman3/lists/neuroimaging.python.org/" title="Mailing List" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i><span class="visually-hidden">Mailing List</span></a>
         </li>
         <li class="nav-item">
           
@@ -423,8 +431,7 @@
           
           
           
-          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">License</span></a>
+          <a href="https://github.com/nipy/nibabel/blob/master/COPYING" title="License" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-file-contract fa-lg" aria-hidden="true"></i><span class="visually-hidden">License</span></a>
         </li>
         <li class="nav-item">
           
@@ -435,8 +442,7 @@
           
           
           
-          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i>
-            <span class="sr-only">Community</span></a>
+          <a href="https://nipy.org" title="Community" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-solid fa-users fa-lg" aria-hidden="true"></i><span class="visually-hidden">Community</span></a>
         </li>
 </ul></div>
         
@@ -478,7 +484,7 @@
 <li class="toctree-l2"><a class="reference internal" href="biap_0000.html">BIAP 0 - Purpose and process</a></li>
 <li class="toctree-l2"><a class="reference internal" href="biap_0001.html">BIAP1 - Towards immutable images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="biap_0002.html">BIAP2 - Slicecopy</a></li>
-<li class="toctree-l2 current active"><a class="current reference internal" href="#">BIAP3 - A JSON nifti header extension</a></li>
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">BIAP3 - A JSON nifti header extension</a></li>
 <li class="toctree-l2"><a class="reference internal" href="biap_0004.html">BIAP4 - Merging nibabel and dcmstack</a></li>
 <li class="toctree-l2"><a class="reference internal" href="biap_0005.html">BIAP5 - A streamlines converter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="biap_0006.html">BIAP6 - Identifying image axes</a></li>
@@ -536,7 +542,7 @@
     
     <li class="breadcrumb-item breadcrumb-home">
       <a href="../../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
+        <i class="fa-solid fa-house"></i>
       </a>
     </li>
     
@@ -703,11 +709,11 @@ prefix <code class="docutils literal notranslate"><span class="pre">dcm</span></
 dereferences to <a class="reference external" href="http://neurolex.org/wiki/Category:Echo_Time">http://neurolex.org/wiki/Category:Echo_Time</a> where
 additional documentation is provided:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;@context&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;dcm&quot;</span><span class="p">:</span> <span class="s2">&quot;http://neurolex.org/wiki/Category:#&quot;</span>
+  <span class="s2">"@context"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"dcm"</span><span class="p">:</span> <span class="s2">"http://neurolex.org/wiki/Category:#"</span>
   <span class="p">},</span>
-  <span class="s2">&quot;dcm:Echo_Time&quot;</span><span class="p">:</span> <span class="mi">45</span><span class="p">,</span>
-  <span class="s2">&quot;dcm:Repetition_Time&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+  <span class="s2">"dcm:Echo_Time"</span><span class="p">:</span> <span class="mi">45</span><span class="p">,</span>
+  <span class="s2">"dcm:Repetition_Time"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -718,7 +724,7 @@ additional documentation is provided:</p>
 </section>
 <section id="the-header-must-contain-the-header-version">
 <h3>The header must contain the header version<a class="headerlink" href="#the-header-must-contain-the-header-version" title="Link to this heading">#</a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We chose the name “nipy_header_version” in the hope that this would not often
@@ -745,8 +751,8 @@ new information in the header.</p></li>
 <p>The base level header will usually also have image metadata fields giving
 information about the whole image. A field is an “image metadata field” if it
 is defined at the top level of the header.  For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">Manufacturer</span><span class="o">=</span><span class="s2">&quot;SIEMENS&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">Manufacturer</span><span class="o">=</span><span class="s2">"SIEMENS"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>All image metadata fields are optional.</p>
@@ -758,13 +764,13 @@ This is to conform to the <em>simple DICOM</em> principle.</p>
 processed by a header reader / writer.  If you want to put extra fields into
 the header that are outside this standard you could use a dict / object of
 form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">extended</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">my_field1</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">my_field2</span><span class="o">=</span><span class="s1">&#39;a string&#39;</span><span class="p">))</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">extended</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">my_field1</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">my_field2</span><span class="o">=</span><span class="s1">'a string'</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>or:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">extended_mysoft</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">mysoft_one</span><span class="o">=</span><span class="s1">&#39;expensive&#39;</span><span class="p">,</span> <span class="n">mysoft_two</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">extended_mysoft</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">mysoft_one</span><span class="o">=</span><span class="s1">'expensive'</span><span class="p">,</span> <span class="n">mysoft_two</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Values for DICOM IM keys are constrained by the DICOM standard.  This standard
@@ -781,14 +787,14 @@ particular axis, and therefore might go in the <code class="docutils literal not
 should we store dates and times?  One option would be to use the new DICOM
 JSON encoding for DICOM values, but omitting the tag and value
 representation (VR).  For example, the <a class="reference external" href="ftp://medical.nema.org/medical/dicom/final/sup166_ft5.pdf">DICOM JSON spec</a> has:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;00080070&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;vr&quot;</span><span class="p">:</span> <span class="s2">&quot;LO&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Value&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;SIEMENS&quot;</span> <span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"00080070"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">"vr"</span><span class="p">:</span> <span class="s2">"LO"</span><span class="p">,</span>
+    <span class="s2">"Value"</span><span class="p">:</span> <span class="p">[</span> <span class="s2">"SIEMENS"</span> <span class="p">]</span>
 <span class="p">},</span>
 </pre></div>
 </div>
 <p>but we might prefer:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;Manufacturer&quot;</span><span class="p">:</span> <span class="s2">&quot;SIEMENS&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">"Manufacturer"</span><span class="p">:</span> <span class="s2">"SIEMENS"</span>
 </pre></div>
 </div>
 <p>Using the DICOM data dictionary we can reconstruct the necessary tag and VR,
@@ -807,8 +813,8 @@ the JSON.  Comments welcome.</p>
 <h3>The header will usually contain axis names<a class="headerlink" href="#the-header-will-usually-contain-axis-names" title="Link to this heading">#</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">axis_names</span></code> is a list of strings corresponding to the axes of the image data
 to which the header refers.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">axis_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span><span class="o">=</span><span class="p">[</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="s2">"phase"</span><span class="p">,</span> <span class="s2">"slice"</span><span class="p">,</span> <span class="s2">"time"</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>The names must be valid Python identifiers (should not begin with a digit, nor
@@ -840,7 +846,7 @@ elements.</p>
 <p>Each <em>axis metadata element</em> in the <code class="docutils literal notranslate"><span class="pre">axis_metadata</span></code> list gives data that
 applies to a particular axis, or combination of axes.  <code class="docutils literal notranslate"><span class="pre">axis_metadata</span></code> can
 be empty:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span><span class="p">[</span><span class="s1">'axis_metadata'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 </pre></div>
 </div>
 <p>We prefer you delete this section if it is empty, to avoid clutter, but hey,
@@ -850,12 +856,12 @@ mi casa, su casa.</p>
 <p>An axis metadata element must contain a field <code class="docutils literal notranslate"><span class="pre">applies_to</span></code>, with a value that
 is a list that contains one or more values from <code class="docutils literal notranslate"><span class="pre">axis_names</span></code>.  From the above
 example, the following would be valid axis metadata elements:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="s2">"phase"</span><span class="p">,</span> <span class="s2">"slice"</span><span class="p">,</span> <span class="s2">"time"</span><span class="p">],</span>
 <span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'time'</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">,</span> <span class="s1">'time'</span><span class="p">]),</span>
 <span class="gp">... </span>           <span class="p">])</span>
 </pre></div>
 </div>
@@ -865,12 +871,12 @@ example, the following would be valid axis metadata elements:</p>
 metadata element, where the rest of the fields in the element are a dict
 giving the value.  For example, in Python (but not in JSON, we could
 represent the above as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="s2">"phase"</span><span class="p">,</span> <span class="s2">"slice"</span><span class="p">,</span> <span class="s2">"time"</span><span class="p">],</span>
 <span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">{</span>
-<span class="gp">... </span>               <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="p">{},</span>
-<span class="gp">... </span>               <span class="s1">&#39;slice&#39;</span><span class="p">:</span> <span class="p">{},</span>
-<span class="gp">... </span>               <span class="p">(</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">):</span> <span class="p">{},</span>
+<span class="gp">... </span>               <span class="s1">'time'</span><span class="p">:</span> <span class="p">{},</span>
+<span class="gp">... </span>               <span class="s1">'slice'</span><span class="p">:</span> <span class="p">{},</span>
+<span class="gp">... </span>               <span class="p">(</span><span class="s1">'slice'</span><span class="p">,</span> <span class="s1">'time'</span><span class="p">):</span> <span class="p">{},</span>
 <span class="gp">... </span>           <span class="p">])</span>
 </pre></div>
 </div>
@@ -921,8 +927,8 @@ time, as this should be specified with the single time axis metadata element.</p
 <p>In general, for a given value <code class="docutils literal notranslate"><span class="pre">applies_to</span></code>, we can take the corresponding
 axis lengths:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">shape_of_image</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">10</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">image_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'frequency'</span><span class="p">,</span> <span class="s1">'phase'</span><span class="p">,</span> <span class="s1">'slice'</span><span class="p">,</span> <span class="s1">'time'</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">,</span> <span class="s1">'time'</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">axis_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">image_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">applies_to</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">axis_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="n">shape_of_image</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">axis_indices</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">axis_lengths</span>
@@ -941,24 +947,24 @@ combination of points, where the shape of the array or vector is given by
 <p>For any unique ordered combination of axis names, there can only be on axis
 metadata element.  For example, this is valid:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># VALID</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="s2">"phase"</span><span class="p">,</span> <span class="s2">"slice"</span><span class="p">,</span> <span class="s2">"time"</span><span class="p">],</span>
 <span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'time'</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">,</span> <span class="s1">'time'</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">]),</span>
 <span class="gp">... </span>           <span class="p">])</span>
 </pre></div>
 </div>
 <p>This is not, because of the repeated combination of axis names:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOT VALID because of repeated axis combination</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="s2">"phase"</span><span class="p">,</span> <span class="s2">"slice"</span><span class="p">,</span> <span class="s2">"time"</span><span class="p">],</span>
 <span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'time'</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">,</span> <span class="s1">'time'</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">,</span> <span class="s1">'time'</span><span class="p">]),</span>
 <span class="gp">... </span>           <span class="p">])</span>
 </pre></div>
 </div>
@@ -978,9 +984,9 @@ spatial image axes to which the first, second and third column of the
 <code class="docutils literal notranslate"><span class="pre">array</span></code> refer.</p>
 <p>For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'time'</span><span class="p">],</span>
 <span class="gp">... </span>               <span class="n">q_vector</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-<span class="gp">... </span>                  <span class="n">spatial_axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;slice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                  <span class="n">spatial_axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'frequency'</span><span class="p">,</span> <span class="s1">'phase'</span><span class="p">,</span> <span class="s1">'slice'</span><span class="p">],</span>
 <span class="gp">... </span>                  <span class="n">array</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
 <span class="gp">... </span>                           <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
 <span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
@@ -992,7 +998,7 @@ spatial image axes to which the first, second and third column of the
 <span class="gp">... </span>                           <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
 <span class="gp">... </span>                           <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 <span class="gp">... </span>                          <span class="p">]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="s1">&#39;q_vector&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="s1">'q_vector'</span><span class="p">][</span><span class="s1">'array'</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(10, 3)</span>
 </pre></div>
 </div>
@@ -1025,7 +1031,7 @@ array should be of shape (S,) where S is the number of slices. Each value
 <span class="math notranslate nohighlight">\(a_i\)</span> represents the time of acquisition of slice <span class="math notranslate nohighlight">\(i\)</span>, relative to the start
 of the volume, in milliseconds. For example, to specify an ascending
 sequential slice acquisition scheme:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">],</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'slice'</span><span class="p">],</span>
 <span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -1047,7 +1053,7 @@ acquisition of the run.</p>
 <p>These values can be useful for recording runs with missing or otherwise
 not-continuous time data.</p>
 <p>We use “time” as the axis name, but any name is valid.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'time'</span><span class="p">],</span>
 <span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">480</span><span class="p">,</span> <span class="mi">600</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -1063,7 +1069,7 @@ and can have any value.</p>
 <p>When <cite>acquisition_times`</cite> applies to both a slice and a volume axis, it is a
 list of times of acquisition of each slice in each volume in milliseconds
 relative to the beginning of the acquisition of the run.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'slice'</span><span class="p">,</span> <span class="s1">'time'</span><span class="p">],</span>
 <span class="gp">... </span>               <span class="n">acquisition_times</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">],</span>
 <span class="gp">... </span>                                    <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">210</span><span class="p">],</span>
 <span class="gp">... </span>                                    <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">220</span><span class="p">],</span>
@@ -1082,11 +1088,11 @@ acquisition times from <code class="docutils literal notranslate"><span class="p
 <h3><code class="docutils literal notranslate"><span class="pre">axis_meanings</span></code> field<a class="headerlink" href="#axis-meanings-field" title="Link to this heading">#</a></h3>
 <p>So far we are allowing any axis to be a slice or volume axis, but it might be
 nice to check.  One way of doing this is:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mytime&#39;</span><span class="p">],</span>
-<span class="gp">... </span>               <span class="n">axis_meanings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'mytime'</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">axis_meanings</span><span class="o">=</span><span class="p">[</span><span class="s2">"volume"</span><span class="p">,</span> <span class="s2">"time"</span><span class="p">],</span>
 <span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">480</span><span class="p">,</span> <span class="mi">600</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;myslice&#39;</span><span class="p">],</span>
-<span class="gp">... </span>               <span class="n">axis_meanings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;slice&quot;</span><span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'myslice'</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">axis_meanings</span><span class="o">=</span><span class="p">[</span><span class="s2">"slice"</span><span class="p">],</span>
 <span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
 </pre></div>
 </div>
@@ -1094,42 +1100,42 @@ nice to check.  One way of doing this is:</p>
 meanings that include “slice” or that it applies to an axis with meaning
 “volume”.  For example:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Should raise an error on reading full JSON</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;myslice&#39;</span><span class="p">],</span>
-<span class="gp">... </span>               <span class="n">axis_meanings</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">],</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'myslice'</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="n">axis_meanings</span><span class="o">=</span><span class="p">[</span><span class="s2">"frequency"</span><span class="p">],</span>
 <span class="gp">... </span>               <span class="n">acquisition_times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>Being able to specify meanings that apply to more than one axis might also
 help for the situation where there is more than one frequency axis:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency1&quot;</span><span class="p">,</span> <span class="s2">&quot;frequency2&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency1"</span><span class="p">,</span> <span class="s2">"frequency2"</span><span class="p">,</span> <span class="s2">"slice"</span><span class="p">,</span> <span class="s2">"time"</span><span class="p">],</span>
 <span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency1&quot;</span><span class="p">],</span>
-<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency2&quot;</span><span class="p">],</span>
-<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">],</span>
-<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;slice&quot;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
-<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency1"</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency2"</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"slice"</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'time'</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"time"</span><span class="p">,</span> <span class="s2">"volume"</span><span class="p">]),</span>
 <span class="gp">... </span>           <span class="p">])</span>
 </pre></div>
 </div>
 <p>We can also check that space axes really are space axes:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="s2">"phase"</span><span class="p">,</span> <span class="s2">"slice"</span><span class="p">,</span> <span class="s2">"time"</span><span class="p">],</span>
 <span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">],</span>
-<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;space&quot;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">],</span>
-<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;space&quot;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;slice&quot;</span><span class="p">],</span>
-<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="s2">&quot;space&quot;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
-<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">]),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="s2">"space"</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"phase"</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"phase"</span><span class="p">,</span> <span class="s2">"space"</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"slice"</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"slice"</span><span class="p">,</span> <span class="s2">"space"</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"time"</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="n">axis_meanings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"time"</span><span class="p">,</span> <span class="s2">"volume"</span><span class="p">]),</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s2">"time"</span><span class="p">],</span>
 <span class="gp">... </span>                    <span class="n">q_vector</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-<span class="gp">... </span>                       <span class="n">spatial_axes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;frequency&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;slice&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                       <span class="n">spatial_axes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="s2">"phase"</span><span class="p">,</span> <span class="s2">"slice"</span><span class="p">],</span>
 <span class="gp">... </span>                       <span class="n">array</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]))</span>
 <span class="gp">... </span>               <span class="p">])</span>
@@ -1165,9 +1171,9 @@ affines.</p>
 have (T x 3 x 4) <code class="docutils literal notranslate"><span class="pre">array</span></code> of affines, with one for each volume / time point,
 and a <code class="docutils literal notranslate"><span class="pre">spatial_axes</span></code> field specifying the input axes for the affine.  This
 is the same general idea as the <cite>q_vector</cite> field:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'time'</span><span class="p">],</span>
 <span class="gp">... </span>               <span class="n">multi_affine</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-<span class="gp">... </span>                   <span class="n">spatial_axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;slice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                   <span class="n">spatial_axes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'frequency'</span><span class="p">,</span> <span class="s1">'phase'</span><span class="p">,</span> <span class="s1">'slice'</span><span class="p">],</span>
 <span class="gp">... </span>                   <span class="n">array</span> <span class="o">=</span> <span class="p">[[[</span>   <span class="mf">2.86</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.7</span> <span class="p">,</span>    <span class="mf">0.83</span><span class="p">,</span>  <span class="o">-</span><span class="mf">80.01</span><span class="p">],</span>
 <span class="gp">... </span>                              <span class="p">[</span>   <span class="mf">0.71</span><span class="p">,</span>    <span class="mf">2.91</span><span class="p">,</span>    <span class="mf">0.01</span><span class="p">,</span> <span class="o">-</span><span class="mf">114.59</span><span class="p">],</span>
 <span class="gp">... </span>                              <span class="p">[</span>  <span class="o">-</span><span class="mf">0.54</span><span class="p">,</span>    <span class="mf">0.13</span><span class="p">,</span>    <span class="mf">4.42</span><span class="p">,</span>  <span class="o">-</span><span class="mf">54.34</span><span class="p">]],</span>
@@ -1183,7 +1189,7 @@ is the same general idea as the <cite>q_vector</cite> field:</p>
 <span class="gp">... </span>                             <span class="p">[[</span>   <span class="mf">2.95</span><span class="p">,</span>   <span class="o">-</span><span class="mf">0.44</span><span class="p">,</span>    <span class="mf">0.49</span><span class="p">,</span>  <span class="o">-</span><span class="mf">77.86</span><span class="p">],</span>
 <span class="gp">... </span>                              <span class="p">[</span>   <span class="mf">0.3</span> <span class="p">,</span>    <span class="mf">2.78</span><span class="p">,</span>    <span class="mf">1.62</span><span class="p">,</span> <span class="o">-</span><span class="mf">125.83</span><span class="p">],</span>
 <span class="gp">... </span>                              <span class="p">[</span>  <span class="o">-</span><span class="mf">0.46</span><span class="p">,</span>   <span class="o">-</span><span class="mf">1.03</span><span class="p">,</span>    <span class="mf">4.17</span><span class="p">,</span>  <span class="o">-</span><span class="mf">21.66</span><span class="p">]]]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="s1">&#39;multi_affine&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="s1">'multi_affine'</span><span class="p">][</span><span class="s1">'array'</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(5, 3, 4)</span>
 </pre></div>
 </div>
@@ -1194,12 +1200,12 @@ columns is still correctly encoded in the <code class="docutils literal notransl
 <p>Another option would be to partially follow the <a class="reference external" href="http://teem.sourceforge.net/nrrd/format.html">NRRD format</a> in giving the column vectors
 from the affine to the axis to which they apply, and split the translation
 into a separate offset vector:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">&#39;1.0&#39;</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">],</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hdr</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nipy_header_version</span><span class="o">=</span><span class="s1">'1.0'</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">axis_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"time"</span><span class="p">],</span>
 <span class="gp">... </span>           <span class="n">axis_metadata</span> <span class="o">=</span> <span class="p">[</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'time'</span><span class="p">],</span>
 <span class="gp">... </span>                    <span class="n">output_vector</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-<span class="gp">... </span>                       <span class="n">spatial_axis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;frequency&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                       <span class="n">spatial_axis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'frequency'</span><span class="p">],</span>
 <span class="gp">... </span>                       <span class="n">array</span> <span class="o">=</span> <span class="p">[</span>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="mf">2.86</span><span class="p">,</span> <span class="mf">0.71</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.54</span><span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="mf">2.87</span><span class="p">,</span> <span class="mf">0.31</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.82</span><span class="p">],</span>
@@ -1207,9 +1213,9 @@ into a separate offset vector:</p>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="mf">2.93</span><span class="p">,</span> <span class="mf">0.4</span> <span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span> <span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="mf">2.95</span><span class="p">,</span> <span class="mf">0.3</span> <span class="p">,</span> <span class="o">-</span><span class="mf">0.46</span><span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">])),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'time'</span><span class="p">],</span>
 <span class="gp">... </span>                    <span class="n">output_vector</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-<span class="gp">... </span>                       <span class="n">spatial_axis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                       <span class="n">spatial_axis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'phase'</span><span class="p">],</span>
 <span class="gp">... </span>                       <span class="n">array</span> <span class="o">=</span> <span class="p">[</span>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="o">-</span><span class="mf">0.7</span> <span class="p">,</span> <span class="mf">2.91</span><span class="p">,</span>  <span class="mf">0.13</span><span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="o">-</span><span class="mf">0.38</span><span class="p">,</span> <span class="mf">2.97</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span> <span class="p">],</span>
@@ -1217,9 +1223,9 @@ into a separate offset vector:</p>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="o">-</span><span class="mf">0.5</span> <span class="p">,</span> <span class="mf">2.9</span> <span class="p">,</span> <span class="o">-</span><span class="mf">0.59</span><span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="o">-</span><span class="mf">0.44</span><span class="p">,</span> <span class="mf">2.78</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.03</span><span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">])),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'time'</span><span class="p">],</span>
 <span class="gp">... </span>                    <span class="n">output_vector</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-<span class="gp">... </span>                       <span class="n">spatial_axis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;slice&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                       <span class="n">spatial_axis</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'slice'</span><span class="p">],</span>
 <span class="gp">... </span>                       <span class="n">array</span> <span class="o">=</span> <span class="p">[</span>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="mf">0.83</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">4.42</span><span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="mf">1.19</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">,</span> <span class="mf">4.32</span><span class="p">],</span>
@@ -1227,7 +1233,7 @@ into a separate offset vector:</p>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="mf">0.61</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">,</span> <span class="mf">4.35</span><span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">[</span> <span class="mf">0.49</span><span class="p">,</span> <span class="mf">1.62</span><span class="p">,</span> <span class="mf">4.17</span><span class="p">],</span>
 <span class="gp">... </span>                                <span class="p">])),</span>
-<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="nb">dict</span><span class="p">(</span><span class="n">applies_to</span><span class="o">=</span><span class="p">[</span><span class="s1">'time'</span><span class="p">],</span>
 <span class="gp">... </span>                    <span class="n">output_offset</span> <span class="o">=</span> <span class="p">[</span>
 <span class="gp">... </span>                             <span class="p">[</span> <span class="o">-</span><span class="mf">80.01</span><span class="p">,</span> <span class="o">-</span><span class="mf">114.59</span><span class="p">,</span> <span class="o">-</span><span class="mf">54.34</span><span class="p">],</span>
 <span class="gp">... </span>                             <span class="p">[</span> <span class="o">-</span><span class="mf">92.77</span><span class="p">,</span> <span class="o">-</span><span class="mf">110.87</span><span class="p">,</span> <span class="o">-</span><span class="mf">33.89</span><span class="p">],</span>
@@ -1236,13 +1242,13 @@ into a separate offset vector:</p>
 <span class="gp">... </span>                             <span class="p">[</span> <span class="o">-</span><span class="mf">77.86</span><span class="p">,</span> <span class="o">-</span><span class="mf">125.83</span><span class="p">,</span> <span class="o">-</span><span class="mf">21.66</span><span class="p">],</span>
 <span class="gp">... </span>                             <span class="p">])],</span>
 <span class="gp">... </span>          <span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;output_vector&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">'axis_metadata'</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">'output_vector'</span><span class="p">][</span><span class="s1">'array'</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(5, 3)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;output_vector&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">'axis_metadata'</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">'output_vector'</span><span class="p">][</span><span class="s1">'array'</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(5, 3)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;output_vector&#39;</span><span class="p">][</span><span class="s1">&#39;array&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">'axis_metadata'</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="s1">'output_vector'</span><span class="p">][</span><span class="s1">'array'</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(5, 3)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">&#39;axis_metadata&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="s1">&#39;output_offset&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hdr</span><span class="p">[</span><span class="s1">'axis_metadata'</span><span class="p">][</span><span class="mi">3</span><span class="p">][</span><span class="s1">'output_offset'</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
 <span class="go">(5, 3)</span>
 </pre></div>
 </div>
@@ -1287,7 +1293,7 @@ into a separate offset vector:</p>
             
             
               
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
                 <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
 
@@ -1357,8 +1363,8 @@ into a separate offset vector:</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../_static/scripts/bootstrap.js?digest=7f76b32a3354e82990f2"></script>
-<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=7f76b32a3354e82990f2"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1378,8 +1384,7 @@ into a separate offset vector:</p>
         <div class="footer-item">
 
   <p class="sphinx-version">
-    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
-    <br/>
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.2.0.
   </p>
 </div>
       
@@ -1392,7 +1397,7 @@ into a separate offset vector:</p>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.17.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
 </p></div>
       
     </div>
