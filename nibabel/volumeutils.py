@@ -450,26 +450,16 @@ def array_from_file(
     in_dtype = np.dtype(in_dtype)
     # Get file-like object from Opener instance
     infile = getattr(infile, 'fobj', infile)
-    if mmap and not _is_compressed_fobj(infile):
-        mode = 'c' if mmap is True else mmap
-        try:  # Try memmapping file on disk
-            return np.memmap(infile, in_dtype, mode=mode, shape=shape, order=order, offset=offset)
-            # The error raised by memmap, for different file types, has
-            # changed in different incarnations of the numpy routine
-        except (AttributeError, TypeError, ValueError):
-            pass
-    if len(shape) == 0:
-        return np.array([], in_dtype)
     # Use reduce and mul to work around numpy integer overflow
-    n_bytes = reduce(mul, shape) * in_dtype.itemsize
-    if n_bytes == 0:
-        return np.array([], in_dtype)
-    # Check there is enough data in the file before allocating a buffer for it.
-    # Otherwise a small file whose header claims a huge shape makes us allocate
-    # memory for data that isn't there.  Only done for uncompressed streams,
-    # where seeking to the end is cheap; for compressed streams it would mean
-    # decompressing the whole file.
-    if not _is_compressed_fobj(infile):
+    n_bytes = reduce(mul, shape) * in_dtype.itemsize if len(shape) else 0
+    # Check there is enough data in the file before memory-mapping it or
+    # allocating a buffer for it.  Otherwise a small file whose header claims a
+    # huge shape makes us allocate memory for data that isn't there, and memmap
+    # fails with platform-specific errors (OSError on Windows, OverflowError on
+    # 32-bit) instead of the ValueError caught below.  Only done for
+    # uncompressed streams, where seeking to the end is cheap; for compressed
+    # streams it would mean decompressing the whole file.
+    if n_bytes and not _is_compressed_fobj(infile):
         try:
             infile.seek(0, 2)
             n_available = max(infile.tell() - offset, 0)
@@ -480,6 +470,16 @@ def array_from_file(
         else:
             if n_available < n_bytes:
                 raise OSError(_short_read_message(n_bytes, n_available, infile))
+    if mmap and not _is_compressed_fobj(infile):
+        mode = 'c' if mmap is True else mmap
+        try:  # Try memmapping file on disk
+            return np.memmap(infile, in_dtype, mode=mode, shape=shape, order=order, offset=offset)
+            # The error raised by memmap, for different file types, has
+            # changed in different incarnations of the numpy routine
+        except (AttributeError, TypeError, ValueError):
+            pass
+    if n_bytes == 0:
+        return np.array([], in_dtype)
     # Read data from file
     infile.seek(offset)
     if hasattr(infile, 'readinto'):
