@@ -165,6 +165,7 @@ def test_set_zooms():
         (1, 1, -1, 1),
         (1, 1, 1, -1),
         (1, 1, 1, 1, 5),
+        (1, 1),  # too few zooms to cover the 3 spatial dimensions
     ):
         with pytest.raises(HeaderDataError):
             h.set_zooms(zooms)
