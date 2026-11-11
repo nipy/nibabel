@@ -49,14 +49,17 @@ class Minc1File:
         self._mincfile = mincfile
         self._image = mincfile.variables['image']
         self._dim_names = self._image.dimensions
-        # The code below will error with vector_dimensions.  See:
+        # vector_dimension has no associated coordinate variable.  See:
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#An_Introduction_to_NetCDF
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_dimensions
-        self._dims = [self._mincfile.variables[s] for s in self._dim_names]
+        self._dims = [
+            None if s == 'vector_dimension' else self._mincfile.variables[s]
+            for s in self._dim_names
+        ]
         # We don't currently support irregular spacing
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
         for dim in self._dims:
-            if dim.spacing != b'regular__':
+            if dim is not None and dim.spacing != b'regular__':
                 raise ValueError('Irregular spacing not supported')
         self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
         # the MINC standard appears to allow the following variables to
