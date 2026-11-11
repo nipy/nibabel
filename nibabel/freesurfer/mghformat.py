@@ -285,11 +285,7 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
         hdr = self._structarr
         zooms = np.asarray(zooms)
         ndims = self._ndims()
-        # ponytail: MGH header stores exactly 3 spatial zooms (+ optional TR),
-        # so fewer than 3 values can't be mapped onto 'delta' -- reject early
-        # with a clear HeaderDataError instead of a confusing numpy broadcast
-        # error from the `hdr['delta'] = zooms[:3]` assignment below.
-        if len(zooms) < 3 or len(zooms) > ndims:
+        if not 3 <= len(zooms) <= ndims:
             raise HeaderDataError(f'Expecting {ndims} zoom values')
         if np.any(zooms[:3] <= 0):
             raise HeaderDataError(
