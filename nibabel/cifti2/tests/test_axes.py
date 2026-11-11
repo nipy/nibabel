@@ -554,6 +554,30 @@ def test_parcels():
         )
 
 
+@pytest.mark.parametrize('separator', ['surface', 'volume'])
+def test_parcels_from_repeated_surface_structures(separator):
+    left = axes.BrainModelAxis.from_surface([7, 1, 8, 3], 10, 'CortexLeft')
+    if separator == 'surface':
+        middle = axes.BrainModelAxis.from_surface([2, 4], 6, 'CortexRight')
+    else:
+        middle = axes.BrainModelAxis.from_mask(np.ones((1, 1, 2)), 'ThalamusLeft')
+    brain_model = left[:2] + middle + left[2:]
+
+    parcels = axes.ParcelsAxis.from_brain_models([('mixed', brain_model), ('left', left[:2])])
+
+    np.testing.assert_array_equal(parcels.vertices[0]['CIFTI_STRUCTURE_CORTEX_LEFT'], left.vertex)
+    np.testing.assert_array_equal(parcels.vertices[1]['CIFTI_STRUCTURE_CORTEX_LEFT'], [7, 1])
+    np.testing.assert_array_equal(parcels.voxels[0], middle.voxel[middle.volume_mask])
+    assert parcels.nvertices == brain_model.nvertices
+    assert parcels.volume_shape == brain_model.volume_shape
+    if separator == 'surface':
+        np.testing.assert_array_equal(parcels.vertices[0]['CIFTI_STRUCTURE_CORTEX_RIGHT'], [2, 4])
+    else:
+        np.testing.assert_array_equal(parcels.affine, brain_model.affine)
+    assert axes.ParcelsAxis.from_index_mapping(parcels.to_mapping(0)) == parcels
+    check_rewrite(np.ones((2, 1)), (parcels, axes.ScalarAxis(['value'])))
+
+
 def test_scalar():
     """
     Test the introspection and creation of CIFTI-2 ScalarAxis axes
