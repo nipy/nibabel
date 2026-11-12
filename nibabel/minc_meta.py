@@ -208,6 +208,20 @@ class MincMeta:
     resolution_levels: Mapping[int, tuple[int, ...]] = _EMPTY
 
     @property
+    def is_label(self):
+        """True for a label volume
+
+        MINC2 label volumes have the class ``label__`` and label names;
+        libminc's MINC1 has no label volumes, but marks label data with the
+        study modality ``label``.
+        """
+        study = self.variables.get('study')
+        modality = '' if study is None else study.attrs.get('modality', '')
+        return (
+            bool(self.labels) or self.global_attrs.get('class') == 'label__' or modality == 'label'
+        )
+
+    @property
     def history(self):
         """Text of the global ``history`` attribute, or ``''``"""
         history = self.global_attrs.get('history', '')

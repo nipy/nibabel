@@ -243,10 +243,19 @@ def test_labels(tmp_path):
         write_minc2(data.astype(np.float32), np.eye(4), fname, labels=LABELS)
     with pytest.raises(MincWriteError):
         write_minc2(data.astype(int) * 100, np.eye(4), fname, labels=LABELS, dtype=np.uint8)
-    # MINC1 has no labels
-    with pytest.warns(UserWarning, match='label names'):
+    # MINC1 has no label names, so the writer refuses them, unless asked to
+    # write the values only
+    assert img.minc_meta.is_label
+    with pytest.raises(MincWriteError, match='label names'):
         save(Minc1Image.from_image(img), out)
+    with pytest.raises(MincWriteError, match='label names'):
+        write_minc1(data, np.eye(4), out, labels=LABELS)
+    save(Minc1Image.from_image(img), out, labels={})
     assert_array_equal(load(out).get_fdata(), data)
+    assert load(out).minc_meta.labels is None
+    # libminc's MINC1 marks label data with the study modality "label"
+    write_minc1(data, np.eye(4), out)
+    assert not load(out).minc_meta.is_label
 
 
 @pytest.mark.skipif(not have_h5py or not have_sitk, reason='Need h5py and SimpleITK')

@@ -866,3 +866,14 @@ def test_libminc_resolution_levels_round_trip(tmp_path):
             path = f'minc-2.0/image/1/{name}'
             assert_allclose(ours[path][()], theirs[path][()], atol=1)
     assert_allclose(_mincstats(SIF_TOOLS, out), _mincstats(SIF_TOOLS, fname), rtol=1e-6)
+
+
+def test_libminc_minc1_labels(tmp_path):
+    # libminc cannot write a MINC2 label volume to MINC1 either: mincconvert
+    # fails on the enumerated type that holds the names
+    _need(SIF_TOOLS, 'mincconvert', minc2=True)
+    data = (np.arange(60) % 4).astype(np.uint8).reshape((3, 4, 5))
+    fname = str(tmp_path / 'labels.mnc')
+    write_minc2(data, np.eye(4), fname, labels={0: 'a', 1: 'b', 2: 'c', 3: 'd'})
+    result = SIF_TOOLS.run('mincconvert', fname, str(tmp_path / 'labels1.mnc'), check=False)
+    assert 'Unknown type class' in result.stdout + result.stderr

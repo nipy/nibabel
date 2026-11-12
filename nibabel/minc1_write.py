@@ -97,6 +97,7 @@ def write_minc1(
     dimension_names=None,
     record_dimension=None,
     levels=None,
+    labels=None,
 ):
     """Write `data` and `affine` to a MINC1 file
 
@@ -126,9 +127,11 @@ def write_minc1(
         ``start`` and ``step`` of the time dimension of a 4D image.
     metadata : MincMeta, optional
         Metadata to copy, from a MINC1 or a MINC2 file, as for
-        :func:`~nibabel.minc2_write.write_minc2`.  Nested MINC2 info groups
-        and MINC2 labels, which MINC1 cannot hold, are left out with a
-        warning.
+        :func:`~nibabel.minc2_write.write_minc2`.  Nested MINC2 info groups,
+        which MINC1 cannot hold, are left out with a warning, as libminc's
+        conversion leaves them out.  MINC2 label names, record dimensions
+        and resolution levels, which libminc cannot write to MINC1 either,
+        raise an error; see `labels`, `record_dimension` and `levels`.
 
     vector_dimension : bool, optional
         If true, the last axis of `data` is the MINC ``vector_dimension``,
@@ -160,6 +163,12 @@ def write_minc1(
         to MINC1, so levels raise an error.  They come by default from
         `metadata` of a MINC2 file with levels; pass 0 to write the full
         resolution only.
+    labels : dict, optional
+        MINC1 has no label names (libminc's label functions need MINC2), so
+        labels raise an error.  They come by default from `metadata` of a
+        MINC2 label volume; pass ``{}`` to write the label values without
+        names.
+
     Returns
     -------
     None
@@ -185,8 +194,15 @@ def write_minc1(
         dimension_names=dimension_names,
         record_dimension=record_dimension,
         levels=levels,
+        labels=labels,
         command=f'write_minc1 {os.fspath(target)}',
     )
+    if layout.labels:
+        raise MincWriteError(
+            'MINC1 cannot hold label names: libminc keeps them in an HDF5 type, and its '
+            'label functions work on MINC2 only; pass labels={} to write the label values '
+            'without names'
+        )
     if layout.levels:
         raise MincWriteError(
             'MINC1 has no lower resolution levels, and libminc cannot write them to MINC1; '
@@ -359,8 +375,6 @@ def _netcdf_bytes(layout):
         attrs['children'] = '\n'.join(children)
         _set_attrs(root, attrs)
 
-    if layout.metadata is not None and layout.metadata.labels:
-        warnings.warn('MINC1 cannot hold the label names of a MINC2 label volume; left out')
     nc_dtype, signtype = _nc_type(layout.raw.dtype)
     image = ncfile.createVariable('image', nc_dtype, dimorder)
     _assign(image, layout.raw.view(nc_dtype))
