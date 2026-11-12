@@ -262,11 +262,10 @@ Testing
 *******
 
 The tests compare every attribute of files before and after a load and save,
-in both formats and across them, for nibabel's test files and for the
-``.mnc`` files in the directories of the ``NIBABEL_MINC_TEST_DIRS``
-environment variable.  They run the MINC tools on the ``PATH``, and those of a
-minc-toolkit-v2 Apptainer image named by the ``MINC_TOOLKIT_SIF`` environment
-variable, if present; SimpleITK checks run if SimpleITK is installed.
+in both formats and across them, for nibabel's MINC test files.  They run the
+MINC tools on the ``PATH``, and those of a minc-toolkit-v2 Apptainer image
+named by the ``MINC_TOOLKIT_SIF`` environment variable, if present; SimpleITK
+checks run if SimpleITK is installed.
 
 .. testcleanup::
 

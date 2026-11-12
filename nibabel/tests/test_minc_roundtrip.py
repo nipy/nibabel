@@ -13,17 +13,13 @@ the other, and loaded again.  Walking the two
 files, every group, attribute and small dataset must be the same, except for
 those a writer must change: ``ident``, ``minc_version`` and the history line
 that is appended.  The scaling (image-min, image-max and valid_range) may
-differ in form, but the data read back must be identical.
-
-Besides nibabel's test files, the files in the directories listed in the
-``NIBABEL_MINC_TEST_DIRS`` environment variable (separated by ``os.pathsep``)
-are checked as well.
+differ in form, but the data read back must be identical.  The files are
+nibabel's MINC test files.
 
 The SimpleITK tests read the written files with ITK's libminc, which reads
 MINC2 with HDF5 support.
 """
 
-import os
 import shutil
 from glob import glob
 from os.path import basename
@@ -64,15 +60,11 @@ CORRECTED = {
 
 
 def _test_files(magic):
-    dirs = [data_path] + [
-        d for d in os.environ.get('NIBABEL_MINC_TEST_DIRS', '').split(os.pathsep) if d
-    ]
     fnames = []
-    for dirname in dirs:
-        for fname in sorted(glob(pjoin(dirname, '*.mnc'))):
-            with open(fname, 'rb') as fobj:
-                if fobj.read(4) == magic:
-                    fnames.append(fname)
+    for fname in sorted(glob(pjoin(data_path, '*.mnc'))):
+        with open(fname, 'rb') as fobj:
+            if fobj.read(4) == magic:
+                fnames.append(fname)
     return fnames
 
 
