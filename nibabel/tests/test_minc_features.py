@@ -256,3 +256,50 @@ def test_labels_sitk(tmp_path):
     fname = tmp_path / 'img.mnc'
     write_minc2(data, np.eye(4), fname, labels=LABELS)
     assert_array_equal(sitk.GetArrayFromImage(sitk.ReadImage(str(fname))), data.transpose())
+
+
+def test_minc1_defaults(tmp_path):
+    # Without image-min / image-max, real values are the stored values;
+    # without signtype, bytes are unsigned and other integers signed
+    data = np.arange(60).reshape((3, 4, 5)) * 4
+    for dtype in (np.uint8, np.int16):
+        fname = tmp_path / 'img.mnc'
+        write_minc1(data.astype(dtype), np.eye(4), fname)
+        nc = _netcdf(fname)
+        variables = dict(nc.variables)
+        del variables['image-max'], variables['image-min']
+        nc.variables = variables
+        del nc.variables['image']._attributes['signtype']
+        del nc.variables['image']._attributes['valid_range']
+        bio = BytesIO()
+        out = netcdf_file(bio, 'w')
+        for name, length in nc.dimensions.items():
+            out.createDimension(name, length)
+        for name, var in nc.variables.items():
+            new = out.createVariable(name, var.data.dtype, var.dimensions)
+            new[...] = var.data
+            for key, value in var._attributes.items():
+                setattr(new, key, value)
+        out.flush()
+        with open(fname, 'wb') as fobj:
+            fobj.write(bio.getvalue())
+        del nc
+        img = load(fname)
+        assert img.get_data_dtype().newbyteorder('=') == dtype
+        assert_array_equal(img.get_fdata(), data)
+
+
+@needs_h5py
+def test_minc2_without_scaling(tmp_path):
+    data = np.arange(60, dtype=np.int16).reshape((3, 4, 5)) - 30
+    fname = tmp_path / 'img.mnc'
+    write_minc2(data, np.eye(4), fname)
+    with h5py.File(fname, 'r+') as h5f:
+        group = h5f['minc-2.0/image/0']
+        del group['image-max'], group['image-min']
+    img = load(fname)
+    assert img.minc_meta.scaling_dims is None
+    assert_array_equal(img.get_fdata(), data)
+    out = tmp_path / 'out.mnc'
+    save(img, out)
+    assert_array_equal(load(out).get_fdata(), data)

@@ -82,8 +82,8 @@ class Minc2File(Minc1File):
 
         self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
         self._check_irregular()
-        self._image_max = image['image-max']
-        self._image_min = image['image-min']
+        self._image_max = image.get('image-max')
+        self._image_min = image.get('image-min')
 
     def _get_dimensions(self, var):
         # Dimensions for a particular variable

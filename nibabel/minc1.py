@@ -78,8 +78,9 @@ class Minc1File:
         # be undefined.
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_conversion_variables
         # It wasn't immediately obvious what the defaults were.
-        self._image_max = self._mincfile.variables['image-max']
-        self._image_min = self._mincfile.variables['image-min']
+        # Without them, real values are the stored values, as in libminc
+        self._image_max = self._mincfile.variables.get('image-max')
+        self._image_min = self._mincfile.variables.get('image-min')
 
     def _get_dimensions(self, var):
         # Dimensions for a particular variable
@@ -94,7 +95,11 @@ class Minc1File:
         elif typecode == 'd':
             dtt = np.dtype(np.float64)
         else:
-            signtype = self._image.signtype.decode('latin-1')
+            # Without a valid signtype, bytes are unsigned and other
+            # integers signed, as in libminc
+            signtype = getattr(self._image, 'signtype', b'').decode('latin-1')
+            if signtype not in ('signed__', 'unsigned'):
+                signtype = 'unsigned' if typecode == 'b' else 'signed__'
             dtt = _dt_dict[(typecode, signtype)]
         return np.dtype(dtt).newbyteorder('>')
 
@@ -219,6 +224,9 @@ class Minc1File:
             return data
         image_max = self._image_max
         image_min = self._image_min
+        dmin, dmax = self._get_valid_range()
+        if image_max is None or image_min is None:
+            return np.clip(data, dmin, dmax).astype(np.float64)
         mx_dims = self._get_dimensions(image_max)
         mn_dims = self._get_dimensions(image_min)
         if mx_dims != mn_dims:
@@ -228,7 +236,6 @@ class Minc1File:
             raise MincError('More than two scaling dimensions')
         if mx_dims != self._dim_names[:nscales]:
             raise MincError('image-max and image dimensions do not match')
-        dmin, dmax = self._get_valid_range()
         out_data = np.clip(data, dmin, dmax)
         if nscales == 0:  # scalar values
             imax = self._get_scalar(image_max)
@@ -497,6 +504,8 @@ def _proxy_scaling(dataobj, out_dtype):
         return None
     image_min = minc_file._image_min
     image_max = minc_file._image_max
+    if image_min is None or image_max is None:
+        return None
     if minc_file._get_dimensions(image_min):
         image_min = np.array(minc_file._get_array(image_min), dtype=np.float64)
         image_max = np.array(minc_file._get_array(image_max), dtype=np.float64)
