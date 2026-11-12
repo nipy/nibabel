@@ -319,6 +319,29 @@ def test_write_metadata(tmp_path):
         assert h5f['minc-2.0/image/0/image'].attrs['version'] == b'MINC Version    2.0'
 
 
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_history_appended(tmp_path):
+    meta = load(pjoin(data_path, 'minc2_1_scale.mnc')).minc_meta
+    old = meta.history
+    assert old.endswith('\n')
+    fname = tmp_path / 'img.mnc'
+    write_minc2(np.zeros((2, 3, 4)), np.eye(4), fname, metadata=meta)
+    with h5py.File(fname, 'r') as h5f:
+        history = h5f['minc-2.0'].attrs['history'].decode()
+    assert history.startswith(old)
+    assert history[len(old) :].endswith(f'>>> write_minc2 {fname}\n')
+    assert history.count('\n') == old.count('\n') + 1
+    # An explicit history replaces the old one
+    write_minc2(np.zeros((2, 3, 4)), np.eye(4), fname, metadata=meta, history='new')
+    with h5py.File(fname, 'r') as h5f:
+        assert h5f['minc-2.0'].attrs['history'] == b'new\n'
+    # Metadata without history gives a single line
+    meta = load(pjoin(data_path, 'minc2-4d-d.mnc')).minc_meta
+    write_minc2(np.zeros((2, 3, 4, 5)), np.eye(4), fname, metadata=meta)
+    with h5py.File(fname, 'r') as h5f:
+        assert h5f['minc-2.0'].attrs['history'].decode().count('\n') == 1
+
+
 # Tests against the MINC tools
 
 

@@ -150,9 +150,9 @@ def write_minc2(
         Stored data type: one of uint8, int16, uint16, int32, float32 and
         float64.  Default is the data type of `data`.
     history : str, optional
-        Text of the ``history`` attribute.  Default is a single libminc style
-        line, ``'<ctime>>>> write_minc2 <filename>'``.  A string not ending
-        in a newline gets one.
+        Text of the ``history`` attribute.  Default is a libminc style line,
+        ``'<ctime>>>> write_minc2 <filename>'``, appended to the history of
+        `metadata`, if any.  A string not ending in a newline gets one.
     scaling : tuple, optional
         ``(image_min, image_max, valid_range)`` for integer output, where
         `image_min` and `image_max` are scalars or arrays covering the first

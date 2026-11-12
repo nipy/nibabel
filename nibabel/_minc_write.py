@@ -327,7 +327,8 @@ def build_layout(
     ``spacing``), the scaling (``valid_range`` and the image-min /
     image-max variables) and the attributes that describe the file
     structure (``dimorder``, ``signtype`` and the MINC1 links between
-    variables).
+    variables).  The default history line is appended to the history of
+    `metadata`, as libminc tools do.
 
     Returns
     -------
@@ -360,6 +361,11 @@ def build_layout(
 
     if history is None:
         history = make_history_line(command)
+        old_history = '' if metadata is None else metadata.history
+        if old_history:
+            if not old_history.endswith('\n'):
+                old_history += '\n'
+            history = old_history + history
     elif not history.endswith('\n'):
         history += '\n'
 
