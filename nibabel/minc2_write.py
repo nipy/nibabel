@@ -51,9 +51,20 @@ libminc does by default: one value per index of all but the two fastest
 varying dimensions (one per ``zspace`` slice for a 3D ``zspace, yspace,
 xspace`` image; a ``(time, slice)`` array for a 4D image).
 
-The data are stored unscaled as floating point (float32 or float64); the
-image-min / image-max hold the slice minima and maxima, and ``valid_range``
-the minimum and maximum of the whole volume.
+* Floating point output (float32, float64) stores the data unscaled; the
+  image-min / image-max hold the slice minima and maxima, and ``valid_range``
+  the minimum and maximum of the whole volume.
+* Integer output (uint8, int16, uint16, int32) has ``valid_range`` equal to
+  the range of the type.  If every value is an integer within that range,
+  the data are stored unscaled (image-min and image-max equal the valid
+  range, so that the scale factor is exactly 1).  Otherwise each slice is
+  scaled linearly from its own minimum and maximum onto the valid range and
+  rounded to the nearest integer, so the error per voxel is at most half a
+  quantisation step of its slice.
+* Integer output with explicit ``scaling=(image_min, image_max,
+  valid_range)`` uses those values as given.  Re-writing the real values
+  that nibabel read from a file with that file's scaling reproduces the
+  stored integers, and hence the real values, exactly.
 """
 
 import itertools
@@ -63,7 +74,9 @@ import warnings
 import numpy as np
 
 #: Data types that can be written.
-SUPPORTED_DTYPES = (np.dtype(np.float32), np.dtype(np.float64))
+SUPPORTED_DTYPES = tuple(
+    np.dtype(t) for t in (np.uint8, np.int16, np.uint16, np.int32, np.float32, np.float64)
+)
 
 _SPATIAL_NAMES = ('xspace', 'yspace', 'zspace')
 _COMMENTS = {
@@ -181,6 +194,48 @@ def _float_ranges(raw):
     return image_min.astype(np.float64), image_max.astype(np.float64), valid_range
 
 
+def _choose_scaling(data, dtype):
+    """Return image-min, image-max and valid range for integer `dtype`"""
+    info = np.iinfo(dtype)
+    valid_range = (float(info.min), float(info.max))
+    sshape = _slice_shape(data.shape)
+    if data.size == 0:
+        return np.zeros(sshape), np.ones(sshape), valid_range
+    if np.issubdtype(data.dtype, np.integer):
+        integral = True
+    else:
+        if not np.all(np.isfinite(data)):
+            raise Minc2WriteError(f'Cannot write non-finite values as {dtype}')
+        integral = np.array_equal(data, np.rint(data))
+    if integral and data.min() >= info.min and data.max() <= info.max:
+        return np.full(sshape, valid_range[0]), np.full(sshape, valid_range[1]), valid_range
+    image_min = _slice_reduce(np.min, data).astype(np.float64)
+    image_max = _slice_reduce(np.max, data).astype(np.float64)
+    return image_min, image_max, valid_range
+
+
+def _quantise(data, dtype, image_min, image_max, valid_range):
+    """Map real `data` to stored integers, inverting the reader's scaling
+
+    The reader computes ``real = stored * slope + inter`` with ``slope =
+    (imax - imin) / (vmax - vmin)`` and ``inter = imin - vmin * slope``; we
+    compute the same `slope` and `inter` and round.
+    """
+    vmin, vmax = (float(v) for v in valid_range)
+    image_min = np.asarray(image_min, dtype=np.float64)
+    image_max = np.asarray(image_max, dtype=np.float64)
+    bshape = image_min.shape + (1,) * (data.ndim - image_min.ndim)
+    imin = image_min.reshape(bshape)
+    imax = image_max.reshape(bshape)
+    slope = (imax - imin) / (vmax - vmin)
+    inter = imin - vmin * slope
+    real = np.asarray(data, dtype=np.float64)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        raw = np.where(slope != 0, (real - inter) / slope, vmin)
+    raw = np.clip(np.rint(raw), vmin, vmax)
+    return raw.astype(dtype)
+
+
 def _write_dimension(group, name, length, start, step, cosine=None, units='mm'):
     var = group.create_dataset(name, shape=(), dtype='i4')
     _string_attr(var, 'alignment', 'centre')
@@ -211,6 +266,7 @@ def write_minc2(
     affine,
     filename,
     dtype=None,
+    scaling=None,
     time_start=0.0,
     time_step=1.0,
 ):
@@ -228,8 +284,14 @@ def write_minc2(
         Output file name, or a binary file object open for writing and
         seeking (as accepted by ``h5py.File``).
     dtype : numpy dtype specifier, optional
-        Stored data type: float32 or float64.  Default is the data type of
-        `data`.
+        Stored data type: one of uint8, int16, uint16, int32, float32 and
+        float64.  Default is the data type of `data`.
+    scaling : tuple, optional
+        ``(image_min, image_max, valid_range)`` for integer output, where
+        `image_min` and `image_max` are scalars or arrays covering the first
+        0, 1 or 2 axes of `data`, and `valid_range` is ``(vmin, vmax)``.
+        Default chooses the scaling as described in the module docstring.
+        Ignored for floating point output.
     time_start, time_step : float, optional
         ``start`` and ``step`` of the time dimension of a 4D image.
 
@@ -251,8 +313,24 @@ def write_minc2(
     if data.ndim == 4:
         dim_names.insert(0, 'time')
 
-    raw = data.astype(out_dtype)
-    image_min, image_max, valid_range = _float_ranges(raw)
+    if out_dtype.kind == 'f':
+        raw = data.astype(out_dtype)
+        image_min, image_max, valid_range = _float_ranges(raw)
+    else:
+        if scaling is None:
+            image_min, image_max, valid_range = _choose_scaling(data, out_dtype)
+        else:
+            image_min, image_max, valid_range = scaling
+            image_min = np.asarray(image_min, dtype=np.float64)
+            image_max = np.asarray(image_max, dtype=np.float64)
+            if (
+                image_min.shape != image_max.shape
+                or image_min.shape != data.shape[: image_min.ndim]
+            ):
+                raise Minc2WriteError('image-min / image-max do not match the data shape')
+            if image_min.ndim > 2:
+                raise Minc2WriteError('More than two scaling dimensions')
+        raw = _quantise(data, out_dtype, image_min, image_max, valid_range)
 
     def write(h5f):
         _write_groups(
