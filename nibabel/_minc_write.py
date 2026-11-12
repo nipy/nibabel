@@ -84,8 +84,8 @@ STRUCTURE_ATTRS = frozenset(
 #: Global attributes that belong to the file being written
 FILE_ATTRS = frozenset(('ident', 'minc_version', 'history'))
 
-#: Value of MINC variables whose data are not used (the NetCDF int fill)
-MISSING_INT = -2147483647
+#: Value of MINC variables whose data are not used, as libminc 2.4 writes
+MISSING_INT = 0
 
 _ident_count = itertools.count(1)
 

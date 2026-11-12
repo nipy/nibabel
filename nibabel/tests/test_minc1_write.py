@@ -131,13 +131,13 @@ def test_layout(tmp_path):
 
 
 def test_float_valid_range(tmp_path):
-    # libminc writes the valid range of float images as float
+    # libminc writes the valid range of float images as double
     fname = tmp_path / 'img.mnc'
     data = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
     write_minc1(data, np.eye(4), fname)
     nc = _netcdf(fname)
     assert nc.variables['image'].typecode() == 'f'
-    assert nc.variables['image'].valid_range.dtype == np.dtype('>f4')
+    assert nc.variables['image'].valid_range.dtype == np.dtype('>f8')
     assert not hasattr(nc.variables['image'], 'signtype')
     del nc
     assert_array_equal(load(fname).get_fdata(), data)

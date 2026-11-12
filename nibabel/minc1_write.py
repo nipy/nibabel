@@ -332,11 +332,8 @@ def _netcdf_bytes(layout):
     if signtype is not None:
         attrs['signtype'] = signtype
     if 'valid_range' in layout.image_attrs:
-        # libminc writes the valid range as double, except for float images
-        valid_range = np.asarray(layout.image_attrs['valid_range'], dtype=np.float64)
-        if nc_dtype == np.float32:
-            valid_range = valid_range.astype(np.float32)
-        attrs['valid_range'] = valid_range
+        # libminc writes the valid range as double
+        attrs['valid_range'] = np.asarray(layout.image_attrs['valid_range'], dtype=np.float64)
     _set_attrs(image, attrs)
     ncfile.flush()
     contents = buffer.getvalue()
