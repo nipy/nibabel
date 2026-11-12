@@ -47,7 +47,7 @@ def test_convert_noop(tmp_path):
     )
 
 
-@pytest.mark.parametrize('data_dtype', ('u1', 'i2', 'float32', 'float', 'int64'))
+@pytest.mark.parametrize('data_dtype', ['u1', 'i2', 'float32', 'float', 'int64'])
 def test_convert_dtype(tmp_path, data_dtype):
     infile = get_test_data(fname='anatomical.nii')
     outfile = tmp_path / 'output.nii.gz'

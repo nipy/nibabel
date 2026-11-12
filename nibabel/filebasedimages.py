@@ -328,7 +328,7 @@ class FileBasedImage:
         if mapping is None:
             mapping = {}
         file_map = {}
-        for key, ext in klass.files_types:
+        for key, _ext in klass.files_types:
             file_map[key] = FileHolder()
             mapval = mapping.get(key)
             if isinstance(mapval, str):

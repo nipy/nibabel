@@ -102,7 +102,7 @@ def test_lossless_slice_noscaling(tmp_path):
     assert img1.dataobj.inter == img2.dataobj.inter
 
 
-@pytest.mark.parametrize('inplace', (True, False))
+@pytest.mark.parametrize('inplace', [True, False])
 def test_nib_roi(tmp_path, inplace):
     in_file = os.path.join(data_path, 'functional.nii')
     out_file = str(tmp_path / 'sliced.nii')
@@ -134,11 +134,11 @@ def test_nib_roi(tmp_path, inplace):
 
 @pytest.mark.parametrize(
     ('args', 'errmsg'),
-    (
+    [
         (('-i', '1:1'), 'Cannot take zero-length slice'),
         (('-j', '1::2'), 'Downsampling is not supported'),
         (('-t', '5::-1'), 'Step entry not permitted'),
-    ),
+    ],
 )
 def test_nib_roi_bad_slices(capsys, args, errmsg):
     in_file = os.path.join(data_path, 'functional.nii')

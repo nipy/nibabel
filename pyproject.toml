@@ -162,23 +162,15 @@ select = [
     "RUF",
 ]
 ignore = [
-    "B006",   # TODO: enable
-    "B008",   # TODO: enable
-    "B007",
-    "B011",
     "B017",   # TODO: enable
-    "B018",
-    "B020",
     "B023",   # TODO: enable
     "B028",
     "B904",
     "B905",  # Consider: add explicit strict kwarg to zip calls
     "C401",
     "C408",
-    "C416",
     "PIE790",
     "PYI024",
-    "PT007",
     "PT010",  # Consider: Set expected exception in pytest.raises
     "PT011",
     "PT012",
@@ -191,26 +183,23 @@ ignore = [
     "SIM108",
     "SIM115",
     "SIM300",
-    "TC003",  # Consider: Move import into type-checking block
-    "PERF203",
     "RUF005",
-    "RUF007", # Consider: itertools.pairwise(x) over zip(x[:-1], x[1:])
     "RUF012", # TODO: enable
-    "RUF015",
     "RUF017", # TODO: enable
     "RUF059", # Consider: Unpacked variables never used
-    "RUF061", # Consider: Use context-manager form of pytest.raises
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
     "E114",
     "E117",
+    "D203",
     "D206",
     "D300",
     "Q000",
     "Q001",
     "Q002",
     "Q003",
+    "Q004",
     "COM812",
     "COM819",
 ]
@@ -219,7 +208,7 @@ ignore = [
 "__init__.py" = ["F401"]
 "doc/source/conf.py" = ["F401"]
 "tools/profile" = ["F821"]
-"nibabel/**/tests/*.py" = ["SIM117", "SIM118", "SIM201", "SIM202"]
+"nibabel/**/tests/*.py" = ["B006", "B018", "C416", "SIM117", "SIM118", "SIM201", "SIM202"]
 
 [tool.ruff.format]
 quote-style = "single"

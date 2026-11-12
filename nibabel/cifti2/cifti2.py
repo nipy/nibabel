@@ -1060,7 +1060,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
         series_start=None,
         series_step=None,
         series_unit=None,
-        maps=[],
+        maps=None,
     ):
         self.applies_to_matrix_dimension = applies_to_matrix_dimension
         self.indices_map_to_data_type = indices_map_to_data_type
@@ -1069,9 +1069,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
         self.series_start = series_start
         self.series_step = series_step
         self.series_unit = series_unit
-        self._maps = []
-        for m in maps:
-            self.append(m)
+        self._maps = list(maps) if maps else []
 
     def __len__(self):
         return len(self._maps)
@@ -1124,7 +1122,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
     def volume(self, volume):
         if not isinstance(volume, Cifti2Volume):
             raise ValueError('You can only set a volume with a volume')
-        for i, v in enumerate(self):
+        for i, v in enumerate(self):  # noqa: B007  # self is not empty
             if isinstance(v, Cifti2Volume):
                 break
         else:
@@ -1134,7 +1132,7 @@ class Cifti2MatrixIndicesMap(xml.XmlSerializable, MutableSequence):
 
     @volume.deleter
     def volume(self):
-        for i, v in enumerate(self):
+        for i, v in enumerate(self):  # noqa: B007  # self is not empty
             if isinstance(v, Cifti2Volume):
                 break
         else:

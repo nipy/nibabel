@@ -504,7 +504,7 @@ def read_subheaders(fileobj, mlist, endianness):
     dt = subhdr_dtype
     if endianness is not native_code:
         dt = dt.newbyteorder(endianness)
-    for mat_id, sh_blkno, sh_last_blkno, mat_stat in mlist:
+    for _mat_id, sh_blkno, _sh_last_blkno, _mat_stat in mlist:
         if sh_blkno == 0:
             break
         offset = (sh_blkno - 1) * BLOCK_SIZE

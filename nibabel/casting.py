@@ -779,7 +779,7 @@ def able_int_type(values):
     return None
 
 
-def ulp(val=np.float64(1.0)):
+def ulp(val=np.float64(1.0)):  # noqa: B008
     """Return gap between `val` and nearest representable number of same type
 
     This is the value of a unit in the last place (ULP), and is similar in
