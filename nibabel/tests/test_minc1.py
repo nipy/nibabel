@@ -14,7 +14,7 @@ from os.path import join as pjoin
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import Nifti1Image, load, minc1
 from .._compression import HAVE_ZSTD, zstd
@@ -99,6 +99,74 @@ EXAMPLE_IMAGES = [
         is_proxy=True,
     ),
 ]
+
+
+def _write_vector_minc1(path, data, irregular=False):
+    with netcdf_file(path, 'w') as mnc:
+        names = ['zspace', 'yspace', 'xspace']
+        for name, length, step, start, direction in (
+            ('zspace', 2, 4.0, -78.0, [0.0, 0.0, 1.0]),
+            ('yspace', 3, -3.0, -132.0, [0.0, 1.0, 0.0]),
+            ('xspace', 4, 2.0, -96.0, [1.0, 0.0, 0.0]),
+        ):
+            mnc.createDimension(name, length)
+            irregular_dim = name == 'zspace' and irregular
+            dim = mnc.createVariable(name, 'd', (name,) if irregular_dim else ())
+            dim.data[...] = [-78, -73.25] if irregular_dim else 0
+            dim.spacing = b'irregular' if irregular_dim else b'regular__'
+            dim.step = step
+            dim.start = start
+            dim.direction_cosines = np.array(direction)
+        if data.ndim == 4:
+            mnc.createDimension('vector_dimension', data.shape[-1])
+            names.append('vector_dimension')
+        image = mnc.createVariable('image', data.dtype.char.lower(), names)
+        image[:] = data
+        image.signtype = b'unsigned' if data.dtype.kind == 'u' else b'signed__'
+        image.valid_range = np.array(
+            [0, 255] if data.dtype.kind == 'u' else [-100, 100], dtype=np.int16
+        )
+        for name, values in [('image-min', [-4.0, -7.0]), ('image-max', [16.0, 33.0])]:
+            mnc.createVariable(name, 'd', ('zspace',))[:] = values
+
+
+@pytest.mark.parametrize('vector', [False, True])
+@pytest.mark.parametrize('dtype', [np.float64, np.int16, np.uint8])
+def test_vector_dimension(tmp_path, vector, dtype):
+    data = np.arange(72, dtype=dtype).reshape(2, 3, 4, 3)
+    data = data * 3 if dtype == np.uint8 else data - 35
+    if not vector:
+        data = data[..., 0]
+    path = tmp_path / 'vector.mnc'
+    _write_vector_minc1(path, data)
+    image = load(path)
+    expected = data.astype(np.float64)
+    if dtype == np.int16:
+        expected[0] = data[0] / 10 + 6
+        expected[1] = data[1] / 5 + 13
+    elif dtype == np.uint8:
+        expected[0] = data[0] / 255 * 20 - 4
+        expected[1] = data[1] / 255 * 40 - 7
+    assert isinstance(image, Minc1Image)
+    assert image.shape == data.shape
+    assert image.header.get_zooms() == ((4, 3, 2, 1) if vector else (4, 3, 2))
+    assert_array_equal(
+        image.affine,
+        [[0, 0, 2, -96], [0, -3, 0, -132], [4, 0, 0, -78], [0, 0, 0, 1]],
+    )
+    assert_allclose(np.asarray(image.dataobj), expected)
+    assert_allclose(image.get_fdata(), expected)
+    for slicer in ((slice(None), 1), (1, slice(None)), (Ellipsis, 1), (None, 1, Ellipsis)):
+        assert_allclose(image.dataobj[slicer], expected[slicer])
+
+
+@pytest.mark.parametrize('vector', [False, True])
+def test_vector_dimension_irregular_spatial_spacing(tmp_path, vector):
+    path = tmp_path / 'irregular-spatial.mnc'
+    shape = (2, 3, 4, 3) if vector else (2, 3, 4)
+    _write_vector_minc1(path, np.zeros(shape), irregular=True)
+    with pytest.raises(ValueError, match='Irregular spacing not supported'):
+        load(path)
 
 
 class _TestMincFile:
