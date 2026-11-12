@@ -407,11 +407,16 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
         if width is not None and width.data.shape == (length,):
             dim.widths = width.data
             _copy_attrs(dim.width_attrs, width.attrs, STRUCTURE_ATTRS | {'length'})
+            if 'length' in width.attrs:
+                dim.width_attrs['length'] = _like(np.uint32(length), width.attrs['length'])
             dim.width_group = width.group
     if 'spacing' not in source.attrs:
         del geometry['spacing']
     elif keep and source.attrs['spacing'] == 'irregular' and dim.data is not None:
         geometry['spacing'] = 'irregular' if dim.data.ndim else 'regular__'
+    if 'length' in source.attrs:
+        # libminc writes the length as uint32 or int32, depending on version
+        geometry['length'] = _like(geometry['length'], source.attrs['length'])
     dim.attrs = {}
     for att, value in source.attrs.items():
         if att in GEOMETRY_ATTRS:
@@ -421,6 +426,49 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
             dim.attrs[att] = value
     dim.attrs.update(geometry)
     return dim
+
+
+def _resolution_levels(levels, data, raw, metadata, labels, valid_range):
+    """Lower resolution levels, as libminc's ``minc_update_thumbnail``
+
+    Level ``n`` has the mean of each block of ``2 ** n`` samples along each
+    dimension (dropping incomplete blocks), with an image-min and image-max
+    per index of the first dimension, stored in the type and valid range of
+    the full resolution.  libminc computes level ``n`` from level ``n - 1``
+    read with the scaling of the full resolution; here every level is the
+    mean of the full resolution data.
+    """
+    if levels is None:
+        levels = 0 if metadata is None else max(metadata.resolution_levels, default=0)
+    levels = int(levels)
+    if not levels:
+        return []
+    if data.ndim != 3:
+        raise MincWriteError(
+            'libminc writes resolution levels of 3D images only, not of '
+            f'{data.ndim}D images; pass levels=0'
+        )
+    if labels:
+        raise MincWriteError('Resolution levels would average labels; pass levels=0')
+    real = np.asarray(data, dtype=np.float64) if raw.dtype.kind != 'c' else np.asarray(data)
+    result = []
+    for level in range(1, levels + 1):
+        scale = 2**level
+        shape = [n // scale for n in real.shape]
+        if 0 in shape:
+            raise MincWriteError(f'Image too small for resolution level {level}')
+        block = real[tuple(slice(n * scale) for n in shape)]
+        mean = block.reshape([v for n in shape for v in (n, scale)]).mean(axis=(1, 3, 5))
+        if raw.dtype.kind in 'fc':
+            stored = mean.astype(raw.dtype)
+            parts = np.stack([stored.real, stored.imag], -1) if raw.dtype.kind == 'c' else stored
+            image_min, image_max, _ = _float_ranges(parts, 1)
+        else:
+            image_min = mean.min(axis=(1, 2))
+            image_max = mean.max(axis=(1, 2))
+            stored = _quantise(mean, raw.dtype, image_min, image_max, valid_range)
+        result.append((stored, image_min, image_max))
+    return result
 
 
 def _record_dimension(record_dimension, dims, metadata):
@@ -474,10 +522,17 @@ def _vector_dimension(length, metadata):
     if source is not None:
         dim.attrs = {}
         _copy_attrs(dim.attrs, source.attrs, STRUCTURE_ATTRS)
-        dim.attrs['length'] = np.uint32(length)
+        dim.attrs['length'] = _like(np.uint32(length), source.attrs.get('length'))
         if source.data is not None and source.data.shape == ():
             dim.data = source.data
     return dim
+
+
+def _like(value, source):
+    """`value` in the numeric type of attribute `source`, if any"""
+    if isinstance(source, np.ndarray) and source.dtype.kind in 'iu':
+        return np.asarray(value).astype(source.dtype)[()]
+    return value
 
 
 def _copy_attrs(attrs, source, skip):
@@ -513,6 +568,9 @@ class Layout:
         Name of each label value, for a label volume.
     record_dimension : None or str
         Name of the record (unlimited) dimension, the first, if any.
+    levels : list of tuple
+        ``(raw, image_min, image_max)`` of each lower resolution level, 1
+        and up.
     """
 
     raw: np.ndarray
@@ -526,6 +584,7 @@ class Layout:
     metadata: object = None
     labels: dict | None = None
     record_dimension: str | None = None
+    levels: list = field(default_factory=list)
 
     @property
     def dimorder(self):
@@ -561,6 +620,7 @@ def build_layout(
     labels=None,
     dimension_names=None,
     record_dimension=None,
+    levels=None,
     command='write_minc',
 ):
     """Work out what to store for `data` and `affine`
@@ -583,6 +643,9 @@ def build_layout(
     dimension, which MINC1 has and MINC2 does not: True, False, or the
     name of the first dimension.  Default is the record dimension of
     `metadata`, if it is the first dimension of the data.
+
+    `levels` is the number of lower resolution levels to add, as libminc's
+    multi-resolution images have; default is as many as `metadata` has.
 
     `slice_scaling` chooses slice-wise (True) or volume-wise (False)
     image-min / image-max; default is the form of `metadata`, if any, and
@@ -766,6 +829,7 @@ def build_layout(
         metadata=metadata,
         labels=labels,
         record_dimension=_record_dimension(record_dimension, dims, metadata),
+        levels=_resolution_levels(levels, data, raw, metadata, labels, valid_range),
     )
 
 

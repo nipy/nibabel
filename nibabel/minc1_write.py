@@ -96,6 +96,7 @@ def write_minc1(
     slice_scaling=None,
     dimension_names=None,
     record_dimension=None,
+    levels=None,
 ):
     """Write `data` and `affine` to a MINC1 file
 
@@ -154,6 +155,11 @@ def write_minc1(
         dimension the record (unlimited) NetCDF dimension; False for none.
         Default is the record dimension of `metadata`, if it is the first
         dimension.
+    levels : int, optional
+        MINC1 has no lower resolution levels, and libminc cannot write them
+        to MINC1, so levels raise an error.  They come by default from
+        `metadata` of a MINC2 file with levels; pass 0 to write the full
+        resolution only.
     Returns
     -------
     None
@@ -178,8 +184,14 @@ def write_minc1(
         slice_scaling=slice_scaling,
         dimension_names=dimension_names,
         record_dimension=record_dimension,
+        levels=levels,
         command=f'write_minc1 {os.fspath(target)}',
     )
+    if layout.levels:
+        raise MincWriteError(
+            'MINC1 has no lower resolution levels, and libminc cannot write them to MINC1; '
+            'pass levels=0 to write the full resolution only'
+        )
     contents = _netcdf_bytes(layout)
     if isinstance(filename, (str, os.PathLike)):
 

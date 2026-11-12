@@ -504,3 +504,41 @@ def test_read_resolution_levels(tmp_path):
         assert_allclose(level_img.affine, expected)
     with pytest.raises(Exception, match='resolution level 3'):
         load(fname, resolution_level=3)
+
+
+@needs_h5py
+@pytest.mark.parametrize('dtype', [np.int16, np.float32])
+def test_write_resolution_levels(tmp_path, dtype):
+    rng = np.random.default_rng(6)
+    data = rng.normal(50, 20, (9, 12, 17))
+    fname = tmp_path / 'img.mnc'
+    write_minc2(data, np.eye(4), fname, dtype=dtype, levels=2)
+    full = load(fname).get_fdata()
+    with h5py.File(fname, 'r') as h5f:
+        for level in (1, 2):
+            group = h5f[f'minc-2.0/image/{level}']
+            assert dict(group['image'].attrs) == {}
+            assert group['image'].dtype == dtype
+            assert group['image-max'].shape == (9 // 2**level,)
+    img = load(fname)
+    assert dict(img.minc_meta.resolution_levels) == {1: (4, 6, 8), 2: (2, 3, 4)}
+    for level in (1, 2):
+        expected = _block_mean(data, level)
+        atol = np.ptp(expected) / 65535 if dtype == np.int16 else 1e-4
+        assert_allclose(load(fname, resolution_level=level).get_fdata(), expected, atol=atol)
+    # Saving keeps the levels, made again from the data; levels=0 drops them
+    out = tmp_path / 'out.mnc'
+    save(img, out)
+    assert dict(load(out).minc_meta.resolution_levels) == {1: (4, 6, 8), 2: (2, 3, 4)}
+    assert_array_equal(load(out).get_fdata(), full)
+    save(img, out, levels=0)
+    assert dict(load(out).minc_meta.resolution_levels) == {}
+    # libminc writes levels of 3D images only, and MINC1 has none
+    with pytest.raises(MincWriteError, match='3D'):
+        write_minc2(np.zeros((2, 8, 8, 8)), np.eye(4), fname, levels=1)
+    with pytest.raises(MincWriteError, match='too small'):
+        write_minc2(np.zeros((2, 8, 8)), np.eye(4), fname, levels=2)
+    with pytest.raises(MincWriteError, match='MINC1'):
+        save(Minc1Image.from_image(img), out)
+    save(Minc1Image.from_image(img), out, levels=0)
+    assert_array_equal(load(out).get_fdata(), full)

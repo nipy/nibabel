@@ -843,3 +843,26 @@ def test_libminc_resolution_levels(tmp_path):
     )
     # mincinfo shows the full resolution only
     assert SIF_TOOLS.run('mincinfo', '-dimlength', 'xspace', fname).strip() == '16'
+
+
+def test_libminc_resolution_levels_round_trip(tmp_path):
+    # Saving libminc's multi-resolution file keeps every attribute and its
+    # levels; level 1 matches libminc's to the last stored bit, level 2
+    # differs as libminc makes it from level 1 with the wrong scaling
+    fname = _libminc_multires(tmp_path)
+    img = load(fname)
+    out = str(tmp_path / 'out.mnc')
+    save(img, out)
+    before, after = _walk_minc2(fname), _walk_minc2(out)
+    level2 = {('minc-2.0/image/2/image-max', 'value'), ('minc-2.0/image/2/image-min', 'value')}
+    for key in _diff(before, after):
+        if key[0] == 'minc-2.0' and key[1][1:] in NEW_ATTRS:
+            continue
+        if _is_scaling(key) or key in level2:
+            continue
+        raise AssertionError(f'{key}: {before.get(key)!r} -> {after.get(key)!r}')
+    with h5py.File(fname, 'r') as theirs, h5py.File(out, 'r') as ours:
+        for name in ('image', 'image-max', 'image-min'):
+            path = f'minc-2.0/image/1/{name}'
+            assert_allclose(ours[path][()], theirs[path][()], atol=1)
+    assert_allclose(_mincstats(SIF_TOOLS, out), _mincstats(SIF_TOOLS, fname), rtol=1e-6)

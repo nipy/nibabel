@@ -150,6 +150,7 @@ def write_minc2(
     labels=None,
     dimension_names=None,
     record_dimension=None,
+    levels=None,
 ):
     """Write `data` and `affine` to a MINC2 file
 
@@ -237,6 +238,13 @@ def write_minc2(
         record dimension raises an error.  It comes by default from
         `metadata` of a MINC1 file with one; pass False to write that
         dimension as an ordinary one.
+    levels : int, optional
+        Number of lower resolution levels to write in
+        ``/minc-2.0/image/1``, ``/2`` and so on, as libminc's
+        multi-resolution images have, for 3D images.  Level ``n`` holds the
+        mean of blocks of ``2 ** n`` samples of the full resolution.
+        Default is as many levels as `metadata` has; 0 writes the full
+        resolution only.
     Returns
     -------
     None
@@ -257,6 +265,7 @@ def write_minc2(
         slice_scaling=slice_scaling,
         dimension_names=dimension_names,
         record_dimension=record_dimension,
+        levels=levels,
         labels=labels,
         command=f'write_minc2 {os.fspath(target)}',
     )
@@ -398,7 +407,7 @@ def _write_groups(h5f, layout, storage=None):
             var = group.create_dataset(dim.name + WIDTH_SUFFIX, data=dim.widths)
             # libminc reads datasets in /minc-2.0/dimensions as dimensions,
             # with a length
-            attrs = {'dimorder': dim.name, **dim.width_attrs, 'length': np.uint32(dim.length)}
+            attrs = {'dimorder': dim.name, 'length': np.uint32(dim.length), **dim.width_attrs}
             _set_attrs(var, attrs)
     info = minc.require_group('info')
     for var in layout.info:
@@ -417,3 +426,12 @@ def _write_groups(h5f, layout, storage=None):
     _set_attrs(image, {'dimorder': ','.join(layout.dimorder), **layout.image_attrs})
     for name, values in (('image-max', layout.image_max), ('image-min', layout.image_min)):
         _write_range_var(group, name, values, layout.dimorder, layout.scaling_attrs[name])
+    # libminc writes the lower resolution levels without attributes
+    for level, (stored, image_min, image_max) in enumerate(layout.levels, 1):
+        group = minc['image'].create_group(str(level))
+        if stored.dtype.kind == 'c':
+            part = stored.real.dtype
+            stored = stored.view(np.dtype([('real', part), ('imag', part)]))
+        group.create_dataset('image', data=stored)
+        group.create_dataset('image-max', data=np.asarray(image_max, np.float64))
+        group.create_dataset('image-min', data=np.asarray(image_min, np.float64))
