@@ -18,6 +18,15 @@ axes).
 See the `MINC2 format reference
 <https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference>`_.
 
+Usage
+-----
+``write_minc2(data, affine, filename, metadata=img.minc_meta)`` writes `data` with
+the voxel to world `affine` and copies the metadata of a MINC1 or MINC2
+image read by nibabel (see :mod:`nibabel.minc_meta`): its info variables,
+global, image and dimension attributes and history, to which a line is
+appended.  The geometry and the scaling always come from `data` and
+`affine`.  :class:`~nibabel.minc2.Minc2Image` saves through this function.
+
 Layout
 ------
 The file has a single group ``/minc-2.0`` with the attributes ``ident``,

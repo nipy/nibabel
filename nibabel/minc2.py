@@ -6,25 +6,29 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Preliminary MINC2 support
+"""Read and write MINC2 format images
 
-Use with care; I haven't tested this against a wide range of MINC files.
-
-Writing goes through :func:`nibabel.minc2_write.write_minc2`; see that module
-for the layout, axis order and scaling of written files.
-
-If you have a file that isn't read correctly, please send an example.
-
-Test reading with something like::
+:class:`Minc2Image` reads MINC2 (HDF5) files with h5py, and writes them with
+:func:`nibabel.minc2_write.write_minc2`; see that module for the layout, axis
+order and scaling of written files.  It shares the interface of
+:class:`~nibabel.minc1.Minc1Image`::
 
     import nibabel as nib
-    img = nib.load('my_funny.mnc')
-    data = img.get_fdata()
-    print(data.mean())
-    print(data.max())
-    print(data.min())
+    img = nib.load('in.mnc')               # Minc2Image for a MINC2 file
+    meta = img.minc_meta                   # read-only metadata snapshot
+    nib.save(img, 'out.mnc')               # MINC2, metadata kept
+    nib.save(img, 'gz.mnc', compression=True)
+    nib.save(nib.Minc1Image.from_image(img), 'v1.mnc')  # convert to MINC1
 
-and compare against command line output of::
+``img.minc_meta`` is a :class:`~nibabel.minc_meta.MincMeta`; for label
+volumes, ``img.minc_meta.labels`` maps label values to names.  Saving passes
+it to the writer, and ``from_image`` carries it between
+:class:`~nibabel.minc1.Minc1Image` and :class:`Minc2Image`.  ``nib.save``
+passes keyword arguments to the writer: ``slice_scaling``, ``compression``,
+``chunks`` and ``labels``.
+
+If you have a file that isn't read correctly, please send an example, and
+compare with the output of::
 
     mincstats my_funny.mnc
 """

@@ -8,7 +8,31 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Read and write MINC1 format images
 
-Writing goes through :func:`nibabel.minc1_write.write_minc1`.
+:class:`Minc1Image` reads MINC1 (NetCDF) files, and writes them with
+:func:`nibabel.minc1_write.write_minc1`::
+
+    import nibabel as nib
+    img = nib.load('in.mnc')           # Minc1Image for a MINC1 file
+    meta = img.minc_meta               # read-only metadata snapshot
+    nib.save(img, 'out.mnc')           # MINC1, metadata kept, history appended
+
+``img.minc_meta`` is a :class:`~nibabel.minc_meta.MincMeta` holding the
+global attributes and history, the dimension variables (with coordinates and
+widths of irregular samples), the info variables (patient, study,
+acquisition and others) and the scaling layout of the file read; images made
+in memory have None.  Saving passes it to the writer, which copies it except
+for the geometry and scaling, which come from the data and affine.
+
+Saving to ``.mnc`` keeps the class: a Minc1Image writes MINC1 and a
+:class:`~nibabel.minc2.Minc2Image` MINC2.  ``Minc1Image.from_image(img)`` and
+``Minc2Image.from_image(img)`` convert between them and carry
+``img.minc_meta`` across, so that the metadata is written in the other
+format.  ``nib.save`` passes keyword arguments to the writer, such as
+``slice_scaling``.
+
+The data axes are the MINC dimensions in file order, slowest varying first:
+an optional non-spatial dimension such as time, three spatial dimensions,
+and an optional ``vector_dimension``.  The affine maps the spatial axes.
 """
 
 from __future__ import annotations

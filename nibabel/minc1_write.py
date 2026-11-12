@@ -16,6 +16,15 @@ choice of dimensions, scaling and metadata with the MINC2 writer
 See the `MINC1 programmer's guide
 <https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide>`_.
 
+Usage
+-----
+``write_minc1(data, affine, filename, metadata=img.minc_meta)`` writes `data` with
+the voxel to world `affine` and copies the metadata of a MINC1 or MINC2
+image read by nibabel (see :mod:`nibabel.minc_meta`): its info variables,
+global, image and dimension attributes and history, to which a line is
+appended.  The geometry and the scaling always come from `data` and
+`affine`.  :class:`~nibabel.minc1.Minc1Image` saves through this function.
+
 Layout
 ------
 The layout follows libminc's MINC1 functions (``micreate_std_variable`` and
