@@ -99,7 +99,10 @@ class Minc2File(Minc1File):
         return dimorder.split(',')[: len(var.shape)]
 
     def get_data_dtype(self):
-        return self._image.dtype
+        dtype = self._image.dtype
+        if _is_complex(dtype):
+            return np.dtype(f'c{2 * dtype["real"].itemsize}')
+        return dtype
 
     def get_data_shape(self):
         return self._image.shape
@@ -151,7 +154,14 @@ class Minc2File(Minc1File):
                 raw_data = np.asanyarray(self._image)[sliceobj]
             else:
                 raw_data = np.asanyarray(raw_data)
+        if _is_complex(raw_data.dtype):
+            raw_data = raw_data['real'] + 1j * raw_data['imag']
         return self._normalize(raw_data, sliceobj)
+
+
+def _is_complex(dtype):
+    """True for libminc's compound type of complex values"""
+    return dtype.names == ('real', 'imag')
 
 
 class Minc2Header(MincHeader):

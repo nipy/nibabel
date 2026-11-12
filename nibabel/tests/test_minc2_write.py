@@ -39,7 +39,7 @@ from ..testing import data_path
 
 h5py, have_h5py, setup_module = optional_package('h5py')
 
-DTYPES = (np.uint8, np.int16, np.uint16, np.int32, np.float32, np.float64)
+DTYPES = (np.uint8, np.int8, np.int16, np.uint16, np.int32, np.uint32, np.float32, np.float64)
 
 MINC2_FILES = (
     'small.mnc',
@@ -236,7 +236,7 @@ def test_write_errors(tmp_path):
         write_minc2(np.zeros((2, 3)), np.eye(4), fname)
     with pytest.raises(Minc2WriteError):
         write_minc2(np.zeros((2, 3, 4, 5, 6)), np.eye(4), fname)
-    for dtype in (np.int8, np.int64, np.float16, np.complex64, bool):
+    for dtype in (np.int64, np.uint64, np.float16, bool):
         with pytest.raises(Minc2WriteError):
             write_minc2(np.zeros((2, 3, 4)), np.eye(4), fname, dtype=dtype)
     with pytest.raises(Minc2WriteError):

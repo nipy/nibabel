@@ -38,7 +38,19 @@ MINC_VERSION = '2.4.01'
 
 #: Data types that can be written.
 SUPPORTED_DTYPES = tuple(
-    np.dtype(t) for t in (np.uint8, np.int16, np.uint16, np.int32, np.float32, np.float64)
+    np.dtype(t)
+    for t in (
+        np.uint8,
+        np.int8,
+        np.int16,
+        np.uint16,
+        np.int32,
+        np.uint32,
+        np.float32,
+        np.float64,
+        np.complex64,
+        np.complex128,
+    )
 )
 
 SPATIAL_NAMES = ('xspace', 'yspace', 'zspace')
@@ -469,7 +481,11 @@ class Layout:
 
 
 def check_dtype(data, dtype, dtypes=SUPPORTED_DTYPES):
-    """Return the stored data type for `data` and requested `dtype`"""
+    """Return the stored data type for `data` and requested `dtype`
+
+    Integer complex types, which MINC2 defines, are not supported, as
+    libminc defines no scaling for them.
+    """
     out_dtype = np.dtype(data.dtype if dtype is None else dtype).newbyteorder('=')
     if out_dtype not in dtypes:
         allowed = ', '.join(str(t) for t in dtypes)
@@ -538,6 +554,12 @@ def build_layout(
     if out_dtype.kind == 'f':
         raw = data.astype(out_dtype)
         image_min, image_max, valid_range = _float_ranges(raw, nscale)
+    elif out_dtype.kind == 'c':
+        # Complex data are not scaled, as floating point data; the range is
+        # that of the real and imaginary parts
+        raw = data.astype(out_dtype)
+        parts = np.stack([raw.real, raw.imag], axis=-1)
+        image_min, image_max, valid_range = _float_ranges(parts, nscale)
     else:
         if scaling is None:
             image_min, image_max, valid_range = _choose_scaling(data, out_dtype, nscale)
@@ -606,6 +628,9 @@ def build_layout(
         )
         for name in ('study', 'patient', 'acquisition')
     ]
+    if out_dtype.kind == 'c':
+        # libminc tells complex volumes by their class
+        global_attrs['class'] = 'complex'
     if metadata is not None:
         _copy_attrs(global_attrs, metadata.global_attrs, FILE_ATTRS)
         _copy_attrs(image_attrs, metadata.image_attrs, STRUCTURE_ATTRS)
@@ -640,7 +665,7 @@ def _default_range(out_dtype, src_dtype, valid_range):
     """
     if src_dtype is None or out_dtype != np.dtype(src_dtype):
         return False
-    if out_dtype.kind == 'f':
+    if out_dtype.kind in 'fc':
         return True
     info = np.iinfo(out_dtype)
     return tuple(valid_range) == (info.min, info.max)

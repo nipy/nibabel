@@ -215,7 +215,7 @@ class Minc1File:
             applied to `data`
         """
         ddt = self.get_data_dtype()
-        if np.issubdtype(ddt.type, np.floating):
+        if ddt.kind in 'fc':
             return data
         image_max = self._image_max
         image_min = self._image_min
@@ -489,7 +489,7 @@ def _proxy_scaling(dataobj, out_dtype):
         return None
     minc_file = dataobj.minc_file
     in_dtype = minc_file.get_data_dtype()
-    if out_dtype.kind == 'f' or in_dtype.newbyteorder('=') != out_dtype.newbyteorder('='):
+    if out_dtype.kind in 'fc' or in_dtype.newbyteorder('=') != out_dtype.newbyteorder('='):
         return None
     image_min = minc_file._image_min
     image_max = minc_file._image_max

@@ -12,7 +12,7 @@ from io import BytesIO
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import load, save
 from ..externals.netcdf import netcdf_file
@@ -99,3 +99,43 @@ def test_vector_dimension_sitk(tmp_path):
     assert image.GetNumberOfComponentsPerPixel() == 3
     assert image.GetSpacing() == (2.0, 3.0, 4.0)
     assert_array_equal(sitk.GetArrayFromImage(image), data.transpose((2, 1, 0, 3)))
+
+
+@needs_h5py
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_complex(tmp_path, dtype):
+    # libminc stores complex values as a compound of "real" and "imag", in a
+    # volume of class "complex"; they are not scaled
+    rng = np.random.default_rng(5)
+    data = (rng.normal(size=(3, 4, 5)) + 1j * rng.normal(size=(3, 4, 5))).astype(dtype)
+    fname = tmp_path / 'img.mnc'
+    write_minc2(data, np.eye(4), fname)
+    with h5py.File(fname, 'r') as h5f:
+        image = h5f['minc-2.0/image/0/image']
+        assert image.dtype.names == ('real', 'imag')
+        assert image.dtype['real'] == np.dtype(dtype).type(0).real.dtype
+        assert h5f['minc-2.0'].attrs['class'] == b'complex'
+        parts = np.stack([data.real, data.imag], axis=-1)
+        assert_array_equal(h5f['minc-2.0/image/0/image-max'], parts.max(axis=(1, 2, 3)))
+    img = load(fname)
+    assert img.get_data_dtype() == dtype
+    assert_array_equal(np.asarray(img.dataobj), data)
+    assert_array_equal(img.dataobj[1:, ::2], data[1:, ::2])
+    # MINC1 has no complex types
+    with pytest.raises(MincWriteError):
+        write_minc1(data, np.eye(4), fname)
+
+
+@pytest.mark.skipif(not have_h5py or not have_sitk, reason='Need h5py and SimpleITK')
+@pytest.mark.parametrize('dtype', [np.int8, np.uint32])
+def test_integer_types_sitk(tmp_path, dtype):
+    # Types the MINC2 writer gained: ITK reads them (as float32)
+    data = np.arange(60).reshape((3, 4, 5)) - 20
+    if dtype == np.uint32:
+        data = data + 4_000_000_000
+    data = data.astype(dtype)
+    fname = tmp_path / 'img.mnc'
+    write_minc2(data, np.eye(4), fname)
+    assert_array_equal(load(fname).get_fdata(), data)
+    sitk_data = sitk.GetArrayFromImage(sitk.ReadImage(str(fname)))
+    assert_allclose(sitk_data, data.transpose((2, 1, 0)), rtol=1e-7)

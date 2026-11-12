@@ -272,7 +272,12 @@ def _write_groups(h5f, layout):
     for var in layout.info:
         _write_info(info, var)
     group = minc.create_group('image').create_group('0')
-    image = group.create_dataset('image', data=layout.raw)
+    raw = layout.raw
+    if raw.dtype.kind == 'c':
+        # libminc stores complex values as a compound of real and imag
+        part = raw.real.dtype
+        raw = raw.view(np.dtype([('real', part), ('imag', part)]))
+    image = group.create_dataset('image', data=raw)
     _set_attrs(image, {'dimorder': ','.join(layout.dimorder), **layout.image_attrs})
     for name, values in (('image-max', layout.image_max), ('image-min', layout.image_min)):
         _write_range_var(group, name, values, layout.dimorder, layout.scaling_attrs[name])

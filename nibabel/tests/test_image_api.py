@@ -882,7 +882,7 @@ class TestMinc2API(TestMinc1API):
     klass = image_maker = Minc2Image
     loader = minc2.load
     example_images = MINC2_EXAMPLE_IMAGES
-    storable_dtypes = (np.uint8, np.int16, np.uint16, np.int32, np.float32, np.float64)
+    storable_dtypes = TestMinc1API.storable_dtypes + (np.complex64, np.complex128)
 
 
 class TestPARRECAPI(LoadImageAPI):
