@@ -29,7 +29,8 @@ The file has a single group ``/minc-2.0`` with the attributes ``ident``,
   ``alignment='centre'``, ``length`` and ``units``;
 * ``image/0/image``: the voxel data, with ``dimorder`` and ``valid_range``;
 * ``image/0/image-min``, ``image/0/image-max``: the real value range;
-* ``info``: an empty group.
+* ``info``: the info variables of the ``metadata``, if given; otherwise
+  empty.
 
 Axis order
 ----------
@@ -115,8 +116,6 @@ def _set_attrs(obj, attrs):
     for name, value in attrs.items():
         if isinstance(value, str):
             _string_attr(obj, name, value)
-        elif name == 'length':
-            obj.attrs.create(name, np.uint32(value))
         else:
             obj.attrs.create(name, np.asarray(value))
 
@@ -130,6 +129,7 @@ def write_minc2(
     scaling=None,
     time_start=0.0,
     time_step=1.0,
+    metadata=None,
 ):
     """Write `data` and `affine` to a MINC2 file
 
@@ -161,6 +161,12 @@ def write_minc2(
         Ignored for floating point output.
     time_start, time_step : float, optional
         ``start`` and ``step`` of the time dimension of a 4D image.
+    metadata : MincMeta, optional
+        Metadata to copy, such as ``img.minc_meta`` of an image read from a
+        MINC file: the info groups (patient, study, acquisition and others),
+        and the global, image and dimension attributes.  The geometry and
+        the scaling always come from `data` and `affine`, never from
+        `metadata`.
 
     Returns
     -------
@@ -177,6 +183,7 @@ def write_minc2(
         scaling=scaling,
         time_start=time_start,
         time_step=time_step,
+        metadata=metadata,
         command=f'write_minc2 {os.fspath(target)}',
     )
 
@@ -212,6 +219,20 @@ def _write_range_var(group, name, values, dim_names):
     _set_attrs(var, attrs)
 
 
+def _write_info(info, var):
+    """Write info variable `var` (a ``MincVariable``) to the info group"""
+    if var.is_group:
+        obj = info.require_group(var.name)
+    else:
+        obj = info.create_dataset(var.name, data=var.data)
+    attrs = dict(var.attrs)
+    attrs.pop('parent', None)
+    attrs.pop('children', None)
+    if var.dimensions:
+        attrs['dimorder'] = ','.join(var.dimensions)
+    _set_attrs(obj, attrs)
+
+
 def _write_groups(h5f, layout):
     """Write the ``/minc-2.0`` group of `layout` to open ``h5f``"""
     minc = h5f.create_group('minc-2.0')
@@ -220,7 +241,9 @@ def _write_groups(h5f, layout):
     for dim in layout.dims:
         var = dims.create_dataset(dim.name, shape=(), dtype='i4')
         _set_attrs(var, dim.attrs)
-    minc.create_group('info')
+    info = minc.create_group('info')
+    for var in layout.info:
+        _write_info(info, var)
     group = minc.create_group('image').create_group('0')
     image = group.create_dataset('image', data=layout.raw)
     attrs = dict(layout.image_attrs)

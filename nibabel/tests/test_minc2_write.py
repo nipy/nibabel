@@ -277,6 +277,48 @@ def test_rewrite_minc2_files(tmp_path, basename):
         assert_array_equal(dst['minc-2.0/image/0/image'], src['minc-2.0/image/0/image'])
 
 
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_write_metadata(tmp_path):
+    # Info variables, and global, image and dimension attributes are copied
+    src = load(pjoin(data_path, 'minc2_baddim.mnc'))
+    meta = src.minc_meta
+    fname = tmp_path / 'img.mnc'
+    affine = np.array([[0, 0, 1.0, 0], [0, 2.0, 0, 0], [3.0, 0, 0, 0], [0, 0, 0, 1]])
+    write_minc2(np.zeros(src.shape, np.int16), affine, fname, metadata=meta)
+    with h5py.File(fname, 'r') as h5f:
+        info = h5f['minc-2.0/info']
+        assert set(info) == {'processing'}
+        attrs = info['processing'].attrs
+        assert attrs['transformation0-filename'] == b'D4600.xfm'
+        assert attrs['transformation0-filedata'].decode().startswith('MNI Transform File')
+    # The geometry comes from the affine, not from the metadata
+    dims = _load_dims(fname)
+    assert dims['zspace']['start'] == 0
+    assert dims['zspace']['step'] == 3
+    assert dims['xspace']['step'] == 1
+    assert dims['xspace']['spacing'] == b'regular__'
+    assert dims['xspace']['length'] == src.shape[2]
+    # MINC1 metadata gives the same MINC2 variables
+    meta = load(pjoin(data_path, 'minc1_4d.mnc')).minc_meta
+    write_minc2(np.zeros((2, 3, 4, 5)), np.eye(4), fname, metadata=meta)
+    with h5py.File(fname, 'r') as h5f:
+        study = h5f['minc-2.0/info/study']
+        assert study.attrs['modality'] == b'MRI__'
+        assert 'parent' not in study.attrs
+        image = h5f['minc-2.0/image/0/image']
+        assert 'signtype' not in image.attrs
+        assert 'image-max' not in image.attrs
+    # Extra global attributes are copied, but not ident and minc_version
+    meta = load(pjoin(data_path, 'minc2-4d-d.mnc')).minc_meta
+    write_minc2(np.zeros((2, 3, 4, 5)), np.eye(4), fname, metadata=meta)
+    with h5py.File(fname, 'r') as h5f:
+        attrs = h5f['minc-2.0'].attrs
+        assert attrs['class'] == b'real___'
+        assert attrs['minc_version'] == MINC_VERSION.encode()
+        assert attrs['ident'] != meta.global_attrs['ident'].encode()
+        assert h5f['minc-2.0/image/0/image'].attrs['version'] == b'MINC Version    2.0'
+
+
 # Tests against the MINC tools
 
 

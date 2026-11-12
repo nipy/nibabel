@@ -43,6 +43,30 @@ COMMENTS = {
 STD_VARID = 'MINC standard variable'
 STD_VERSION = 'MINC Version    1.0'
 
+#: Attributes the writers work out from the data and the affine, and never
+#: copy from metadata
+GEOMETRY_ATTRS = frozenset(('start', 'step', 'direction_cosines', 'length', 'spacing'))
+#: Attributes that describe the structure of a file, written by the writers
+STRUCTURE_ATTRS = frozenset(
+    (
+        'dimorder',
+        'parent',
+        'children',
+        'image-min',
+        'image-max',
+        'signtype',
+        '_FillValue',
+        'complete',
+        'valid_range',
+        'valid_min',
+        'valid_max',
+    )
+)
+#: Attributes that describe a dimension, kept from metadata
+DESCRIPTION_ATTRS = frozenset(('class', 'width', 'alignment'))
+#: Global attributes that belong to the file being written
+FILE_ATTRS = frozenset(('ident', 'minc_version', 'history'))
+
 _ident_count = itertools.count(1)
 
 
@@ -230,6 +254,13 @@ class Dimension:
     attrs: dict = field(default_factory=dict)
 
 
+def _copy_attrs(attrs, source, skip):
+    """Add the attributes of `source` to `attrs`, except those in `skip`"""
+    for name, value in source.items():
+        if name not in skip:
+            attrs[name] = value
+
+
 @dataclass
 class Layout:
     """Everything a MINC writer stores, independent of the file format
@@ -246,6 +277,8 @@ class Layout:
         Attributes of the image variable, other than its dimensions.
     image_min, image_max : ndarray
         Real value range, over the first ``image_min.ndim`` dimensions.
+    info : list of MincVariable
+        Info variables, from metadata.
     """
 
     raw: np.ndarray
@@ -254,6 +287,7 @@ class Layout:
     image_attrs: dict
     image_min: np.ndarray
     image_max: np.ndarray
+    info: list = field(default_factory=list)
 
     @property
     def dimorder(self):
@@ -278,12 +312,22 @@ def build_layout(
     scaling=None,
     time_start=0.0,
     time_step=1.0,
+    metadata=None,
     command='write_minc',
 ):
     """Work out what to store for `data` and `affine`
 
     Parameters are as for :func:`nibabel.minc2_write.write_minc2`;
     `command` names the writer in the default history line.
+
+    With `metadata`, a :class:`~nibabel.minc_meta.MincMeta`, the info
+    variables, and the global, image and dimension attributes are copied,
+    except for those the writer works out from the data and the affine: the
+    geometry (``start``, ``step``, ``direction_cosines``, ``length``,
+    ``spacing``), the scaling (``valid_range`` and the image-min /
+    image-max variables) and the attributes that describe the file
+    structure (``dimorder``, ``signtype`` and the MINC1 links between
+    variables).
 
     Returns
     -------
@@ -327,7 +371,7 @@ def build_layout(
                 raw.shape[0],
                 {
                     'alignment': 'centre',
-                    'length': raw.shape[0],
+                    'length': np.uint32(raw.shape[0]),
                     'spacing': 'regular__',
                     'start': float(time_start),
                     'step': float(time_step),
@@ -346,7 +390,7 @@ def build_layout(
                     'alignment': 'centre',
                     'comments': COMMENTS[name],
                     'direction_cosines': cosines[:, i],
-                    'length': spatial_shape[i],
+                    'length': np.uint32(spatial_shape[i]),
                     'spacetype': 'native____',
                     'spacing': 'regular__',
                     'start': float(starts[i]),
@@ -362,6 +406,16 @@ def build_layout(
         'valid_range': np.asarray(valid_range, dtype=np.float64),
         **std_attrs('group________'),
     }
+    info = []
+    if metadata is not None:
+        _copy_attrs(global_attrs, metadata.global_attrs, FILE_ATTRS)
+        _copy_attrs(image_attrs, metadata.image_attrs, STRUCTURE_ATTRS)
+        skip = GEOMETRY_ATTRS | STRUCTURE_ATTRS | DESCRIPTION_ATTRS
+        for dim in dims:
+            source = metadata.variables.get(dim.name)
+            if source is not None and source.group == 'dimensions':
+                _copy_attrs(dim.attrs, source.attrs, skip)
+        info = list(metadata.info.values())
     return Layout(
         raw=raw,
         dims=dims,
@@ -369,6 +423,7 @@ def build_layout(
         image_attrs=image_attrs,
         image_min=np.asarray(image_min, dtype=np.float64),
         image_max=np.asarray(image_max, dtype=np.float64),
+        info=info,
     )
 
 
