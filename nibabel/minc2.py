@@ -42,6 +42,8 @@ class Hdf5Bunch:
     """Make object for accessing attributes of variable"""
 
     def __init__(self, var):
+        if var is None:
+            return
         for name, value in var.attrs.items():
             setattr(self, name, value)
 
@@ -62,14 +64,18 @@ class Minc2File(Minc1File):
         self._image = image['image']
         self._dim_names = self._get_dimensions(self._image)
         dimensions = minc_part['dimensions']
-        self._dims = [Hdf5Bunch(dimensions[s]) for s in self._dim_names]
+        # The vector dimension (such as RGB components) may have no dataset
+        self._dims = [
+            Hdf5Bunch(dimensions[s]) if s in dimensions else Hdf5Bunch(None)
+            for s in self._dim_names
+        ]
         # Irregularly spaced dimensions have the coordinate of each sample
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Dimension_variable_attributes
         self._coords = {}
         for name, dim in zip(self._dim_names, self._dims):
             # "If this attribute is absent, a value of regular__ should be assumed."
             spacing = getattr(dim, 'spacing', b'regular__')
-            if spacing == b'irregular' and dimensions[name].ndim == 1:
+            if spacing == b'irregular' and name in dimensions and dimensions[name].ndim == 1:
                 self._coords[name] = np.array(dimensions[name][()], dtype=np.float64)
             elif spacing not in (b'regular__', b'irregular'):
                 warnings.warn(f'Invalid spacing declaration: {spacing}; assuming regular')

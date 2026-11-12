@@ -43,6 +43,12 @@ class MincError(Exception):
     """Error when reading MINC files"""
 
 
+class _NoVariable:
+    """Stand-in for a dimension without variable, with no attributes"""
+
+    data = np.zeros(())
+
+
 class Minc1File:
     """Class to wrap MINC1 format opened netcdf object
 
@@ -58,7 +64,8 @@ class Minc1File:
         # The code below will error with vector_dimensions.  See:
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#An_Introduction_to_NetCDF
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_dimensions
-        self._dims = [self._mincfile.variables[s] for s in self._dim_names]
+        # The vector dimension (such as RGB components) has no variable
+        self._dims = [self._mincfile.variables.get(s, _NoVariable()) for s in self._dim_names]
         # Irregularly spaced dimensions have the coordinate of each sample
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
         self._coords = {}

@@ -78,6 +78,7 @@ import numpy as np
 from ._minc_write import (
     MINC_VERSION,
     SUPPORTED_DTYPES,
+    VECTOR_NAME,
     WIDTH_SUFFIX,
     MincWriteError,
     affine_to_dimensions,
@@ -132,6 +133,7 @@ def write_minc2(
     time_start=None,
     time_step=None,
     metadata=None,
+    vector_dimension=None,
 ):
     """Write `data` and `affine` to a MINC2 file
 
@@ -177,6 +179,12 @@ def write_minc2(
         is written regularly spaced.  The writer never makes a dimension
         irregular by itself.
 
+    vector_dimension : bool, optional
+        If true, the last axis of `data` is the MINC ``vector_dimension``,
+        the fastest varying, such as the components of RGB data; it follows
+        the spatial axes.  Default is true if `metadata` ends with a vector
+        dimension, and `data` has as many axes as `metadata`.
+
     Returns
     -------
     None
@@ -193,6 +201,7 @@ def write_minc2(
         time_start=time_start,
         time_step=time_step,
         metadata=metadata,
+        vector_dimension=vector_dimension,
         command=f'write_minc2 {os.fspath(target)}',
     )
 
@@ -247,7 +256,9 @@ def _write_groups(h5f, layout):
     for dim in layout.dims:
         attrs = dict(dim.attrs)
         if dim.data is None:
-            var = dims.create_dataset(dim.name, shape=(), dtype='i4')
+            # libminc's MINC2 functions store the vector dimension as double
+            dtype = 'f8' if dim.name == VECTOR_NAME else 'i4'
+            var = dims.create_dataset(dim.name, shape=(), dtype=dtype)
         else:
             var = dims.create_dataset(dim.name, data=dim.data)
             if dim.data.ndim:

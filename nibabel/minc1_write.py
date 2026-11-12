@@ -52,6 +52,7 @@ import numpy as np
 
 from ._minc_write import (
     MISSING_INT,
+    VECTOR_NAME,
     WIDTH_SUFFIX,
     MincWriteError,
     build_layout,
@@ -82,6 +83,7 @@ def write_minc1(
     time_start=None,
     time_step=None,
     metadata=None,
+    vector_dimension=None,
 ):
     """Write `data` and `affine` to a MINC1 file
 
@@ -115,6 +117,12 @@ def write_minc1(
         and MINC2 labels, which MINC1 cannot hold, are left out with a
         warning.
 
+    vector_dimension : bool, optional
+        If true, the last axis of `data` is the MINC ``vector_dimension``,
+        the fastest varying, such as the components of RGB data; it follows
+        the spatial axes.  Default is true if `metadata` ends with a vector
+        dimension, and `data` has as many axes as `metadata`.
+
     Returns
     -------
     None
@@ -135,6 +143,7 @@ def write_minc1(
         time_start=time_start,
         time_step=time_step,
         metadata=metadata,
+        vector_dimension=vector_dimension,
         command=f'write_minc1 {os.fspath(target)}',
     )
     contents = _netcdf_bytes(layout)
@@ -251,7 +260,11 @@ def _netcdf_bytes(layout):
 
     links = _Links(layout.metadata)
     for dim in layout.dims:
-        _write_dimension(ncfile, links, dim)
+        # libminc makes no variable for the vector dimension
+        if dim.name != VECTOR_NAME or (
+            links.meta is not None and VECTOR_NAME in links.meta.variables
+        ):
+            _write_dimension(ncfile, links, dim)
     nscale = layout.image_max.ndim
     for name, values in (('image-max', layout.image_max), ('image-min', layout.image_min)):
         var = ncfile.createVariable(name, 'd', dimorder[:nscale])

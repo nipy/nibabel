@@ -30,6 +30,8 @@ import numpy as np
 
 from .minc_meta import WIDTH_SUFFIX, MincVariable
 
+VECTOR_NAME = 'vector_dimension'
+
 #: The libminc release whose file layout the writers follow.  It is written
 #: to the ``minc_version`` attribute, as libminc writes its version.
 MINC_VERSION = '2.4.01'
@@ -403,6 +405,23 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
     return dim
 
 
+def _vector_dimension(length, metadata):
+    """The vector dimension, the fastest varying, such as RGB components
+
+    libminc's MINC1 functions make no variable for it; its MINC2 functions
+    make a dataset with only a ``length`` attribute.
+    """
+    dim = Dimension(VECTOR_NAME, length, {'length': np.uint32(length)})
+    source = None if metadata is None else metadata.variables.get(VECTOR_NAME)
+    if source is not None:
+        dim.attrs = {}
+        _copy_attrs(dim.attrs, source.attrs, STRUCTURE_ATTRS)
+        dim.attrs['length'] = np.uint32(length)
+        if source.data is not None and source.data.shape == ():
+            dim.data = source.data
+    return dim
+
+
 def _copy_attrs(attrs, source, skip):
     """Add the attributes of `source` to `attrs`, except those in `skip`"""
     for name, value in source.items():
@@ -469,6 +488,7 @@ def build_layout(
     time_start=None,
     time_step=None,
     metadata=None,
+    vector_dimension=None,
     command='write_minc',
 ):
     """Work out what to store for `data` and `affine`
@@ -476,6 +496,11 @@ def build_layout(
     Parameters are as for :func:`nibabel.minc2_write.write_minc2`;
     `dtypes` are the data types the format can store, and `command` names
     the writer in the default history line.
+
+    With `vector_dimension` true, the last axis of `data` is the MINC
+    ``vector_dimension`` (such as the components of RGB data).  Default is
+    true if `metadata` ends with a vector dimension, and `data` has as many
+    axes as `metadata`.
 
     With `metadata`, a :class:`~nibabel.minc_meta.MincMeta`, the info
     variables, and the global, image and dimension attributes are copied,
@@ -492,12 +517,21 @@ def build_layout(
     layout : Layout
     """
     data = np.asanyarray(data)
-    if data.ndim not in (3, 4):
-        raise MincWriteError(f'Can only write 3D or 4D data, not {data.ndim}D')
+    if vector_dimension is None:
+        vector_dimension = (
+            metadata is not None
+            and metadata.dimorder[-1:] == (VECTOR_NAME,)
+            and len(metadata.dimorder) == data.ndim
+        )
+    ndim = data.ndim - bool(vector_dimension)
+    if ndim not in (3, 4):
+        vector = ' and a vector dimension' if vector_dimension else ''
+        raise MincWriteError(f'Can only write 3D or 4D data{vector}, not {data.ndim}D')
     out_dtype = check_dtype(data, dtype, dtypes)
     names, starts, steps, cosines = affine_to_dimensions(affine)
-    # Slice-wise scaling, as libminc writes by default, or as the source
-    nscale = data.ndim - 2
+    # Slice-wise scaling, as libminc writes by default, or as the source.
+    # Scaling does not vary over the vector dimension, as in libminc.
+    nscale = ndim - 2
     if metadata is not None and metadata.scaling_dims is not None:
         nscale = min(nscale, len(metadata.scaling_dims))
 
@@ -531,16 +565,16 @@ def build_layout(
         history += '\n'
 
     dims = []
-    if raw.ndim == 4:
+    if ndim == 4:
         name = 'time'
         if (
             metadata is not None
-            and len(metadata.dimorder) == 4
+            and len(metadata.dimorder) == data.ndim
             and not metadata.dimorder[0].endswith('space')
         ):
             name = metadata.dimorder[0]
         dims.append(_dimension(name, raw.shape[0], metadata, start=time_start, step=time_step))
-    spatial_shape = raw.shape[-3:]
+    spatial_shape = raw.shape[ndim - 3 : ndim]
     for i, name in enumerate(names):
         dims.append(
             _dimension(
@@ -552,6 +586,8 @@ def build_layout(
                 cosine=cosines[:, i],
             )
         )
+    if vector_dimension:
+        dims.append(_vector_dimension(raw.shape[-1], metadata))
     global_attrs = {'ident': make_ident(), 'minc_version': MINC_VERSION, 'history': history}
     image_attrs = {
         'complete': 'true_',
