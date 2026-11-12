@@ -24,8 +24,8 @@
 
    * - Tests
      -
-      .. image:: https://github.com/nipy/NiBabel/actions/workflows/stable.yml/badge.svg
-         :target: https://github.com/nipy/NiBabel/actions/workflows/stable.yml
+      .. image:: https://github.com/nipy/NiBabel/actions/workflows/test.yml/badge.svg
+         :target: https://github.com/nipy/NiBabel/actions/workflows/test.yml
          :alt: stable tests
       .. image:: https://codecov.io/gh/nipy/NiBabel/branch/master/graph/badge.svg
          :target: https://codecov.io/gh/nipy/NiBabel
