@@ -182,12 +182,40 @@ def _set_attrs(var, attrs):
         setattr(var, name, _nc_value(value))
 
 
-def _source_attrs(layout, name):
-    """Attributes of variable `name` of the layout's MINC1 source, or {}"""
-    meta = layout.metadata
-    if meta is None or meta.format != 'MINC1' or name not in meta.variables:
-        return {}
-    return meta.variables[name].attrs
+class _Links:
+    """Which MINC1 attributes that link variables to write
+
+    A MINC1 source keeps the links it has, so that a MINC1 file written by
+    another tool (such as ``mincconvert``, which writes no root variable)
+    comes back with the same attributes.  Without a MINC1 source, the
+    links are those libminc writes.
+    """
+
+    def __init__(self, metadata):
+        self.meta = None
+        if metadata is not None and metadata.format == 'MINC1':
+            self.meta = metadata
+
+    def source_attrs(self, name):
+        """Attributes of variable `name` of the MINC1 source, or None"""
+        meta = self.meta
+        if meta is None:
+            return None
+        if name == 'image':
+            return meta.image_attrs
+        if name in meta.scaling_attrs:
+            return meta.scaling_attrs[name]
+        var = meta.variables.get(name)
+        return {} if var is None else var.attrs
+
+    def has(self, name, attr, default=True):
+        """True if variable `name` gets link attribute `attr`"""
+        attrs = self.source_attrs(name)
+        return default if attrs is None else attr in attrs
+
+    @property
+    def root(self):
+        return self.meta is None or 'rootvariable' in self.meta.variables
 
 
 class _OrderedNetcdf(netcdf_file):
@@ -221,49 +249,61 @@ def _netcdf_bytes(layout):
     for dim in layout.dims:
         ncfile.createDimension(dim.name, dim.length)
 
-    children = []
+    links = _Links(layout.metadata)
     for dim in layout.dims:
-        _write_dimension(ncfile, layout, dim)
+        _write_dimension(ncfile, links, dim)
     nscale = layout.image_max.ndim
     for name, values in (('image-max', layout.image_max), ('image-min', layout.image_min)):
         var = ncfile.createVariable(name, 'd', dimorder[:nscale])
         var[...] = values
         attrs = dict(std_attrs('var_attribute'))
         attrs.update(layout.scaling_attrs.get(name, {}))
-        attrs['_FillValue'] = np.float64(1.0 if name == 'image-max' else 0.0)
-        attrs['parent'] = 'image'
+        if links.has(name, 'dimorder', default=False):
+            attrs['dimorder'] = ','.join(dimorder[:nscale])
+        if links.has(name, '_FillValue'):
+            attrs['_FillValue'] = np.float64(1.0 if name == 'image-max' else 0.0)
+        if links.has(name, 'parent'):
+            attrs['parent'] = 'image'
         _set_attrs(var, attrs)
+    children = []
     root = None
     for info in layout.info:
         if '/' in info.name:
             warnings.warn(f'MINC1 cannot hold the nested MINC2 info entry {info.name}; left out')
             continue
-        _write_info(ncfile, info)
+        _write_info(ncfile, links, info)
         children.append(info.name)
-        if root is None:
+        if root is None and links.root:
             # libminc makes the root variable with its first child
-            root = ncfile.createVariable('rootvariable', 'i', ())
-            root[...] = MISSING_INT
-    if root is None:
-        root = ncfile.createVariable('rootvariable', 'i', ())
-        root[...] = MISSING_INT
-    children.append('image')
-    _set_attrs(root, {**std_attrs('group________'), 'parent': '', 'children': '\n'.join(children)})
+            root = _root_variable(ncfile, links)
+    if root is None and links.root:
+        root = _root_variable(ncfile, links)
+    if root is not None:
+        children.append('image')
+        attrs = dict(std_attrs('group________'))
+        source = links.source_attrs('rootvariable') or {}
+        attrs.update((k, v) for k, v in source.items() if k not in _LINK_ATTRS)
+        attrs['parent'] = ''
+        attrs['children'] = '\n'.join(children)
+        _set_attrs(root, attrs)
 
     if layout.metadata is not None and layout.metadata.labels:
         warnings.warn('MINC1 cannot hold the label names of a MINC2 label volume; left out')
     nc_dtype, signtype = _nc_type(layout.raw.dtype)
     image = ncfile.createVariable('image', nc_dtype, dimorder)
     image[...] = layout.raw.view(nc_dtype)
-    attrs = {'parent': 'rootvariable', **std_attrs('group________')}
-    attrs['image-max'] = '--->image-max'
-    attrs['image-min'] = '--->image-min'
+    attrs = {}
+    if links.has('image', 'parent'):
+        attrs['parent'] = 'rootvariable'
+    attrs.update(std_attrs('group________'))
+    for name in ('image-max', 'image-min'):
+        if links.has('image', name):
+            attrs[name] = f'--->{name}'
     extra = dict(layout.image_attrs)
     for name in ('complete', 'valid_range'):
         extra.pop(name, None)
     attrs.update(extra)
-    meta = layout.metadata
-    if meta is not None and meta.format == 'MINC1' and 'dimorder' in meta.image_attrs:
+    if links.has('image', 'dimorder', default=False):
         attrs['dimorder'] = ','.join(dimorder)
     if 'complete' in layout.image_attrs:
         attrs['complete'] = layout.image_attrs['complete']
@@ -282,15 +322,29 @@ def _netcdf_bytes(layout):
     return contents
 
 
-def _write_dimension(ncfile, layout, dim):
+def _root_variable(ncfile, links):
+    root = ncfile.createVariable('rootvariable', 'i', ())
+    source = links.meta.variables['rootvariable'].data if links.meta is not None else None
+    root[...] = MISSING_INT if source is None else source
+    return root
+
+
+def _scalar(ncfile, name, data):
+    """Make scalar variable `name`, with `data` or the int fill value"""
+    value = np.array(MISSING_INT, np.int32) if data is None else _nc_value(data)[0]
+    var = ncfile.createVariable(name, value.dtype.newbyteorder('='), ())
+    var[...] = value
+    return var
+
+
+def _write_dimension(ncfile, links, dim):
     """Write the dimension variable of `dim`, and its width variable"""
-    source = _source_attrs(layout, dim.name)
+    source = links.source_attrs(dim.name) or {}
     if dim.data is not None and dim.data.ndim:
         var = ncfile.createVariable(dim.name, 'd', (dim.name,))
         var[...] = dim.data
     else:
-        var = ncfile.createVariable(dim.name, 'i', ())
-        var[...] = MISSING_INT
+        var = _scalar(ncfile, dim.name, dim.data)
     attrs = {}
     for name, value in dim.attrs.items():
         if name == 'length':
@@ -309,28 +363,32 @@ def _write_dimension(ncfile, layout, dim):
         _set_attrs(width, dim.width_attrs)
 
 
-def _write_info(ncfile, info):
+def _write_info(ncfile, links, info):
     """Write MINC info variable `info` (a ``MincVariable``)"""
-    attrs = {'parent': 'rootvariable'}
+    attrs = {}
+    if links.has(info.name, 'parent'):
+        attrs['parent'] = 'rootvariable'
     attrs.update((k, v) for k, v in info.attrs.items() if k not in _LINK_ATTRS + ('dimorder',))
     data = info.data
     if info.is_group or data is None:
-        var = ncfile.createVariable(info.name, 'i', ())
-        var[...] = MISSING_INT
+        var = _scalar(ncfile, info.name, None)
+    elif not data.ndim:
+        var = _scalar(ncfile, info.name, data)
     else:
         dims = info.dimensions
-        if data.ndim and len(dims) != data.ndim:
+        if len(dims) != data.ndim:
             warnings.warn(f'Info variable {info.name} has data without dimensions; left out')
-            data, dims = np.array(MISSING_INT, dtype=np.int32), ()
-        for name, length in zip(dims, data.shape):
-            if name not in ncfile.dimensions:
-                ncfile.createDimension(name, length)
-        if data.dtype.kind == 'S':
-            var = ncfile.createVariable(info.name, 'c', dims)
+            var = _scalar(ncfile, info.name, None)
         else:
-            data = _nc_value(data).reshape(data.shape)
-            var = ncfile.createVariable(info.name, data.dtype.newbyteorder('='), dims)
-        var[...] = data
-        if 'dimorder' in info.attrs:
-            attrs['dimorder'] = ','.join(dims)
+            for name, length in zip(dims, data.shape):
+                if name not in ncfile.dimensions:
+                    ncfile.createDimension(name, length)
+            if data.dtype.kind == 'S':
+                var = ncfile.createVariable(info.name, 'c', dims)
+            else:
+                data = _nc_value(data).reshape(data.shape)
+                var = ncfile.createVariable(info.name, data.dtype.newbyteorder('='), dims)
+            var[...] = data
+            if 'dimorder' in info.attrs:
+                attrs['dimorder'] = ','.join(dims)
     _set_attrs(var, attrs)

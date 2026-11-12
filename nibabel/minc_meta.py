@@ -122,7 +122,9 @@ class MincVariable:
         Variable name.  Entries of nested MINC2 info groups have their path
         relative to ``/minc-2.0/info``, such as ``'dicom/0x0008'``.
     group : str
-        Where MINC2 keeps the variable: ``'dimensions'`` or ``'info'``.
+        Where MINC2 keeps the variable: ``'dimensions'`` or ``'info'``; or
+        ``'root'`` for the MINC1 ``rootvariable``, which MINC2 does not
+        have.
     attrs : mapping
         Attributes, with values as from :func:`normalize_attr`.
     dimensions : tuple of str
@@ -167,7 +169,8 @@ class MincMeta:
         Attributes of the ``image-max`` and ``image-min`` variables, by name.
     variables : mapping
         :class:`MincVariable` of each variable other than the image,
-        image-min, image-max and the MINC1 ``rootvariable``.
+        image-min and image-max, including the MINC1 ``rootvariable`` (in
+        group ``'root'``).
     labels : None or mapping
         For MINC2 label volumes, the name of each label value, as libminc
         stores them in an enumerated HDF5 type.
@@ -217,14 +220,15 @@ class MincMeta:
             scaling_dims = tuple(ncfile.variables['image-max'].dimensions)
         variables = {}
         for name, var in ncfile.variables.items():
-            if name in _IMAGE_VARIABLES or name == 'rootvariable':
+            if name in _IMAGE_VARIABLES:
                 continue
             is_dim = name in ncfile.dimensions or (
                 name.endswith(WIDTH_SUFFIX) and name[: -len(WIDTH_SUFFIX)] in ncfile.dimensions
             )
+            group = 'root' if name == 'rootvariable' else 'dimensions' if is_dim else 'info'
             variables[name] = MincVariable(
                 name=name,
-                group='dimensions' if is_dim else 'info',
+                group=group,
                 attrs=_attr_mapping(var._attributes),
                 dimensions=tuple(var.dimensions),
                 data=_read_only(var.data),

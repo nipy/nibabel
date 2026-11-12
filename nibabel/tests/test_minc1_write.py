@@ -170,7 +170,9 @@ def test_write_metadata_minc1(tmp_path, src):
     rt_meta = load(fname).minc_meta
     assert set(rt_meta.info) == set(meta.info)
     for name, var in meta.info.items():
-        assert dict(rt_meta.info[name].attrs) == dict(var.attrs) | {'parent': 'rootvariable'}
+        # The links between variables follow the source
+        assert dict(rt_meta.info[name].attrs) == dict(var.attrs)
+    assert ('rootvariable' in rt_meta.variables) == ('rootvariable' in meta.variables)
     for name, var in meta.dimensions.items():
         assert dict(rt_meta.dimensions[name].attrs).keys() == dict(var.attrs).keys()
     assert rt_meta.history.startswith(meta.history)
