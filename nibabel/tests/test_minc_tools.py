@@ -143,8 +143,12 @@ def _need_format(tools, fmt, *names):
 
 
 def _mincinfo_dims(tools, fname):
-    """Return [(name, length, start, step, cosines)] from mincinfo"""
-    names = tools.run('mincinfo', '-dimnames', fname).split()
+    """Return [(name, length, start, step, cosines)] of the image dimensions
+
+    ``mincinfo -dimnames`` lists the dimensions of a MINC2 file in the order
+    of the HDF5 group, so the image dimensions come from ``-vardims``.
+    """
+    names = tools.run('mincinfo', '-vardims', 'image', fname).split()
     dims = []
     for name in names:
         length = int(tools.run('mincinfo', '-dimlength', name, fname))
@@ -599,3 +603,75 @@ def test_labels_minc1_interface(tmp_path, tools):
     write_minc2(data, np.eye(4), fname, labels={0: 'a', 1: 'b', 2: 'c', 3: 'd'})
     result = tools.run('mincstats', '-quiet', '-mean', fname, check=False)
     assert 'Unknown type class' in result.stdout + result.stderr
+
+
+def _walk_any(fname):
+    if _magic(fname) == MAGIC['MINC2']:
+        return _walk_minc2(fname), 'minc-2.0'
+    from .test_minc_roundtrip import _walk_minc1
+
+    return _walk_minc1(fname), 'GLOBAL'
+
+
+def _check_attribute_round_trip(src, out):
+    """Every attribute of `src` is in `out`, but the new file's own"""
+    img = load(src)
+    save(img, out)
+    assert_array_equal(load(out).get_fdata(), img.get_fdata())
+    assert_array_equal(load(out).affine, img.affine)
+    (before, glob), (after, _) = _walk_any(src), _walk_any(out)
+    for key in _diff(before, after):
+        if key[0] == glob and key[1][1:] in NEW_ATTRS:
+            continue
+        if _is_scaling(key):
+            continue
+        raise AssertionError(f'{key}: {before.get(key)!r} -> {after.get(key)!r}')
+
+
+@pytest.mark.parametrize('fmt', ['MINC1', 'MINC2'])
+@pytest.mark.parametrize(
+    'dimorder', ['zfrequency,yfrequency,xfrequency', 'tfrequency,zspace,yspace,xspace']
+)
+def test_libminc_frequency(tmp_path, fmt, dimorder):
+    # rawtominc writes frequency dimensions; nibabel reads them, keeps every
+    # attribute through a save, and libminc reads nibabel's files
+    _need(SIF_TOOLS, 'rawtominc', 'mincconvert', minc2=True)
+    shape = (2, 3, 4, 5)[-len(dimorder.split(',')) :]
+    raw = tmp_path / 'raw.bin'
+    raw.write_bytes(bytes(range(int(np.prod(shape)))))
+    ref = str(tmp_path / 'ref2.mnc')
+    SIF_TOOLS.run(
+        'rawtominc',
+        '-clobber',
+        '-byte',
+        '-dimorder',
+        dimorder,
+        '-input',
+        raw,
+        ref,
+        *(str(n) for n in shape),
+    )
+    if fmt == 'MINC1':
+        SIF_TOOLS.run('mincconvert', '-clobber', ref, str(tmp_path / 'ref1.mnc'))
+        ref = str(tmp_path / 'ref1.mnc')
+    assert _magic(ref) == MAGIC[fmt]
+    img = load(ref)
+    assert ','.join(img.minc_meta.dimorder) == dimorder
+    assert_array_equal(img.get_fdata().ravel(), np.arange(np.prod(shape)))
+    out = str(tmp_path / 'out.mnc')
+    _check_attribute_round_trip(ref, out)
+    assert SIF_TOOLS.run('mincinfo', '-vardims', 'image', out).split() == dimorder.split(',')
+
+
+@pytest.mark.parametrize('tools', TOOLS)
+@pytest.mark.parametrize('fmt', ['MINC1', 'MINC2'])
+def test_frequency_mincinfo(tmp_path, tools, fmt):
+    # libminc reads the start and step of frequency dimensions we write
+    _need_format(tools, fmt, 'mincinfo')
+    names = ('zfrequency', 'yfrequency', 'xfrequency')
+    affine = np.array([[0, 0, 0.5, -1], [0, 0.25, 0, 2], [2.0, 0, 0, 3], [0, 0, 0, 1]])
+    fname = str(tmp_path / 'img.mnc')
+    WRITERS[fmt](np.zeros((3, 4, 5), np.int16), affine, fname, dimension_names=names)
+    dims = _mincinfo_dims(tools, fname)
+    assert [d[0] for d in dims] == list(names)
+    assert [(d[2], d[3]) for d in dims] == [(3, 2), (2, 0.25), (-1, 0.5)]

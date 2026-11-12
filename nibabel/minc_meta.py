@@ -59,6 +59,17 @@ STANDARD_DIMENSIONS = (
 #: Suffix of dimension width variables
 WIDTH_SUFFIX = '-width'
 
+#: World axis (0, 1, 2 for x, y, z) of the dimensions that libminc maps to
+#: world space: the spatial dimensions and the spatial frequency dimensions
+WORLD_AXES = {
+    'xspace': 0,
+    'yspace': 1,
+    'zspace': 2,
+    'xfrequency': 0,
+    'yfrequency': 1,
+    'zfrequency': 2,
+}
+
 _IMAGE_VARIABLES = ('image', 'image-min', 'image-max')
 
 _EMPTY: Mapping = MappingProxyType({})

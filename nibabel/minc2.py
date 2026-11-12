@@ -39,7 +39,7 @@ import numpy as np
 
 from .minc1 import Minc1File, Minc1Image, MincError, MincHeader
 from .minc2_write import write_minc2
-from .minc_meta import MincMeta
+from .minc_meta import WORLD_AXES, MincMeta
 
 
 class Hdf5Bunch:
@@ -84,7 +84,7 @@ class Minc2File(Minc1File):
             elif spacing not in (b'regular__', b'irregular'):
                 warnings.warn(f'Invalid spacing declaration: {spacing}; assuming regular')
 
-        self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
+        self._spatial_dims = [name for name in self._dim_names if name in WORLD_AXES]
         self._check_irregular()
         self._image_max = image.get('image-max')
         self._image_min = image.get('image-min')

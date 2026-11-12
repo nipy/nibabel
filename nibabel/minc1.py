@@ -45,7 +45,7 @@ import numpy as np
 from .externals.netcdf import netcdf_file
 from .fileslice import canonical_slicers
 from .minc1_write import write_minc1
-from .minc_meta import MincMeta
+from .minc_meta import WORLD_AXES, MincMeta
 from .spatialimages import SpatialHeader, SpatialImage
 
 _dt_dict = {
@@ -60,7 +60,9 @@ _dt_dict = {
 
 # See
 # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
-_default_dir_cos = {'xspace': [1, 0, 0], 'yspace': [0, 1, 0], 'zspace': [0, 0, 1]}
+# Spatial frequency dimensions point along the world axis of their name, as
+# in libminc
+_default_dir_cos = {name: list(np.eye(3)[axis]) for name, axis in WORLD_AXES.items()}
 
 
 class MincError(Exception):
@@ -96,7 +98,7 @@ class Minc1File:
         for name, dim in zip(self._dim_names, self._dims):
             if getattr(dim, 'spacing', b'regular__') == b'irregular' and dim.data.ndim == 1:
                 self._coords[name] = np.array(dim.data, dtype=np.float64)
-        self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
+        self._spatial_dims = [name for name in self._dim_names if name in WORLD_AXES]
         self._check_irregular()
         # the MINC standard appears to allow the following variables to
         # be undefined.

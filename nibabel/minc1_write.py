@@ -94,6 +94,7 @@ def write_minc1(
     metadata=None,
     vector_dimension=None,
     slice_scaling=None,
+    dimension_names=None,
 ):
     """Write `data` and `affine` to a MINC1 file
 
@@ -140,6 +141,13 @@ def write_minc1(
         is the form of `metadata`, if any, and slice-wise otherwise.
         Ignored if `scaling` is given.
 
+    dimension_names : sequence of str, optional
+        Names of the three spatial axes, in order: ``xspace`` or
+        ``xfrequency`` for the axis the affine maps to world x, and so on.
+        libminc maps spatial frequency dimensions to world axes as it does
+        spatial ones.  Default is the names of `metadata` for those world
+        axes, if any, and the ``space`` names otherwise.
+
     Returns
     -------
     None
@@ -162,6 +170,7 @@ def write_minc1(
         metadata=metadata,
         vector_dimension=vector_dimension,
         slice_scaling=slice_scaling,
+        dimension_names=dimension_names,
         command=f'write_minc1 {os.fspath(target)}',
     )
     contents = _netcdf_bytes(layout)

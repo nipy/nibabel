@@ -343,3 +343,71 @@ def test_irregular_any_dimension(tmp_path, klass, name):
     assert_array_equal(rt_img.minc_meta.variables[name + '-width'].data, widths)
     assert_array_equal(rt_img.get_fdata(), data)
     assert_array_equal(rt_img.affine, img.affine)
+
+
+@pytest.mark.parametrize(('writer', 'klass'), WRITERS)
+@pytest.mark.parametrize(
+    'names',
+    [
+        ('zfrequency', 'yfrequency', 'xfrequency'),
+        ('zspace', 'yfrequency', 'xspace'),
+    ],
+)
+def test_frequency_dimensions(tmp_path, writer, klass, names):
+    # libminc maps xfrequency, yfrequency and zfrequency to the world axes
+    # as it does xspace, yspace and zspace; so does the affine
+    data = np.arange(2 * 3 * 4 * 5, dtype=np.int16).reshape((2, 3, 4, 5))
+    affine = np.array([[0, 0, 0.5, -1], [0, 0.25, 0, 2], [2.0, 0, 0, 3], [0, 0, 0, 1]])
+    fname = tmp_path / 'img.mnc'
+    writer(data, affine, fname, dimension_names=names)
+    img = load(fname)
+    assert img.minc_meta.dimorder == ('time',) + names
+    assert_array_equal(img.affine, affine)
+    assert_array_equal(img.get_fdata(), data)
+    for name in names:
+        attrs = img.minc_meta.dimensions[name].attrs
+        assert_array_equal(attrs['direction_cosines'], np.eye(3)['xyz'.index(name[0])])
+    # Saving and converting keep the names
+    out = tmp_path / 'out.mnc'
+    for other in (Minc1Image, Minc2Image):
+        if other is Minc2Image and not have_h5py:
+            continue
+        save(other.from_image(img), out)
+        rt_img = load(out)
+        assert rt_img.minc_meta.dimorder == img.minc_meta.dimorder
+        assert_array_equal(rt_img.affine, affine)
+    # Names must match the world axes of the affine
+    with pytest.raises(MincWriteError):
+        writer(data, affine, fname, dimension_names=('xfrequency', 'yspace', 'zspace'))
+
+
+@pytest.mark.parametrize(('writer', 'klass'), WRITERS)
+def test_tfrequency(tmp_path, writer, klass):
+    data = np.arange(2 * 3 * 4 * 5, dtype=np.int16).reshape((2, 3, 4, 5))
+    src = tmp_path / 'src.mnc'
+    # A MINC1 file with tfrequency in place of time
+    write_minc1(data, np.eye(4), src, time_start=0.5, time_step=0.25)
+    nc = _netcdf(src)
+    out = BytesIO()
+    new = netcdf_file(out, 'w')
+    for name, length in nc.dimensions.items():
+        new.createDimension(name.replace('time', 'tfrequency'), length)
+    for name, var in nc.variables.items():
+        dims = tuple(d.replace('time', 'tfrequency') for d in var.dimensions)
+        copy = new.createVariable(name.replace('time', 'tfrequency'), var.data.dtype, dims)
+        copy[...] = var.data
+        for key, value in var._attributes.items():
+            setattr(copy, key, value)
+    new.flush()
+    with open(src, 'wb') as fobj:
+        fobj.write(out.getvalue())
+    del nc
+    img = load(src)
+    assert img.minc_meta.dimorder[0] == 'tfrequency'
+    fname = tmp_path / 'img.mnc'
+    save(klass.from_image(img), fname)
+    rt_img = load(fname)
+    assert rt_img.minc_meta.dimorder == img.minc_meta.dimorder
+    attrs = rt_img.minc_meta.dimensions['tfrequency'].attrs
+    assert (attrs['start'], attrs['step']) == (0.5, 0.25)
+    assert_array_equal(rt_img.get_fdata(), data)

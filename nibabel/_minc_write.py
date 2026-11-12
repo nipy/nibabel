@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .minc_meta import WIDTH_SUFFIX, MincVariable
+from .minc_meta import WIDTH_SUFFIX, WORLD_AXES, MincVariable
 
 VECTOR_NAME = 'vector_dimension'
 
@@ -306,8 +306,8 @@ def _source_geometry(source, metadata):
     else:
         step = 1.0
     cosine = attrs.get('direction_cosines')
-    if cosine is None and source.name in SPATIAL_NAMES:
-        cosine = np.eye(3)[SPATIAL_NAMES.index(source.name)]
+    if cosine is None and source.name in WORLD_AXES:
+        cosine = np.eye(3)[WORLD_AXES[source.name]]
     return metadata.dim_lengths.get(source.name), start, step, cosine
 
 
@@ -376,13 +376,13 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
     step = 1.0 if step is None else float(step)
     # The attributes and their order of libminc's MINC1 dimension variables
     attrs = dict(std_attrs('dimension____'))
-    if spatial:
+    if name in COMMENTS:
         attrs['comments'] = COMMENTS[name]
     attrs['spacing'] = 'regular__'
     # libminc aligns time samples to their start
     attrs['alignment'] = 'start_' if name == 'time' else 'centre'
     attrs['step'] = step
-    if spatial or name == 'time':
+    if name in COMMENTS or name == 'time':
         attrs['units'] = 'mm' if spatial else 's'
     attrs['start'] = start
     if spatial:
@@ -421,6 +421,30 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
             dim.attrs[att] = value
     dim.attrs.update(geometry)
     return dim
+
+
+def _world_names(names, metadata, dimension_names=None):
+    """Dimension names of the spatial axes, ``space`` or ``frequency``
+
+    `names` are the ``space`` names the affine gives the axes.  libminc
+    maps ``xfrequency`` to the world x axis as it does ``xspace``, and so
+    on.
+    """
+    axes = [WORLD_AXES[name] for name in names]
+    if dimension_names is not None:
+        dimension_names = tuple(dimension_names)
+        if len(dimension_names) != 3 or any(
+            WORLD_AXES.get(new) != axis for new, axis in zip(dimension_names, axes)
+        ):
+            raise MincWriteError(
+                f'Spatial dimension names {dimension_names} do not match the world axes '
+                f'{names} of the affine'
+            )
+        return dimension_names
+    if metadata is None:
+        return names
+    by_axis = {WORLD_AXES[name]: name for name in metadata.dimorder if name in WORLD_AXES}
+    return tuple(by_axis.get(axis, name) for name, axis in zip(names, axes))
 
 
 def _vector_dimension(length, metadata):
@@ -516,6 +540,7 @@ def build_layout(
     vector_dimension=None,
     slice_scaling=None,
     labels=None,
+    dimension_names=None,
     command='write_minc',
 ):
     """Work out what to store for `data` and `affine`
@@ -527,6 +552,12 @@ def build_layout(
     `labels` maps label values to names, for a label volume; default is the
     labels of `metadata`, if any.  The data of a label volume must be
     integers that the stored type can hold, and are stored unscaled.
+
+    `dimension_names` names the spatial axes, in order; each must be the
+    ``space`` or ``frequency`` dimension of the world axis the affine gives
+    it (``xspace`` or ``xfrequency`` and so on).  Default is the names in
+    `metadata` for those world axes, if any, and ``xspace``, ``yspace``,
+    ``zspace`` otherwise.
 
     `slice_scaling` chooses slice-wise (True) or volume-wise (False)
     image-min / image-max; default is the form of `metadata`, if any, and
@@ -634,11 +665,12 @@ def build_layout(
         if (
             metadata is not None
             and len(metadata.dimorder) == data.ndim
-            and not metadata.dimorder[0].endswith('space')
+            and metadata.dimorder[0] not in WORLD_AXES
         ):
             name = metadata.dimorder[0]
         dims.append(_dimension(name, raw.shape[0], metadata, start=time_start, step=time_step))
     spatial_shape = raw.shape[ndim - 3 : ndim]
+    names = _world_names(names, metadata, dimension_names)
     for i, name in enumerate(names):
         dims.append(
             _dimension(
