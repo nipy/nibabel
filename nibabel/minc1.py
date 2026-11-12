@@ -420,8 +420,8 @@ class Minc1Image(SpatialImage):
     def _write(*args, **kwargs):
         return write_minc1(*args, **kwargs)
 
-    def to_file_map(self, file_map=None, dtype=None):
-        """Write image to `file_map` or contained ``self.file_map``
+    def to_file_map(self, file_map=None, dtype=None, **kwargs):
+        r"""Write image to `file_map` or contained ``self.file_map``
 
         A :class:`Minc1Image` writes MINC1 and a
         :class:`~nibabel.minc2.Minc2Image` writes MINC2, with
@@ -436,6 +436,9 @@ class Minc1Image(SpatialImage):
         dtype : dtype-like, optional
            The on-disk data type to coerce the data array.  Default is the
            header data type.
+        \*\*kwargs : keyword arguments
+           Further options of the writer, such as ``slice_scaling``, and
+           ``compression`` and ``chunks`` for MINC2.
 
         Notes
         -----
@@ -471,6 +474,7 @@ class Minc1Image(SpatialImage):
             dtype=out_dtype.newbyteorder('='),
             scaling=scaling,
             metadata=self.minc_meta,
+            **kwargs,
         )
         self.file_map = file_map
 

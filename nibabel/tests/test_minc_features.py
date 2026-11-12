@@ -160,3 +160,51 @@ def test_volume_scaling(tmp_path, writer, klass, dtype):
     assert load(out).minc_meta.scaling_dims == ()
     save(klass(data.astype(dtype), np.eye(4)), out)
     assert len(load(out).minc_meta.scaling_dims) == 2
+
+
+@needs_h5py
+def test_compression(tmp_path, monkeypatch):
+    monkeypatch.delenv('MINC_COMPRESS', raising=False)
+    monkeypatch.delenv('MINC_CHUNKING', raising=False)
+    data = np.arange(2 * 30 * 40 * 50, dtype=np.int16).reshape((2, 30, 40, 50))
+    fname = tmp_path / 'img.mnc'
+
+    def storage():
+        with h5py.File(fname, 'r') as h5f:
+            image = h5f['minc-2.0/image/0/image']
+            return image.chunks, image.compression, image.compression_opts
+
+    # Default: contiguous and uncompressed, as libminc without MINC_COMPRESS
+    write_minc2(data, np.eye(4), fname)
+    assert storage() == (None, None, None)
+    # Compression chunks as libminc: whole fastest dimensions below 1 MB
+    write_minc2(data, np.eye(4), fname, compression=True)
+    assert storage() == ((2, 30, 40, 50), 'gzip', 4)
+    big = np.zeros((20, 100, 100, 100), np.float32)
+    write_minc2(big, np.eye(4), fname, compression=1)
+    assert storage() == ((1, 25, 100, 100), 'gzip', 1)
+    write_minc2(data, np.eye(4), fname, chunks=(1, 10, 40, 50))
+    assert storage() == ((1, 10, 40, 50), None, None)
+    write_minc2(data, np.eye(4), fname, compression=9, chunks=(1, 30, 40, 50))
+    assert storage() == ((1, 30, 40, 50), 'gzip', 9)
+    assert_array_equal(load(fname).get_fdata(), data)
+    # The environment variables of libminc set the defaults
+    monkeypatch.setenv('MINC_COMPRESS', '2')
+    monkeypatch.setenv('MINC_CHUNKING', '16')
+    write_minc2(data, np.eye(4), fname)
+    assert storage() == ((2, 16, 16, 16), 'gzip', 2)
+    with pytest.raises(MincWriteError):
+        write_minc2(data, np.eye(4), fname, compression=10)
+    # Images pass the options on
+    monkeypatch.delenv('MINC_COMPRESS')
+    save(Minc2Image(data, np.eye(4)), fname, compression=5)
+    assert storage()[1:] == ('gzip', 5)
+    assert_array_equal(load(fname).get_fdata(), data)
+
+
+@pytest.mark.skipif(not have_h5py or not have_sitk, reason='Need h5py and SimpleITK')
+def test_compression_sitk(tmp_path):
+    data = np.arange(30 * 40 * 50, dtype=np.int16).reshape((30, 40, 50))
+    fname = tmp_path / 'img.mnc'
+    write_minc2(data, np.eye(4), fname, compression=True, chunks=(5, 10, 50))
+    assert_array_equal(sitk.GetArrayFromImage(sitk.ReadImage(str(fname))), data.transpose())

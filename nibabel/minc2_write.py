@@ -93,6 +93,7 @@ __all__ = (
     'SUPPORTED_DTYPES',
     'Minc2WriteError',
     'affine_to_dimensions',
+    'libminc_chunks',
     'make_history_line',
     'make_ident',
     'write_minc2',
@@ -135,6 +136,8 @@ def write_minc2(
     metadata=None,
     vector_dimension=None,
     slice_scaling=None,
+    compression=None,
+    chunks=None,
 ):
     """Write `data` and `affine` to a MINC2 file
 
@@ -192,6 +195,16 @@ def write_minc2(
         writes by default, False for a single volume-wise range.  Default
         is the form of `metadata`, if any, and slice-wise otherwise.
         Ignored if `scaling` is given.
+    compression : None, bool or int, optional
+        zlib (gzip) compression level of the image, 0 to 9; True is level 4,
+        libminc's default level.  Default is the ``MINC_COMPRESS``
+        environment variable, as for libminc, or no compression.
+    chunks : None, True or tuple of int, optional
+        Chunk shape of the image.  True or None (with compression) gives
+        libminc's chunks: whole fastest varying dimensions up to 1,000,000
+        bytes per chunk, each at most ``MINC_CHUNKING`` long if that is set
+        (and at least 4).  Without compression, None stores the image
+        contiguously, as libminc does.
 
     Returns
     -------
@@ -214,8 +227,10 @@ def write_minc2(
         command=f'write_minc2 {os.fspath(target)}',
     )
 
+    storage = _storage(layout.raw, compression, chunks)
+
     def write(h5f):
-        _write_groups(h5f, layout)
+        _write_groups(h5f, layout, storage)
 
     if isinstance(filename, (str, os.PathLike)):
 
@@ -257,7 +272,70 @@ def _write_info(info, var):
     _set_attrs(obj, attrs)
 
 
-def _write_groups(h5f, layout):
+def _storage(raw, compression, chunks):
+    """h5py dataset options for the image: compression and chunks"""
+    if compression is None:
+        compression = _env_int('MINC_COMPRESS')
+    level = 4 if compression is True else int(compression)
+    if not 0 <= level <= 9:
+        raise MincWriteError(f'Compression level must be 0 to 9, not {level}')
+    if chunks is None and level:
+        chunks = True
+    if chunks is True:
+        chunks = libminc_chunks(raw.shape, raw.dtype.itemsize, _env_int('MINC_CHUNKING'))
+    storage = {}
+    if chunks is not None and chunks is not False and raw.size:
+        storage['chunks'] = tuple(int(c) for c in chunks)
+    if level:
+        storage.update(compression='gzip', compression_opts=level)
+    return storage
+
+
+def _env_int(name):
+    try:
+        return int(os.environ.get(name, '0'))
+    except ValueError:
+        return 0
+
+
+def libminc_chunks(shape, itemsize, chunk_length=0):
+    """Chunk shape libminc chooses for compressed data
+
+    As ``hdf_convenience.c`` of libminc: from the fastest varying
+    dimension, whole dimensions as long as the chunk stays below
+    1,000,000 bytes, then as much of the next dimension as fits, and one
+    sample of the others.  A `chunk_length` of 4 or more limits every
+    dimension.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Data shape.
+    itemsize : int
+        Bytes per value.
+    chunk_length : int, optional
+        ``MINC_CHUNKING``: largest chunk length per dimension, if 4 or more.
+
+    Returns
+    -------
+    chunks : tuple of int
+    """
+    buffer_size = 1000000
+    chunks = [0] * len(shape)
+    size = 1
+    for i in range(len(shape) - 1, -1, -1):
+        if buffer_size > shape[i] * size * itemsize:
+            chunks[i] = shape[i]
+        else:
+            chunks[i] = min(shape[i], buffer_size // (size * itemsize))
+        chunks[i] = max(chunks[i], 1)
+        size *= chunks[i]
+    if chunk_length >= 4:
+        chunks = [min(c, chunk_length) for c in chunks]
+    return tuple(chunks)
+
+
+def _write_groups(h5f, layout, storage=None):
     """Write the ``/minc-2.0`` group of `layout` to open ``h5f``"""
     minc = h5f.create_group('minc-2.0')
     _set_attrs(minc, layout.global_attrs)
@@ -286,7 +364,7 @@ def _write_groups(h5f, layout):
         # libminc stores complex values as a compound of real and imag
         part = raw.real.dtype
         raw = raw.view(np.dtype([('real', part), ('imag', part)]))
-    image = group.create_dataset('image', data=raw)
+    image = group.create_dataset('image', data=raw, **(storage or {}))
     _set_attrs(image, {'dimorder': ','.join(layout.dimorder), **layout.image_attrs})
     for name, values in (('image-max', layout.image_max), ('image-min', layout.image_min)):
         _write_range_var(group, name, values, layout.dimorder, layout.scaling_attrs[name])
