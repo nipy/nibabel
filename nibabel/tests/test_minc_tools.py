@@ -544,3 +544,58 @@ def test_irregular(tmp_path, tools, fmt):
     header = _mincheader(tools, fname)
     assert header[('time', 'decl')] == 'double(time)'
     assert header[('time-width', 'decl')] == 'double(time)'
+
+
+def _feature_data(feature):
+    """Data, writer options and the mean libminc reads, for a feature"""
+    if feature == 'vector':
+        data = (np.arange(360).reshape((4, 5, 6, 3)) % 256).astype(np.uint8)
+        return data, {'vector_dimension': True}, data.mean()
+    if feature == 'gzip':
+        return np.arange(60, dtype=np.int16).reshape((3, 4, 5)), {'compression': True}, 29.5
+    if feature == 'int8':
+        return (np.arange(60) - 20).astype(np.int8).reshape((3, 4, 5)), {}, 9.5
+    if feature == 'uint32':
+        data = (np.arange(60) + 4_000_000_000).astype(np.uint32).reshape((3, 4, 5))
+        return data, {}, data.mean()
+    if feature == 'complex':
+        real = np.arange(60, dtype=np.float32)
+        data = (real + 1j * real[::-1]).astype(np.complex64).reshape((3, 4, 5))
+        # libminc reads the real part
+        return data, {}, 29.5
+    raise ValueError(feature)
+
+
+@pytest.mark.parametrize('tools', TOOLS)
+@pytest.mark.parametrize(
+    ('fmt', 'feature'),
+    [
+        ('MINC1', 'vector'),
+        ('MINC2', 'vector'),
+        ('MINC2', 'gzip'),
+        ('MINC1', 'int8'),
+        ('MINC2', 'int8'),
+        ('MINC1', 'uint32'),
+        ('MINC2', 'uint32'),
+        ('MINC2', 'complex'),
+    ],
+)
+def test_features(tmp_path, tools, fmt, feature):
+    _need_format(tools, fmt, 'mincstats')
+    data, options, mean = _feature_data(feature)
+    fname = str(tmp_path / 'img.mnc')
+    WRITERS[fmt](data, np.eye(4), fname, **options)
+    assert_allclose(_mincstats(tools, fname)[2], mean, rtol=1e-7)
+
+
+@pytest.mark.parametrize('tools', TOOLS)
+def test_labels_minc1_interface(tmp_path, tools):
+    # libminc keeps label names in an enumerated HDF5 type, which its MINC2
+    # interface (used by ITK) reads, but not its MINC1 interface, which most
+    # tools use
+    _need_format(tools, 'MINC2', 'mincstats')
+    data = (np.arange(60) % 4).astype(np.uint8).reshape((3, 4, 5))
+    fname = str(tmp_path / 'img.mnc')
+    write_minc2(data, np.eye(4), fname, labels={0: 'a', 1: 'b', 2: 'c', 3: 'd'})
+    result = tools.run('mincstats', '-quiet', '-mean', fname, check=False)
+    assert 'Unknown type class' in result.stdout + result.stderr
