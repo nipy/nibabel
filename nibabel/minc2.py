@@ -60,13 +60,20 @@ class Minc2File(Minc1File):
     information, and for the method of reading the data out
     """
 
-    def __init__(self, mincfile):
+    def __init__(self, mincfile, resolution_level=0):
         self._mincfile = mincfile
         minc_part = mincfile['minc-2.0']
-        # The whole image is the first of the entries in 'image'
-        image = minc_part['image']['0']
+        # The whole image is the first of the entries in 'image'; libminc
+        # keeps lower resolution levels in the others, without dimorder or
+        # valid_range attributes
+        self._level = int(resolution_level)
+        self._full_image = minc_part['image']['0']['image']
+        if str(self._level) not in minc_part['image']:
+            raise MincError(f'No resolution level {self._level}')
+        image = minc_part['image'][str(self._level)]
         self._image = image['image']
-        self._dim_names = self._get_dimensions(self._image)
+        self._dim_names = []
+        self._dim_names = self._get_dimensions(self._full_image)
         dimensions = minc_part['dimensions']
         # The vector dimension (such as RGB components) may have no dataset
         self._dims = [
@@ -96,7 +103,9 @@ class Minc2File(Minc1File):
         try:
             dimorder = var.attrs['dimorder'].decode()
         except KeyError:  # No specified dimensions
-            return []
+            # libminc's lower resolution levels vary over the leading image
+            # dimensions
+            return self._dim_names[: len(var.shape)] if self._level else []
         # The dimension name list must contain only as many entries
         # as the variable has dimensions. This reduces errors when an
         # unnecessary dimorder attribute is left behind.
@@ -112,6 +121,17 @@ class Minc2File(Minc1File):
     def get_data_shape(self):
         return self._image.shape
 
+    def _start_step(self, name, dim):
+        """Start and step of dimension `name`, at the resolution level
+
+        Each sample of level ``n`` is the mean of ``2 ** n`` samples of the
+        full resolution along each dimension, so its step is ``2 ** n``
+        times larger and its centre is half way across the block.
+        """
+        start, step = super()._start_step(name, dim)
+        scale = 2**self._level
+        return start + (scale - 1) * step / 2, step * scale
+
     def _get_valid_range(self):
         """Return valid range for image data
 
@@ -123,7 +143,11 @@ class Minc2File(Minc1File):
         try:
             valid_range = self._image.attrs['valid_range']
         except (AttributeError, KeyError):
-            valid_range = [info.min, info.max]
+            try:
+                # Resolution levels have the valid range of the volume
+                valid_range = self._full_image.attrs['valid_range']
+            except (AttributeError, KeyError):
+                valid_range = [info.min, info.max]
         else:
             if valid_range[0] < info.min or valid_range[1] > info.max:
                 raise ValueError('Valid range outside input data type range')
@@ -190,7 +214,36 @@ class Minc2Image(Minc1Image):
     rw = True
 
     @classmethod
-    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
+    def from_filename(klass, filename, *, mmap=True, keep_file_open=None, resolution_level=0):
+        """Load an image from `filename`; see :meth:`from_file_map`"""
+        if mmap not in (True, False, 'c', 'r'):
+            raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
+        file_map = klass.filespec_to_file_map(filename)
+        return klass.from_file_map(
+            file_map, mmap=mmap, keep_file_open=keep_file_open, resolution_level=resolution_level
+        )
+
+    load = from_filename
+
+    @classmethod
+    def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None, resolution_level=0):
+        """Load an image from `file_map`
+
+        Parameters
+        ----------
+        file_map : dict
+            Mapping with the ``image`` file holder.
+        mmap, keep_file_open
+            Not used; for compatibility with other image classes.
+        resolution_level : int, optional
+            Resolution level to read: 0, the full resolution (default), or
+            one of the lower resolution levels that libminc keeps in
+            ``/minc-2.0/image/<level>``, listed in
+            ``img.minc_meta.resolution_levels``.  Level ``n`` averages
+            blocks of ``2 ** n`` samples along each dimension; its affine
+            has ``2 ** n`` times the voxel size, with the origin at the
+            centre of the first block.
+        """
         # Import of h5py might take awhile for MPI-enabled builds
         # So we are importing it here "on demand"
         import h5py  # type: ignore[import]
@@ -200,7 +253,7 @@ class Minc2Image(Minc1Image):
         if source is None:
             raise MincError('MINC2 needs filename or file object for load')
         h5file = h5py.File(source, 'r')
-        minc_file = Minc2File(h5file)
+        minc_file = Minc2File(h5file, resolution_level)
         minc_meta = MincMeta.from_hdf5(h5file)
         affine = minc_file.get_affine()
         if affine.shape != (4, 4):

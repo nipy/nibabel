@@ -749,3 +749,97 @@ def test_record_dimension_tools(tmp_path, tools):
     write_minc1(data, np.eye(4), fname, record_dimension=True)
     assert tools.run('mincinfo', '-dimlength', 'time', fname).strip() == '3'
     assert_allclose(_mincstats(tools, fname), [0, 71, 35.5])
+
+
+MULTIRES_C = r"""
+#include <stdlib.h>
+#include <minc2.h>
+
+/* Write a 3D MINC2 volume with resolution levels through libminc */
+int main(int argc, char **argv)
+{
+    mihandle_t vol;
+    midimhandle_t dims[3];
+    mivolumeprops_t props;
+    misize_t start[3] = {0, 0, 0}, count[3];
+    int sizes[3] = {8, 12, 16}, depth = atoi(argv[2]);
+    const char *names[3] = {"zspace", "yspace", "xspace"};
+    double steps[3] = {3.0, 2.0, 1.0}, starts[3] = {-10.0, 5.0, 7.0};
+    int i, n = sizes[0] * sizes[1] * sizes[2];
+    double *data = malloc(n * sizeof(double));
+    for (i = 0; i < n; i++) data[i] = (i * 7) % 101;
+    for (i = 0; i < 3; i++) {
+        micreate_dimension(names[i], MI_DIMCLASS_SPATIAL, MI_DIMATTR_REGULARLY_SAMPLED,
+                           sizes[i], &dims[i]);
+        miset_dimension_separation(dims[i], steps[i]);
+        miset_dimension_start(dims[i], starts[i]);
+        count[i] = sizes[i];
+    }
+    minew_volume_props(&props);
+    if (miset_props_multi_resolution(props, 1, depth) < 0) return 1;
+    if (micreate_volume(argv[1], 3, dims, MI_TYPE_SHORT, MI_CLASS_REAL, props, &vol) < 0)
+        return 2;
+    if (micreate_volume_image(vol) < 0) return 3;
+    miset_volume_range(vol, 100.0, 0.0);
+    miset_volume_valid_range(vol, 32767.0, -32768.0);
+    if (miset_real_value_hyperslab(vol, MI_TYPE_DOUBLE, start, count, data) < 0) return 4;
+    if (miflush_from_resolution(vol, depth) < 0) return 5;
+    miclose_volume(vol);
+    return 0;
+}
+"""
+
+
+def _libminc_multires(tmp_path, depth=2):
+    """A file with resolution levels that libminc writes, or skip"""
+    _need(SIF_TOOLS, 'mincinfo', minc2=True)
+    source = tmp_path / 'multires.c'
+    source.write_text(MULTIRES_C)
+    program = str(tmp_path / 'multires')
+    result = SIF_TOOLS.run(
+        'gcc',
+        source,
+        '-o',
+        program,
+        '-I/opt/minc/1.9.18/include',
+        '-L/opt/minc/1.9.18/lib',
+        '-lminc2',
+        '-lhdf5',
+        '-lm',
+        check=False,
+    )
+    if result.returncode:
+        pytest.skip('Cannot compile against libminc in the minc-toolkit image')
+    fname = str(tmp_path / 'multires.mnc')
+    os.environ['APPTAINERENV_MINC_COMPRESS'] = '0'
+    try:
+        SIF_TOOLS.run(program, fname, depth)
+    finally:
+        del os.environ['APPTAINERENV_MINC_COMPRESS']
+    return fname
+
+
+def test_libminc_resolution_levels(tmp_path):
+    # libminc writes lower resolution levels with miset_props_multi_resolution
+    # and miflush_from_resolution; nibabel reads each of them
+    fname = _libminc_multires(tmp_path)
+    img = load(fname)
+    assert dict(img.minc_meta.resolution_levels) == {1: (4, 6, 8), 2: (2, 3, 4)}
+    full = img.get_fdata()
+    # Level 1 is the mean of 2 x 2 x 2 blocks of the full resolution
+    level1 = load(fname, resolution_level=1)
+    blocks = full.reshape((4, 2, 6, 2, 8, 2)).mean(axis=(1, 3, 5))
+    assert_allclose(level1.get_fdata(), blocks, atol=100 / 65535)
+    # libminc makes level 2 from the stored values of level 1, which it
+    # reads with the scaling of the full resolution rather than that of
+    # level 1; nibabel reads the stored level 2 as libminc's level 2 reader
+    # does, with the scaling of level 2
+    level2 = load(fname, resolution_level=2)
+    with h5py.File(fname, 'r') as h5f:
+        raw1 = h5f['minc-2.0/image/1/image'][()].astype(float)
+    misread = (raw1 + 32768) / 65535 * 100
+    assert_allclose(
+        level2.get_fdata(), misread.reshape((2, 2, 3, 2, 4, 2)).mean(axis=(1, 3, 5)), atol=1e-3
+    )
+    # mincinfo shows the full resolution only
+    assert SIF_TOOLS.run('mincinfo', '-dimlength', 'xspace', fname).strip() == '16'

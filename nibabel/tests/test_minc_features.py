@@ -454,3 +454,53 @@ def test_record_dimension_minc2(tmp_path):
     rt_img = load(fname)
     assert rt_img.minc_meta.record_dimension is None
     assert_array_equal(rt_img.get_fdata(), data)
+
+
+def _block_mean(data, level):
+    scale = 2**level
+    shape = [n // scale for n in data.shape]
+    data = data[tuple(slice(n * scale) for n in shape)]
+    return data.reshape([v for n in shape for v in (n, scale)]).mean(
+        axis=tuple(range(1, 2 * len(shape), 2))
+    )
+
+
+def _add_level(fname, level, data, vmin=-32768, vmax=32767):
+    """Add a resolution level as libminc stores it, without attributes"""
+    real = _block_mean(data, level)
+    imin = real.min(axis=(1, 2))
+    imax = real.max(axis=(1, 2))
+    scale = (imax - imin)[:, None, None] / (vmax - vmin)
+    raw = np.rint((real - imin[:, None, None]) / np.where(scale, scale, 1) + vmin)
+    with h5py.File(fname, 'r+') as h5f:
+        group = h5f['minc-2.0/image'].create_group(str(level))
+        group.create_dataset('image', data=raw.astype(np.int16))
+        group.create_dataset('image-max', data=imax)
+        group.create_dataset('image-min', data=imin)
+    return real
+
+
+@needs_h5py
+def test_read_resolution_levels(tmp_path):
+    rng = np.random.default_rng(4)
+    data = rng.normal(50, 20, (8, 12, 16))
+    affine = np.array([[0, 0, 1.0, 7], [0, 2.0, 0, 5], [3.0, 0, 0, -10], [0, 0, 0, 1]])
+    fname = tmp_path / 'img.mnc'
+    write_minc2(data, affine, fname, dtype=np.int16)
+    full = load(fname).get_fdata()
+    levels = {level: _add_level(fname, level, full) for level in (1, 2)}
+    img = load(fname)
+    assert dict(img.minc_meta.resolution_levels) == {1: (4, 6, 8), 2: (2, 3, 4)}
+    assert_array_equal(img.get_fdata(), full)
+    for level, real in levels.items():
+        level_img = load(fname, resolution_level=level)
+        assert level_img.shape == real.shape
+        assert_allclose(level_img.get_fdata(), real, atol=np.ptp(real) / 65535)
+        # Each voxel is the mean of a block; its centre moves accordingly
+        scale = 2**level
+        expected = affine.copy()
+        expected[:3, :3] *= scale
+        expected[:3, 3] += affine[:3, :3] @ np.full(3, (scale - 1) / 2)
+        assert_allclose(level_img.affine, expected)
+    with pytest.raises(Exception, match='resolution level 3'):
+        load(fname, resolution_level=3)

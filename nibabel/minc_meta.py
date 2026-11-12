@@ -188,6 +188,10 @@ class MincMeta:
     record_dimension : None or str
         The record (unlimited) dimension of a MINC1 file, if any.  MINC2
         has none.
+    resolution_levels : mapping
+        Shape of each lower resolution level of a MINC2 file (levels 1 and
+        up, in ``/minc-2.0/image/<level>``), which ``resolution_level`` of
+        :meth:`nibabel.minc2.Minc2Image.from_filename` reads.
     """
 
     format: str
@@ -201,6 +205,7 @@ class MincMeta:
     variables: Mapping[str, MincVariable] = _EMPTY
     labels: Mapping[int, str] | None = None
     record_dimension: str | None = None
+    resolution_levels: Mapping[int, tuple[int, ...]] = _EMPTY
 
     @property
     def history(self):
@@ -321,6 +326,13 @@ class MincMeta:
             ),
             variables=MappingProxyType(variables),
             labels=labels,
+            resolution_levels=MappingProxyType(
+                {
+                    int(name): tuple(level['image'].shape)
+                    for name, level in minc['image'].items()
+                    if name.isdigit() and int(name) > 0 and 'image' in level
+                }
+            ),
         )
 
 
