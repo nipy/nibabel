@@ -167,9 +167,10 @@ class Minc2Image(Minc1Image):
         import h5py  # type: ignore[import]
 
         holder = file_map['image']
-        if holder.filename is None:
-            raise MincError('MINC2 needs filename for load')
-        minc_file = Minc2File(h5py.File(holder.filename, 'r'))
+        source = holder.fileobj if holder.fileobj is not None else holder.filename
+        if source is None:
+            raise MincError('MINC2 needs filename or file object for load')
+        minc_file = Minc2File(h5py.File(source, 'r'))
         affine = minc_file.get_affine()
         if affine.shape != (4, 4):
             raise MincError('Image does not have 3 spatial dimensions')
