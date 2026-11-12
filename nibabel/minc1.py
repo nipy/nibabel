@@ -385,6 +385,30 @@ class Minc1Image(SpatialImage):
         img.minc_meta = minc_meta
         return img
 
+    @classmethod
+    def from_image(klass, img):
+        """Class instance from `img`, with the metadata of MINC images
+
+        Converting between :class:`Minc1Image` and
+        :class:`~nibabel.minc2.Minc2Image` carries the metadata snapshot,
+        ``img.minc_meta``, across, so that saving the converted image keeps
+        the metadata in the other format.
+
+        Parameters
+        ----------
+        img : ``spatialimage`` instance
+           In fact, an object with the API of ``spatialimage`` -
+           specifically ``dataobj``, ``affine``, ``header`` and ``extra``.
+
+        Returns
+        -------
+        cimg : ``spatialimage`` instance
+           Image, of our own class
+        """
+        new = super().from_image(img)
+        new.minc_meta = getattr(img, 'minc_meta', None)
+        return new
+
     @staticmethod
     def _write(*args, **kwargs):
         return write_minc1(*args, **kwargs)

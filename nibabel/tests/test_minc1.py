@@ -20,10 +20,13 @@ from .. import Nifti1Image, load, minc1, save
 from .._compression import HAVE_ZSTD, zstd
 from ..externals.netcdf import netcdf_file
 from ..minc1 import Minc1File, Minc1Image, MincHeader
+from ..optpkg import optional_package
 from ..testing import assert_data_similar, data_path
 from ..tmpdirs import InTemporaryDirectory
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
+
+h5py, have_h5py, _ = optional_package('h5py')
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
 
@@ -246,3 +249,30 @@ def test_save_formats(tmp_path):
     save(Nifti1Image(data, np.eye(4)), fname)
     assert _magic(fname) == b'CDF\x01'
     assert_array_equal(load(fname).get_fdata(), data)
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_convert_formats(tmp_path):
+    from ..minc2 import Minc2Image
+
+    # MINC1 to MINC2 and back keeps the metadata snapshot
+    img = load(pjoin(data_path, 'minc1_4d.mnc'))
+    img2 = Minc2Image.from_image(img)
+    assert img2.minc_meta is img.minc_meta
+    fname = tmp_path / 'img.mnc'
+    save(img2, fname)
+    assert _magic(fname) == b'\x89HDF'
+    rt_img = load(fname)
+    assert isinstance(rt_img, Minc2Image)
+    assert rt_img.minc_meta.info['study'].attrs['modality'] == 'MRI__'
+    assert rt_img.minc_meta.history.startswith(img.minc_meta.history)
+    assert_array_equal(rt_img.get_fdata(), img.get_fdata())
+    img1 = Minc1Image.from_image(rt_img)
+    assert img1.minc_meta is rt_img.minc_meta
+    save(img1, fname)
+    assert _magic(fname) == b'CDF\x01'
+    rt_img = load(fname)
+    assert rt_img.minc_meta.info['study'].attrs['modality'] == 'MRI__'
+    assert_array_equal(rt_img.get_fdata(), img.get_fdata())
+    # Other images have no snapshot
+    assert Minc1Image.from_image(Nifti1Image(np.zeros((2, 3, 4)), np.eye(4))).minc_meta is None
