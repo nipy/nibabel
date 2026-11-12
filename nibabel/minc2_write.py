@@ -78,6 +78,7 @@ import numpy as np
 from ._minc_write import (
     MINC_VERSION,
     SUPPORTED_DTYPES,
+    WIDTH_SUFFIX,
     MincWriteError,
     affine_to_dimensions,
     build_layout,
@@ -128,8 +129,8 @@ def write_minc2(
     dtype=None,
     history=None,
     scaling=None,
-    time_start=0.0,
-    time_step=1.0,
+    time_start=None,
+    time_step=None,
     metadata=None,
 ):
     """Write `data` and `affine` to a MINC2 file
@@ -161,13 +162,20 @@ def write_minc2(
         Default chooses the scaling as described in the module docstring.
         Ignored for floating point output.
     time_start, time_step : float, optional
-        ``start`` and ``step`` of the time dimension of a 4D image.
+        ``start`` and ``step`` of the time dimension of a 4D image.  Default
+        is the start and step of `metadata`, if it has a time dimension of
+        the same length, and 0 and 1 otherwise.
     metadata : MincMeta, optional
         Metadata to copy, such as ``img.minc_meta`` of an image read from a
         MINC file: the info groups (patient, study, acquisition and others),
         and the global, image and dimension attributes.  The geometry and
         the scaling always come from `data` and `affine`, never from
-        `metadata`.
+        `metadata`.  A dimension of `metadata` whose length and geometry
+        match keeps its exact ``start``, ``step`` and ``direction_cosines``,
+        and the coordinates and widths of irregularly spaced samples, which
+        are written with ``spacing='irregular'``.  Otherwise the dimension
+        is written regularly spaced.  The writer never makes a dimension
+        irregular by itself.
 
     Returns
     -------
@@ -240,8 +248,18 @@ def _write_groups(h5f, layout):
     _set_attrs(minc, layout.global_attrs)
     dims = minc.create_group('dimensions')
     for dim in layout.dims:
-        var = dims.create_dataset(dim.name, shape=(), dtype='i4')
-        _set_attrs(var, dim.attrs)
+        attrs = dict(dim.attrs)
+        if dim.data is None:
+            var = dims.create_dataset(dim.name, shape=(), dtype='i4')
+        else:
+            var = dims.create_dataset(dim.name, data=dim.data)
+            if dim.data.ndim:
+                attrs['dimorder'] = dim.name
+        _set_attrs(var, attrs)
+        if dim.widths is not None:
+            var = dims.create_dataset(dim.name + WIDTH_SUFFIX, data=dim.widths)
+            attrs = {'dimorder': dim.name, 'length': np.uint32(dim.length), **dim.width_attrs}
+            _set_attrs(var, attrs)
     info = minc.create_group('info')
     for var in layout.info:
         _write_info(info, var)

@@ -63,17 +63,19 @@ class Minc2File(Minc1File):
         self._dim_names = self._get_dimensions(self._image)
         dimensions = minc_part['dimensions']
         self._dims = [Hdf5Bunch(dimensions[s]) for s in self._dim_names]
-        # We don't currently support irregular spacing
+        # Irregularly spaced dimensions have the coordinate of each sample
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference#Dimension_variable_attributes
-        for dim in self._dims:
+        self._coords = {}
+        for name, dim in zip(self._dim_names, self._dims):
             # "If this attribute is absent, a value of regular__ should be assumed."
             spacing = getattr(dim, 'spacing', b'regular__')
-            if spacing == b'irregular':
-                raise ValueError('Irregular spacing not supported')
-            elif spacing != b'regular__':
+            if spacing == b'irregular' and dimensions[name].ndim == 1:
+                self._coords[name] = np.array(dimensions[name][()], dtype=np.float64)
+            elif spacing not in (b'regular__', b'irregular'):
                 warnings.warn(f'Invalid spacing declaration: {spacing}; assuming regular')
 
         self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
+        self._check_irregular()
         self._image_max = image['image-max']
         self._image_min = image['image-min']
 

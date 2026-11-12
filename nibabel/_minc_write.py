@@ -14,6 +14,8 @@ the scaling, and the global and image attributes.  The MINC2 writer in
 :mod:`nibabel.minc2_write` stores a layout in HDF5.
 """
 
+from __future__ import annotations
+
 import getpass
 import itertools
 import os
@@ -24,6 +26,8 @@ import warnings
 from dataclasses import dataclass, field
 
 import numpy as np
+
+from .minc_meta import WIDTH_SUFFIX
 
 #: The libminc release whose file layout the writers follow.  It is written
 #: to the ``minc_version`` attribute, as libminc writes its version.
@@ -245,11 +249,150 @@ class Dimension:
         Number of samples.
     attrs : dict
         Attributes of the dimension variable, in the order to write them.
+    data : None or ndarray
+        Data of the dimension variable: a scalar, or the coordinate of each
+        sample of an irregularly spaced dimension.  None writes the default
+        scalar.
+    widths : None or ndarray
+        Width of each sample, for the ``<name>-width`` variable, or None.
+    width_attrs : dict
+        Attributes of the ``<name>-width`` variable.
     """
 
     name: str
     length: int
     attrs: dict = field(default_factory=dict)
+    data: np.ndarray | None = None
+    widths: np.ndarray | None = None
+    width_attrs: dict = field(default_factory=dict)
+
+
+def _source_geometry(source, metadata):
+    """Length, start, step and cosine of dimension variable `source`"""
+    attrs = source.attrs
+    coords = None
+    if attrs.get('spacing') == 'irregular' and source.data is not None and source.data.ndim == 1:
+        coords = np.asarray(source.data, dtype=np.float64)
+    if 'start' in attrs:
+        start = float(attrs['start'])
+    else:
+        start = float(coords[0]) if coords is not None and coords.size else 0.0
+    if 'step' in attrs:
+        step = float(attrs['step'])
+    elif coords is not None and coords.size > 1:
+        step = float(coords[-1] - coords[0]) / (coords.size - 1)
+    else:
+        step = 1.0
+    cosine = attrs.get('direction_cosines')
+    if cosine is None and source.name in SPATIAL_NAMES:
+        cosine = np.eye(3)[SPATIAL_NAMES.index(source.name)]
+    return metadata.dim_lengths.get(source.name), start, step, cosine
+
+
+def _same_geometry(source, metadata, length, start, step, cosine):
+    """True if dimension `source` has the given length and geometry
+
+    For spatial dimensions, the voxel axis (cosine times step) and the
+    offset along it (cosine times start) must agree; a cosine and step may
+    both have their signs flipped.
+    """
+    src_length, src_start, src_step, src_cosine = _source_geometry(source, metadata)
+    if src_length != length:
+        return False
+    if cosine is None:
+        return True
+    if src_cosine is None or np.shape(src_cosine) != (3,):
+        return False
+    src_cosine = np.asarray(src_cosine, dtype=np.float64)
+    tol = 1e-6 * max(abs(step), 1.0)
+    return np.allclose(src_cosine * src_step, cosine * step, rtol=1e-6, atol=tol) and np.allclose(
+        src_cosine * src_start, cosine * start, rtol=1e-6, atol=1e-6 * max(abs(start), 1.0)
+    )
+
+
+def _width_variable(metadata, name):
+    var = metadata.variables.get(name + WIDTH_SUFFIX)
+    if var is None or var.data is None or var.data.ndim != 1:
+        return None
+    return var
+
+
+def _is_width_of(var, dims):
+    return any(var.name == dim.name + WIDTH_SUFFIX for dim in dims)
+
+
+def _dimension(name, length, metadata, start=None, step=None, cosine=None):
+    """Return the :class:`Dimension` to write
+
+    Spatial dimensions (with a `cosine`) take `start` and `step` from the
+    affine.  Other dimensions take them from the arguments if given, from
+    `metadata` if its dimension of that name has the same length, and are
+    0 and 1 otherwise.
+
+    The dimension variable of `metadata` with the same name gives the
+    other attributes.  If its geometry matches, its coordinates and sample
+    widths (irregular spacing) and its exact ``start``, ``step`` and
+    ``direction_cosines`` are kept as well; otherwise the dimension is
+    written regularly spaced.
+    """
+    spatial = cosine is not None
+    source = None
+    if metadata is not None:
+        source = metadata.variables.get(name)
+        if source is not None and source.group != 'dimensions':
+            source = None
+    explicit = not spatial and (start is not None or step is not None)
+    keep = False
+    if source is not None and not explicit:
+        if spatial:
+            keep = _same_geometry(source, metadata, length, start, step, cosine)
+        else:
+            keep = metadata.dim_lengths.get(name) == length
+            if keep:
+                _, start, step, _ = _source_geometry(source, metadata)
+    start = 0.0 if start is None else float(start)
+    step = 1.0 if step is None else float(step)
+    attrs = {
+        # libminc aligns time samples to their start
+        'alignment': 'start_' if name == 'time' else 'centre',
+    }
+    if spatial:
+        attrs['comments'] = COMMENTS[name]
+        attrs['direction_cosines'] = np.asarray(cosine, dtype=np.float64)
+    attrs['length'] = np.uint32(length)
+    if spatial:
+        attrs['spacetype'] = 'native____'
+    attrs.update(
+        spacing='regular__',
+        start=start,
+        step=step,
+        units='mm' if spatial else 's' if name == 'time' else '',
+        **std_attrs('dimension____'),
+    )
+    if not attrs['units']:
+        del attrs['units']
+    dim = Dimension(name, length, attrs)
+    if source is None:
+        return dim
+    _copy_attrs(attrs, source.attrs, GEOMETRY_ATTRS | STRUCTURE_ATTRS)
+    if not keep:
+        return dim
+    # The geometry matches, so keep it as the source has it, including
+    # attributes left to their defaults
+    for att in ('start', 'step', 'direction_cosines'):
+        if att in source.attrs:
+            attrs[att] = source.attrs[att]
+        else:
+            attrs.pop(att, None)
+    if source.data is not None and source.data.shape in ((), (length,)):
+        dim.data = source.data
+    if source.attrs.get('spacing') == 'irregular' and dim.data is not None and dim.data.ndim:
+        attrs['spacing'] = 'irregular'
+    width = _width_variable(metadata, name)
+    if width is not None and width.data.shape == (length,):
+        dim.widths = width.data
+        _copy_attrs(dim.width_attrs, width.attrs, STRUCTURE_ATTRS | {'length'})
+    return dim
 
 
 def _copy_attrs(attrs, source, skip):
@@ -308,8 +451,8 @@ def build_layout(
     dtype=None,
     history=None,
     scaling=None,
-    time_start=0.0,
-    time_step=1.0,
+    time_start=None,
+    time_step=None,
     metadata=None,
     command='write_minc',
 ):
@@ -369,40 +512,24 @@ def build_layout(
 
     dims = []
     if raw.ndim == 4:
-        dims.append(
-            Dimension(
-                'time',
-                raw.shape[0],
-                {
-                    # libminc aligns time samples to their start
-                    'alignment': 'start_',
-                    'length': np.uint32(raw.shape[0]),
-                    'spacing': 'regular__',
-                    'start': float(time_start),
-                    'step': float(time_step),
-                    'units': 's',
-                    **std_attrs('dimension____'),
-                },
-            )
-        )
+        name = 'time'
+        if (
+            metadata is not None
+            and len(metadata.dimorder) == 4
+            and not metadata.dimorder[0].endswith('space')
+        ):
+            name = metadata.dimorder[0]
+        dims.append(_dimension(name, raw.shape[0], metadata, start=time_start, step=time_step))
     spatial_shape = raw.shape[-3:]
     for i, name in enumerate(names):
         dims.append(
-            Dimension(
+            _dimension(
                 name,
                 spatial_shape[i],
-                {
-                    'alignment': 'centre',
-                    'comments': COMMENTS[name],
-                    'direction_cosines': cosines[:, i],
-                    'length': np.uint32(spatial_shape[i]),
-                    'spacetype': 'native____',
-                    'spacing': 'regular__',
-                    'start': float(starts[i]),
-                    'step': float(steps[i]),
-                    'units': 'mm',
-                    **std_attrs('dimension____'),
-                },
+                metadata,
+                start=starts[i],
+                step=steps[i],
+                cosine=cosines[:, i],
             )
         )
     global_attrs = {'ident': make_ident(), 'minc_version': MINC_VERSION, 'history': history}
@@ -415,12 +542,7 @@ def build_layout(
     if metadata is not None:
         _copy_attrs(global_attrs, metadata.global_attrs, FILE_ATTRS)
         _copy_attrs(image_attrs, metadata.image_attrs, STRUCTURE_ATTRS)
-        skip = GEOMETRY_ATTRS | STRUCTURE_ATTRS
-        for dim in dims:
-            source = metadata.variables.get(dim.name)
-            if source is not None and source.group == 'dimensions':
-                _copy_attrs(dim.attrs, source.attrs, skip)
-        info = list(metadata.info.values())
+        info = [var for var in metadata.info.values() if not _is_width_of(var, dims)]
     return Layout(
         raw=raw,
         dims=dims,

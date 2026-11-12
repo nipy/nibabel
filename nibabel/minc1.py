@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import warnings
 from numbers import Integral
 
 import numpy as np
@@ -54,12 +55,14 @@ class Minc1File:
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#An_Introduction_to_NetCDF
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_dimensions
         self._dims = [self._mincfile.variables[s] for s in self._dim_names]
-        # We don't currently support irregular spacing
+        # Irregularly spaced dimensions have the coordinate of each sample
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#MINC_specific_convenience_functions
-        for dim in self._dims:
-            if dim.spacing != b'regular__':
-                raise ValueError('Irregular spacing not supported')
+        self._coords = {}
+        for name, dim in zip(self._dim_names, self._dims):
+            if getattr(dim, 'spacing', b'regular__') == b'irregular' and dim.data.ndim == 1:
+                self._coords[name] = np.array(dim.data, dtype=np.float64)
         self._spatial_dims = [name for name in self._dim_names if name.endswith('space')]
+        self._check_irregular()
         # the MINC standard appears to allow the following variables to
         # be undefined.
         # https://en.wikibooks.org/wiki/MINC/Reference/MINC1-programmers-guide#Image_conversion_variables
@@ -87,10 +90,46 @@ class Minc1File:
     def get_data_shape(self):
         return self._image.data.shape
 
+    def _start_step(self, name, dim):
+        """Start and step of dimension `name`, with variable `dim`
+
+        For irregularly spaced dimensions without ``start`` or ``step``
+        attributes, these are the first coordinate and the mean spacing.
+        """
+        coords = self._coords.get(name)
+        if hasattr(dim, 'start'):
+            start = float(dim.start)
+        else:
+            start = float(coords[0]) if coords is not None and coords.size else 0.0
+        if hasattr(dim, 'step'):
+            step = float(dim.step)
+        elif coords is not None and coords.size > 1:
+            step = float(coords[-1] - coords[0]) / (coords.size - 1)
+        else:
+            step = 1.0
+        return start, step
+
+    def _check_irregular(self):
+        """Warn for spatial dimensions that the affine cannot describe"""
+        for name in self._spatial_dims:
+            coords = self._coords.get(name)
+            if coords is None:
+                continue
+            dim = self._dims[list(self._dim_names).index(name)]
+            start, step = self._start_step(name, dim)
+            regular = start + step * np.arange(coords.size)
+            if not np.allclose(coords, regular, rtol=1e-6, atol=1e-6 * max(abs(step), 1)):
+                warnings.warn(
+                    f'{name} is irregularly spaced; the affine uses its start and mean '
+                    'step, and minc_meta has the coordinates'
+                )
+
     def get_zooms(self):
         """Get real-world sizes of voxels"""
         # zooms must be positive; but steps in MINC can be negative
-        return tuple(abs(float(dim.step)) if hasattr(dim, 'step') else 1.0 for dim in self._dims)
+        return tuple(
+            abs(self._start_step(name, dim)[1]) for name, dim in zip(self._dim_names, self._dims)
+        )
 
     def get_affine(self):
         nspatial = len(self._spatial_dims)
@@ -105,8 +144,7 @@ class Minc1File:
                 if hasattr(dim, 'direction_cosines')
                 else _default_dir_cos[name]
             )
-            steps[i] = dim.step if hasattr(dim, 'step') else 1.0
-            starts[i] = dim.start if hasattr(dim, 'start') else 0.0
+            starts[i], steps[i] = self._start_step(name, dim)
         origin = np.dot(rot_mat, starts)
         aff = np.eye(nspatial + 1)
         aff[:nspatial, :nspatial] = rot_mat * steps

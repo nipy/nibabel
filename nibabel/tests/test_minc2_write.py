@@ -364,6 +364,106 @@ def test_dimension_description(tmp_path):
     assert dims['time']['alignment'] == b'start_'
 
 
+def _make_irregular(fname, name, coords, widths=None):
+    """Make dimension `name` of MINC2 file `fname` irregular, in place"""
+    with h5py.File(fname, 'r+') as h5f:
+        dims = h5f['minc-2.0/dimensions']
+        attrs = dict(dims[name].attrs)
+        del dims[name]
+        var = dims.create_dataset(name, data=np.asarray(coords, dtype=np.float64))
+        for key, value in attrs.items():
+            var.attrs[key] = value
+        var.attrs['spacing'] = np.bytes_(b'irregular')
+        var.attrs['dimorder'] = np.bytes_(name.encode())
+        if widths is not None:
+            width = dims.create_dataset(name + '-width', data=np.asarray(widths, np.float64))
+            width.attrs['dimorder'] = np.bytes_(name.encode())
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_irregular_time(tmp_path):
+    src = tmp_path / 'src.mnc'
+    data = np.arange(120, dtype=np.float32).reshape((5, 2, 3, 4))
+    write_minc2(data, np.eye(4), src)
+    times = [0, 1, 3, 7, 15]
+    _make_irregular(src, 'time', times, [1, 2, 4, 8, 16])
+    img = load(src)
+    meta = img.minc_meta
+    assert_array_equal(meta.variables['time'].data, times)
+    out = tmp_path / 'out.mnc'
+    write_minc2(img.get_fdata(), img.affine, out, metadata=meta)
+    with h5py.File(out, 'r') as h5f:
+        time = h5f['minc-2.0/dimensions/time']
+        assert time.attrs['spacing'] == b'irregular'
+        assert time.attrs['dimorder'] == b'time'
+        assert_array_equal(time, times)
+        width = h5f['minc-2.0/dimensions/time-width']
+        assert_array_equal(width, [1, 2, 4, 8, 16])
+        assert width.attrs['dimorder'] == b'time'
+        assert 'time-width' not in h5f['minc-2.0/info']
+    assert_array_equal(load(out).get_fdata(), data)
+    # A time axis of another length drops the coordinates and widths
+    write_minc2(img.get_fdata()[:3], img.affine, out, metadata=meta)
+    with h5py.File(out, 'r') as h5f:
+        dims = h5f['minc-2.0/dimensions']
+        assert dims['time'].attrs['spacing'] == b'regular__'
+        assert dims['time'].shape == ()
+        assert 'time-width' not in dims
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_regular_time_with_coordinates(tmp_path):
+    # minc2-4d-d.mnc has regular spacing, but time values and widths; they
+    # are kept as they are, without making the spacing irregular
+    img = load(pjoin(data_path, 'minc2-4d-d.mnc'))
+    out = tmp_path / 'out.mnc'
+    write_minc2(img.get_fdata(), img.affine, out, metadata=img.minc_meta)
+    with h5py.File(out, 'r') as h5f:
+        time = h5f['minc-2.0/dimensions/time']
+        assert time.attrs['spacing'] == b'regular__'
+        assert time.attrs['start'] == 0
+        assert time.attrs['step'] == 1
+        assert_array_equal(time, [0, 100, 200, 300, 400])
+        assert_array_equal(h5f['minc-2.0/dimensions/time-width'], [100] * 5)
+    # Without metadata, dimensions are regular scalars
+    write_minc2(img.get_fdata(), img.affine, out)
+    with h5py.File(out, 'r') as h5f:
+        assert h5f['minc-2.0/dimensions/time'].shape == ()
+        assert 'time-width' not in h5f['minc-2.0/dimensions']
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_irregular_space(tmp_path):
+    src = tmp_path / 'src.mnc'
+    data = np.arange(24, dtype=np.float32).reshape((2, 3, 4))
+    affine = np.diag([1.0, 2.0, 3.0, 1.0])
+    write_minc2(data, affine, src)
+    coords = [0, 3, 9, 10]
+    _make_irregular(src, 'zspace', coords)
+    with h5py.File(src, 'r+') as h5f:
+        zspace = h5f['minc-2.0/dimensions/zspace']
+        del zspace.attrs['start']
+        del zspace.attrs['step']
+    # The affine has the first coordinate and the mean step
+    with pytest.warns(UserWarning, match='zspace is irregularly spaced'):
+        img = load(src)
+    assert_array_equal(img.affine, np.diag([1.0, 2.0, 10 / 3, 1.0]))
+    out = tmp_path / 'out.mnc'
+    write_minc2(img.get_fdata(), img.affine, out, metadata=img.minc_meta)
+    with h5py.File(out, 'r') as h5f:
+        zspace = h5f['minc-2.0/dimensions/zspace']
+        assert zspace.attrs['spacing'] == b'irregular'
+        assert_array_equal(zspace, coords)
+        assert 'start' not in zspace.attrs
+    # Another geometry drops the coordinates
+    write_minc2(img.get_fdata(), np.eye(4), out, metadata=img.minc_meta)
+    with h5py.File(out, 'r') as h5f:
+        zspace = h5f['minc-2.0/dimensions/zspace']
+        assert zspace.attrs['spacing'] == b'regular__'
+        assert zspace.shape == ()
+        assert zspace.attrs['step'] == 1
+
+
 # Tests against the MINC tools
 
 
