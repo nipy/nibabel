@@ -20,7 +20,8 @@ See the `MINC2 format reference
 
 Layout
 ------
-The file has a single group ``/minc-2.0`` with the following members:
+The file has a single group ``/minc-2.0`` with the attributes ``ident``,
+``minc_version`` and ``history``, and the following members:
 
 * ``dimensions/{x,y,z}space`` (and ``dimensions/time`` for 4D images):
   regularly spaced dimension variables with ``start``, ``step``,
@@ -67,11 +68,18 @@ xspace`` image; a ``(time, slice)`` array for a 4D image).
   stored integers, and hence the real values, exactly.
 """
 
+import getpass
 import itertools
 import os
+import socket
+import time
 import warnings
 
 import numpy as np
+
+#: The libminc release whose file layout this writer follows.  It is
+#: written to the ``minc_version`` attribute, as libminc writes its version.
+MINC_VERSION = '2.4.01'
 
 #: Data types that can be written.
 SUPPORTED_DTYPES = tuple(
@@ -86,6 +94,8 @@ _COMMENTS = {
 }
 _STD_VARID = 'MINC standard variable'
 _STD_VERSION = 'MINC Version    1.0'
+
+_ident_count = itertools.count(1)
 
 
 class Minc2WriteError(Exception):
@@ -146,6 +156,35 @@ def affine_to_dimensions(affine):
         raise Minc2WriteError('Affine is singular')
     names = tuple(_SPATIAL_NAMES[p] for p in perm)
     return names, starts, steps, cosines
+
+
+def make_ident():
+    """Return an ``ident`` string in the form libminc writes
+
+    The form is ``user:host:YYYY.MM.DD.HH.MM.SS:pid:count``.
+    """
+    try:
+        user = getpass.getuser()
+    except Exception:
+        user = 'unknown'
+    stamp = time.strftime('%Y.%m.%d.%H.%M.%S', time.localtime())
+    return f'{user}:{socket.gethostname()}:{stamp}:{os.getpid()}:{next(_ident_count)}'
+
+
+def make_history_line(command):
+    """Return a history line in the form libminc writes
+
+    Parameters
+    ----------
+    command : str
+        Command that made the file.
+
+    Returns
+    -------
+    line : str
+        ``'<ctime>>>> <command>\\n'``, as libminc's ``miappend_history``.
+    """
+    return f'{time.ctime()}>>> {command}\n'
 
 
 def _string_attr(obj, name, value):
@@ -266,6 +305,7 @@ def write_minc2(
     affine,
     filename,
     dtype=None,
+    history=None,
     scaling=None,
     time_start=0.0,
     time_step=1.0,
@@ -286,6 +326,10 @@ def write_minc2(
     dtype : numpy dtype specifier, optional
         Stored data type: one of uint8, int16, uint16, int32, float32 and
         float64.  Default is the data type of `data`.
+    history : str, optional
+        Text of the ``history`` attribute.  Default is a single libminc style
+        line, ``'<ctime>>>> write_minc2 <filename>'``.  A string not ending
+        in a newline gets one.
     scaling : tuple, optional
         ``(image_min, image_max, valid_range)`` for integer output, where
         `image_min` and `image_max` are scalars or arrays covering the first
@@ -332,6 +376,12 @@ def write_minc2(
                 raise Minc2WriteError('More than two scaling dimensions')
         raw = _quantise(data, out_dtype, image_min, image_max, valid_range)
 
+    if history is None:
+        target = filename if isinstance(filename, (str, os.PathLike)) else '<file object>'
+        history = make_history_line(f'write_minc2 {os.fspath(target)}')
+    elif not history.endswith('\n'):
+        history += '\n'
+
     def write(h5f):
         _write_groups(
             h5f,
@@ -339,6 +389,7 @@ def write_minc2(
             dim_names,
             (names, starts, steps, cosines),
             (image_min, image_max, valid_range),
+            history,
             (time_start, time_step),
         )
 
@@ -348,12 +399,15 @@ def write_minc2(
         write(h5f)
 
 
-def _write_groups(h5f, raw, dim_names, geometry, ranges, time_dim):
+def _write_groups(h5f, raw, dim_names, geometry, ranges, history, time_dim):
     """Write the ``/minc-2.0`` group of a MINC2 file to open ``h5f``"""
     names, starts, steps, cosines = geometry
     image_min, image_max, valid_range = ranges
     time_start, time_step = time_dim
     minc = h5f.create_group('minc-2.0')
+    _string_attr(minc, 'ident', make_ident())
+    _string_attr(minc, 'minc_version', MINC_VERSION)
+    _string_attr(minc, 'history', history)
     dims = minc.create_group('dimensions')
     if raw.ndim == 4:
         _write_dimension(dims, 'time', raw.shape[0], time_start, time_step, units='s')
