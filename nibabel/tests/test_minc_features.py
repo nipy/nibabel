@@ -411,3 +411,46 @@ def test_tfrequency(tmp_path, writer, klass):
     attrs = rt_img.minc_meta.dimensions['tfrequency'].attrs
     assert (attrs['start'], attrs['step']) == (0.5, 0.25)
     assert_array_equal(rt_img.get_fdata(), data)
+
+
+def test_record_dimension(tmp_path):
+    # MINC1 (NetCDF) files may have a record (unlimited) first dimension
+    data = np.arange(3 * 2 * 3 * 4, dtype=np.int16).reshape((3, 2, 3, 4))
+    fname = tmp_path / 'img.mnc'
+    write_minc1(data, np.eye(4), fname, record_dimension=True)
+    nc = _netcdf(fname)
+    assert nc.dimensions['time'] is None
+    assert nc.variables['image'].isrec
+    assert nc.variables['image-max'].isrec
+    del nc
+    img = load(fname)
+    assert img.minc_meta.record_dimension == 'time'
+    assert img.minc_meta.dim_lengths['time'] == 3
+    assert_array_equal(img.get_fdata(), data)
+    # Saving as MINC1 keeps it
+    out = tmp_path / 'out.mnc'
+    save(img, out)
+    assert load(out).minc_meta.record_dimension == 'time'
+    assert_array_equal(load(out).get_fdata(), data)
+    # Only the first dimension can be the record dimension
+    with pytest.raises(MincWriteError):
+        write_minc1(data, np.eye(4), fname, record_dimension='zspace')
+
+
+@needs_h5py
+def test_record_dimension_minc2(tmp_path):
+    # MINC2 has no record dimension, and libminc cannot write one to MINC2:
+    # the writer refuses, unless asked to write an ordinary dimension
+    data = np.arange(3 * 2 * 3 * 4, dtype=np.int16).reshape((3, 2, 3, 4))
+    src = tmp_path / 'src.mnc'
+    write_minc1(data, np.eye(4), src, record_dimension=True)
+    img = Minc2Image.from_image(load(src))
+    fname = tmp_path / 'img.mnc'
+    with pytest.raises(MincWriteError, match='record'):
+        save(img, fname)
+    with pytest.raises(MincWriteError, match='record'):
+        write_minc2(data, np.eye(4), fname, record_dimension=True)
+    save(img, fname, record_dimension=False)
+    rt_img = load(fname)
+    assert rt_img.minc_meta.record_dimension is None
+    assert_array_equal(rt_img.get_fdata(), data)

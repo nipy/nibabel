@@ -185,6 +185,9 @@ class MincMeta:
     labels : None or mapping
         For MINC2 label volumes, the name of each label value, as libminc
         stores them in an enumerated HDF5 type.
+    record_dimension : None or str
+        The record (unlimited) dimension of a MINC1 file, if any.  MINC2
+        has none.
     """
 
     format: str
@@ -197,6 +200,7 @@ class MincMeta:
     scaling_attrs: Mapping[str, Mapping[str, Any]] = _EMPTY
     variables: Mapping[str, MincVariable] = _EMPTY
     labels: Mapping[int, str] | None = None
+    record_dimension: str | None = None
 
     @property
     def history(self):
@@ -248,7 +252,13 @@ class MincMeta:
             format='MINC1',
             dimorder=tuple(image.dimensions),
             dim_lengths=MappingProxyType(
-                {name: int(length or 0) for name, length in ncfile.dimensions.items()}
+                {
+                    name: int(ncfile._recs if length is None else length)
+                    for name, length in ncfile.dimensions.items()
+                }
+            ),
+            record_dimension=next(
+                (name for name, length in ncfile.dimensions.items() if length is None), None
             ),
             global_attrs=_attr_mapping(ncfile._attributes),
             image_attrs=_attr_mapping(image._attributes),

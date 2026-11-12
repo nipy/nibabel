@@ -423,6 +423,22 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
     return dim
 
 
+def _record_dimension(record_dimension, dims, metadata):
+    """Name of the record dimension to write, or None"""
+    first = dims[0].name
+    if record_dimension is None:
+        if metadata is None or metadata.record_dimension != first:
+            return None
+        return first
+    if record_dimension is False:
+        return None
+    if record_dimension is True or record_dimension == first:
+        return first
+    raise MincWriteError(
+        f'The record dimension must be the first dimension, {first}, not {record_dimension}'
+    )
+
+
 def _world_names(names, metadata, dimension_names=None):
     """Dimension names of the spatial axes, ``space`` or ``frequency``
 
@@ -495,6 +511,8 @@ class Layout:
         The metadata the layout copies from.
     labels : None or dict
         Name of each label value, for a label volume.
+    record_dimension : None or str
+        Name of the record (unlimited) dimension, the first, if any.
     """
 
     raw: np.ndarray
@@ -507,6 +525,7 @@ class Layout:
     info: list = field(default_factory=list)
     metadata: object = None
     labels: dict | None = None
+    record_dimension: str | None = None
 
     @property
     def dimorder(self):
@@ -541,6 +560,7 @@ def build_layout(
     slice_scaling=None,
     labels=None,
     dimension_names=None,
+    record_dimension=None,
     command='write_minc',
 ):
     """Work out what to store for `data` and `affine`
@@ -558,6 +578,11 @@ def build_layout(
     it (``xspace`` or ``xfrequency`` and so on).  Default is the names in
     `metadata` for those world axes, if any, and ``xspace``, ``yspace``,
     ``zspace`` otherwise.
+
+    `record_dimension` makes the first dimension the record (unlimited)
+    dimension, which MINC1 has and MINC2 does not: True, False, or the
+    name of the first dimension.  Default is the record dimension of
+    `metadata`, if it is the first dimension of the data.
 
     `slice_scaling` chooses slice-wise (True) or volume-wise (False)
     image-min / image-max; default is the form of `metadata`, if any, and
@@ -717,8 +742,17 @@ def build_layout(
             out_dtype, metadata.image_dtype, valid_range
         ):
             del image_attrs['valid_range']
+        # The standard attributes too, where the source has those variables
+        for att in std_attrs(''):
+            if att not in metadata.image_attrs:
+                del image_attrs[att]
         for name, attrs in scaling_attrs.items():
-            _copy_attrs(attrs, metadata.scaling_attrs.get(name, {}), STRUCTURE_ATTRS)
+            if name in metadata.scaling_attrs:
+                source = metadata.scaling_attrs[name]
+                for att in std_attrs(''):
+                    if att not in source:
+                        del attrs[att]
+                _copy_attrs(attrs, source, STRUCTURE_ATTRS)
         info = [var for var in metadata.info.values() if not _is_width_of(var, dims)]
     return Layout(
         raw=raw,
@@ -731,6 +765,7 @@ def build_layout(
         info=info,
         metadata=metadata,
         labels=labels,
+        record_dimension=_record_dimension(record_dimension, dims, metadata),
     )
 
 

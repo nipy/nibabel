@@ -675,3 +675,77 @@ def test_frequency_mincinfo(tmp_path, tools, fmt):
     dims = _mincinfo_dims(tools, fname)
     assert [d[0] for d in dims] == list(names)
     assert [(d[2], d[3]) for d in dims] == [(3, 2), (2, 0.25), (-1, 0.5)]
+
+
+RECORD_CDL = """netcdf rec {
+dimensions:
+    time = UNLIMITED ;
+    zspace = 2 ;
+    yspace = 3 ;
+    xspace = 4 ;
+variables:
+    double time(time) ;
+        time:varid = "MINC standard variable" ;
+        time:vartype = "dimension____" ;
+        time:version = "MINC Version    1.0" ;
+        time:spacing = "irregular" ;
+        time:alignment = "start_" ;
+        time:units = "s" ;
+    int zspace ;
+        zspace:step = 2. ;
+        zspace:start = -1. ;
+    int yspace ;
+        yspace:step = 3. ;
+    int xspace ;
+        xspace:start = 5. ;
+    double image-max(time, zspace) ;
+    double image-min(time, zspace) ;
+    short image(time, zspace, yspace, xspace) ;
+        image:signtype = "signed__" ;
+        image:valid_range = 0., 100. ;
+        image:image-max = "--->image-max" ;
+        image:image-min = "--->image-min" ;
+    :history = "made by mincgen\\n" ;
+data:
+ time = 0, 2.5, 7 ;
+ image-max = 100, 100, 50, 50, 10, 10 ;
+ image-min = 0, 0, 0, 0, 0, 0 ;
+ image = {image} ;
+}
+""".replace('{image}', ', '.join(str(i % 101) for i in range(72)))
+
+
+def test_libminc_record_dimension(tmp_path):
+    # mincgen of libminc 2.4 writes a MINC1 record dimension (with
+    # MINC_FORCE_V2=0); nibabel reads it, keeps every attribute through a
+    # save, and libminc reads nibabel's file
+    _need(SIF_TOOLS, 'mincgen', 'mincstats')
+    cdl = tmp_path / 'rec.cdl'
+    cdl.write_text(RECORD_CDL)
+    ref = str(tmp_path / 'ref.mnc')
+    os.environ['APPTAINERENV_MINC_FORCE_V2'] = '0'
+    try:
+        SIF_TOOLS.run('mincgen', '-b', '-o', ref, cdl)
+    finally:
+        del os.environ['APPTAINERENV_MINC_FORCE_V2']
+    assert _magic(ref) == MAGIC['MINC1']
+    img = load(ref)
+    assert img.minc_meta.record_dimension == 'time'
+    assert img.shape == (3, 2, 3, 4)
+    out = str(tmp_path / 'out.mnc')
+    _check_attribute_round_trip(ref, out)
+    assert load(out).minc_meta.record_dimension == 'time'
+    assert_allclose(_mincstats(SIF_TOOLS, out), _mincstats(SIF_TOOLS, ref), rtol=1e-6)
+    # libminc cannot write the record dimension to MINC2 either
+    result = SIF_TOOLS.run('mincconvert', '-2', ref, str(tmp_path / 'ref2.mnc'), check=False)
+    assert 'H5Pset_chunk' in result.stderr or result.returncode
+
+
+@pytest.mark.parametrize('tools', TOOLS)
+def test_record_dimension_tools(tmp_path, tools):
+    _need_format(tools, 'MINC1', 'mincinfo', 'mincstats')
+    data = np.arange(3 * 2 * 3 * 4, dtype=np.int16).reshape((3, 2, 3, 4))
+    fname = str(tmp_path / 'img.mnc')
+    write_minc1(data, np.eye(4), fname, record_dimension=True)
+    assert tools.run('mincinfo', '-dimlength', 'time', fname).strip() == '3'
+    assert_allclose(_mincstats(tools, fname), [0, 71, 35.5])

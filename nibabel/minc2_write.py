@@ -149,6 +149,7 @@ def write_minc2(
     chunks=None,
     labels=None,
     dimension_names=None,
+    record_dimension=None,
 ):
     """Write `data` and `affine` to a MINC2 file
 
@@ -230,6 +231,12 @@ def write_minc2(
         spatial ones.  Default is the names of `metadata` for those world
         axes, if any, and the ``space`` names otherwise.
 
+    record_dimension : bool or str, optional
+        MINC2 has no record (unlimited) dimensions, and libminc cannot write
+        one to MINC2 (``mincconvert -2`` of such a MINC1 file fails), so a
+        record dimension raises an error.  It comes by default from
+        `metadata` of a MINC1 file with one; pass False to write that
+        dimension as an ordinary one.
     Returns
     -------
     None
@@ -249,10 +256,17 @@ def write_minc2(
         vector_dimension=vector_dimension,
         slice_scaling=slice_scaling,
         dimension_names=dimension_names,
+        record_dimension=record_dimension,
         labels=labels,
         command=f'write_minc2 {os.fspath(target)}',
     )
 
+    if layout.record_dimension is not None:
+        raise MincWriteError(
+            f'MINC2 has no record (unlimited) dimension for {layout.record_dimension}, and '
+            'libminc cannot write one to MINC2; pass record_dimension=False to write it as '
+            'an ordinary dimension'
+        )
     storage = _storage(layout.raw, compression, chunks)
 
     def write(h5f):

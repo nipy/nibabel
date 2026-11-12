@@ -95,6 +95,7 @@ def write_minc1(
     vector_dimension=None,
     slice_scaling=None,
     dimension_names=None,
+    record_dimension=None,
 ):
     """Write `data` and `affine` to a MINC1 file
 
@@ -148,6 +149,11 @@ def write_minc1(
         spatial ones.  Default is the names of `metadata` for those world
         axes, if any, and the ``space`` names otherwise.
 
+    record_dimension : bool or str, optional
+        True, or the name of the first dimension, to make the first
+        dimension the record (unlimited) NetCDF dimension; False for none.
+        Default is the record dimension of `metadata`, if it is the first
+        dimension.
     Returns
     -------
     None
@@ -171,6 +177,7 @@ def write_minc1(
         vector_dimension=vector_dimension,
         slice_scaling=slice_scaling,
         dimension_names=dimension_names,
+        record_dimension=record_dimension,
         command=f'write_minc1 {os.fspath(target)}',
     )
     contents = _netcdf_bytes(layout)
@@ -216,6 +223,14 @@ def _nc_type(dtype):
 def _set_attrs(var, attrs):
     for name, value in attrs.items():
         setattr(var, name, _nc_value(value))
+
+
+def _assign(var, values):
+    """Set the data of NetCDF variable `var`, growing record variables"""
+    if var.isrec:
+        var[:] = values
+    else:
+        var[...] = values
 
 
 class _Links:
@@ -268,8 +283,13 @@ class _OrderedNetcdf(netcdf_file):
         self._pack_int(len(self.variables))
         for name in self.variables:
             self._write_var_metadata(name)
-        self.__dict__['_recsize'] = 0
+        records = [name for name in self.variables if self.variables[name].isrec]
+        self.__dict__['_recsize'] = sum(self.variables[name]._vsize for name in records)
+        # The data of the record variables come last, record by record
         for name in self.variables:
+            if name not in records:
+                self._write_var_data(name)
+        for name in records:
             self._write_var_data(name)
 
 
@@ -283,7 +303,8 @@ def _netcdf_bytes(layout):
     _set_attrs(ncfile, layout.global_attrs)
     dimorder = layout.dimorder
     for dim in layout.dims:
-        ncfile.createDimension(dim.name, dim.length)
+        length = None if dim.name == layout.record_dimension else dim.length
+        ncfile.createDimension(dim.name, length)
 
     links = _Links(layout.metadata)
     for dim in layout.dims:
@@ -295,9 +316,8 @@ def _netcdf_bytes(layout):
     nscale = layout.image_max.ndim
     for name, values in (('image-max', layout.image_max), ('image-min', layout.image_min)):
         var = ncfile.createVariable(name, 'd', dimorder[:nscale])
-        var[...] = values
-        attrs = dict(std_attrs('var_attribute'))
-        attrs.update(layout.scaling_attrs.get(name, {}))
+        _assign(var, values)
+        attrs = dict(layout.scaling_attrs.get(name, {}))
         if links.has(name, 'dimorder', default=False):
             attrs['dimorder'] = ','.join(dimorder[:nscale])
         if links.has(name, '_FillValue'):
@@ -331,15 +351,17 @@ def _netcdf_bytes(layout):
         warnings.warn('MINC1 cannot hold the label names of a MINC2 label volume; left out')
     nc_dtype, signtype = _nc_type(layout.raw.dtype)
     image = ncfile.createVariable('image', nc_dtype, dimorder)
-    image[...] = layout.raw.view(nc_dtype)
+    _assign(image, layout.raw.view(nc_dtype))
     attrs = {}
     if links.has('image', 'parent'):
         attrs['parent'] = 'rootvariable'
-    attrs.update(std_attrs('group________'))
+    extra = dict(layout.image_attrs)
+    for att in std_attrs(''):
+        if att in extra:
+            attrs[att] = extra.pop(att)
     for name in ('image-max', 'image-min'):
         if links.has('image', name):
             attrs[name] = f'--->{name}'
-    extra = dict(layout.image_attrs)
     for name in ('complete', 'valid_range'):
         extra.pop(name, None)
     attrs.update(extra)
@@ -382,7 +404,7 @@ def _write_dimension(ncfile, links, dim):
     source = links.source_attrs(dim.name) or {}
     if dim.data is not None and dim.data.ndim:
         var = ncfile.createVariable(dim.name, 'd', (dim.name,))
-        var[...] = dim.data
+        _assign(var, dim.data)
     else:
         var = _scalar(ncfile, dim.name, dim.data)
     attrs = {}
@@ -399,7 +421,7 @@ def _write_dimension(ncfile, links, dim):
     _set_attrs(var, attrs)
     if dim.widths is not None:
         width = ncfile.createVariable(dim.name + WIDTH_SUFFIX, 'd', (dim.name,))
-        width[...] = dim.widths
+        _assign(width, dim.widths)
         _set_attrs(width, dim.width_attrs)
 
 
