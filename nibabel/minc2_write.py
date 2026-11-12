@@ -69,10 +69,12 @@ xspace`` image; a ``(time, slice)`` array for a 4D image).
 """
 
 import getpass
+import io
 import itertools
 import os
 import socket
 import time
+import uuid
 import warnings
 
 import numpy as np
@@ -322,7 +324,9 @@ def write_minc2(
         Voxel to world affine of the spatial axes.
     filename : str, os.PathLike or file-like
         Output file name, or a binary file object open for writing and
-        seeking (as accepted by ``h5py.File``).
+        seeking.  A named file is written beside its final name and renamed
+        into place, so that an image can be saved over the file its data
+        are read from.
     dtype : numpy dtype specifier, optional
         Stored data type: one of uint8, int16, uint16, int32, float32 and
         float64.  Default is the data type of `data`.
@@ -394,9 +398,29 @@ def write_minc2(
         )
 
     if isinstance(filename, (str, os.PathLike)):
+        # Write beside the target and rename, so that a file that is open for
+        # reading (for example by the image being saved) is not truncated.
+        # Creating the file with mode 0o666 applies the umask.
         filename = os.fspath(filename)
-    with h5py.File(filename, 'w') as h5f:
-        write(h5f)
+        dirname, basename = os.path.split(os.path.abspath(filename))
+        tmp_name = os.path.join(dirname, f'.{basename}.{uuid.uuid4().hex}.tmp')
+        os.close(os.open(tmp_name, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666))
+        try:
+            with h5py.File(tmp_name, 'w') as h5f:
+                write(h5f)
+            os.replace(tmp_name, filename)
+        except BaseException:
+            os.unlink(tmp_name)
+            raise
+    else:
+        # Write to memory first, as HDF5 may not create a new file in a file
+        # object that it has open for reading
+        buffer = io.BytesIO()
+        with h5py.File(buffer, 'w') as h5f:
+            write(h5f)
+        filename.seek(0)
+        filename.write(buffer.getvalue())
+        filename.truncate()
 
 
 def _write_groups(h5f, raw, dim_names, geometry, ranges, history, time_dim):
