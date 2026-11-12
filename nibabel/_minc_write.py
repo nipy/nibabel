@@ -407,8 +407,6 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
         if width is not None and width.data.shape == (length,):
             dim.widths = width.data
             _copy_attrs(dim.width_attrs, width.attrs, STRUCTURE_ATTRS | {'length'})
-            if 'length' in width.attrs:
-                dim.width_attrs['length'] = np.uint32(length)
             dim.width_group = width.group
     if 'spacing' not in source.attrs:
         del geometry['spacing']

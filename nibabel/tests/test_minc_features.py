@@ -303,3 +303,43 @@ def test_minc2_without_scaling(tmp_path):
     out = tmp_path / 'out.mnc'
     save(img, out)
     assert_array_equal(load(out).get_fdata(), data)
+
+
+@needs_h5py
+@pytest.mark.parametrize('klass', [Minc1Image, Minc2Image])
+@pytest.mark.parametrize('name', ['time', 'zspace', 'xspace'])
+def test_irregular_any_dimension(tmp_path, klass, name):
+    # Any dimension may be irregularly spaced; both formats keep the
+    # coordinates and widths through a load and save
+    from .test_minc2_write import _make_irregular
+
+    src = tmp_path / 'src.mnc'
+    data = np.arange(120, dtype=np.float32).reshape((2, 3, 4, 5))
+    write_minc2(data, np.eye(4), src)
+    length = dict(zip(('time', 'xspace', 'yspace', 'zspace'), data.shape))[name]
+    coords = np.cumsum(np.arange(1, length + 1)) - 1.0
+    widths = np.arange(1, length + 1) * 0.5
+    _make_irregular(src, name, coords, widths)
+    with h5py.File(src, 'r+') as h5f:
+        dim = h5f['minc-2.0/dimensions'][name]
+        dim.attrs['start'] = coords[0]
+        dim.attrs['step'] = (coords[-1] - coords[0]) / (length - 1)
+    if name.endswith('space') and length > 2:
+        with pytest.warns(UserWarning, match='irregularly spaced'):
+            img = load(src)
+    else:
+        img = load(src)
+    out = tmp_path / 'out.mnc'
+    save(klass.from_image(img), out)
+    if name.endswith('space') and length > 2:
+        with pytest.warns(UserWarning, match='irregularly spaced'):
+            rt_img = load(out)
+    else:
+        rt_img = load(out)
+    assert isinstance(rt_img, klass)
+    var = rt_img.minc_meta.variables[name]
+    assert var.attrs['spacing'] == 'irregular'
+    assert_array_equal(var.data, coords)
+    assert_array_equal(rt_img.minc_meta.variables[name + '-width'].data, widths)
+    assert_array_equal(rt_img.get_fdata(), data)
+    assert_array_equal(rt_img.affine, img.affine)

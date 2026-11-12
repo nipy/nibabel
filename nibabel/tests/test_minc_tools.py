@@ -522,3 +522,25 @@ def test_libminc_convert_model(tmp_path, src):
         )
     }
     assert diffs == set()
+
+
+@pytest.mark.parametrize('tools', TOOLS)
+@pytest.mark.parametrize('fmt', ['MINC1', 'MINC2'])
+def test_irregular(tmp_path, tools, fmt):
+    # libminc reads files with irregular time samples and their widths
+    _need_format(tools, fmt, 'mincinfo', 'mincstats', 'mincheader')
+    if not have_h5py:
+        pytest.skip('Need h5py')
+    from .test_minc2_write import _make_irregular
+
+    src = str(tmp_path / 'src.mnc')
+    data = np.arange(120, dtype=np.float32).reshape((2, 3, 4, 5))
+    write_minc2(data, np.eye(4), src)
+    _make_irregular(src, 'time', [0, 7.5], [1, 2])
+    fname = str(tmp_path / 'img.mnc')
+    save((Minc1Image if fmt == 'MINC1' else Minc2Image).from_image(load(src)), fname)
+    assert tools.run('mincinfo', '-attvalue', 'time:spacing', fname).strip() == 'irregular'
+    assert_allclose(_mincstats(tools, fname), [0, 119, 59.5])
+    header = _mincheader(tools, fname)
+    assert header[('time', 'decl')] == 'double(time)'
+    assert header[('time-width', 'decl')] == 'double(time)'

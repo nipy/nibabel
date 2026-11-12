@@ -364,7 +364,9 @@ def _write_groups(h5f, layout, storage=None):
         if dim.widths is not None:
             group = minc.require_group(dim.width_group)
             var = group.create_dataset(dim.name + WIDTH_SUFFIX, data=dim.widths)
-            attrs = {'dimorder': dim.name, **dim.width_attrs}
+            # libminc reads datasets in /minc-2.0/dimensions as dimensions,
+            # with a length
+            attrs = {'dimorder': dim.name, **dim.width_attrs, 'length': np.uint32(dim.length)}
             _set_attrs(var, attrs)
     info = minc.require_group('info')
     for var in layout.info:
