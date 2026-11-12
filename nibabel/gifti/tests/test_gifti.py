@@ -109,6 +109,24 @@ def test_gifti_image():
     assert gi.numDA == 0
 
 
+def test_remove_gifti_data_array_by_intent():
+    # Remove every matching array, also when matches are next to each other
+    img = load(get_test_data('gifti', 'task.func.gii'))
+    assert img.numDA == 10
+    img.remove_gifti_data_array_by_intent('time series')
+    assert img.numDA == 0
+
+    # Keep arrays with other intents, in order, in the same list
+    gi = GiftiImage()
+    for intent in ('time series', 'time series', 'shape', 'time series', 'label'):
+        gi.add_gifti_data_array(GiftiDataArray(np.zeros((5,), np.float32), intent=intent))
+    darrays = gi.darrays
+    kept = [darrays[2], darrays[4]]
+    gi.remove_gifti_data_array_by_intent('time series')
+    assert gi.darrays is darrays
+    assert gi.darrays == kept
+
+
 def test_gifti_image_bad_inputs():
     img = GiftiImage()
     # Try to set a non-data-array
