@@ -217,14 +217,11 @@ def write_minc2(
         filename.truncate()
 
 
-def _write_range_var(group, name, values, dim_names):
+def _write_range_var(group, name, values, dim_names, attrs):
     values = np.asarray(values, dtype=np.float64)
     var = group.create_dataset(name, data=values)
-    attrs = {}
     if values.ndim:
-        attrs['dimorder'] = ','.join(dim_names[: values.ndim])
-    attrs.update(varid='MINC standard variable', vartype='var_attribute')
-    attrs['version'] = 'MINC Version    1.0'
+        attrs = {'dimorder': ','.join(dim_names[: values.ndim]), **attrs}
     _set_attrs(var, attrs)
 
 
@@ -265,8 +262,6 @@ def _write_groups(h5f, layout):
         _write_info(info, var)
     group = minc.create_group('image').create_group('0')
     image = group.create_dataset('image', data=layout.raw)
-    attrs = dict(layout.image_attrs)
-    attrs = {'complete': attrs.pop('complete'), 'dimorder': ','.join(layout.dimorder), **attrs}
-    _set_attrs(image, attrs)
-    _write_range_var(group, 'image-max', layout.image_max, layout.dimorder)
-    _write_range_var(group, 'image-min', layout.image_min, layout.dimorder)
+    _set_attrs(image, {'dimorder': ','.join(layout.dimorder), **layout.image_attrs})
+    for name, values in (('image-max', layout.image_max), ('image-min', layout.image_min)):
+        _write_range_var(group, name, values, layout.dimorder, layout.scaling_attrs[name])

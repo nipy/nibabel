@@ -163,6 +163,8 @@ class MincMeta:
     scaling_dims : tuple of str
         Dimensions of the image-min and image-max variables, or None if the
         file has none.
+    scaling_attrs : mapping
+        Attributes of the ``image-max`` and ``image-min`` variables, by name.
     variables : mapping
         :class:`MincVariable` of each variable other than the image,
         image-min, image-max and the MINC1 ``rootvariable``.
@@ -178,6 +180,7 @@ class MincMeta:
     image_attrs: Mapping[str, Any] = _EMPTY
     image_dtype: np.dtype | None = None
     scaling_dims: tuple[str, ...] | None = None
+    scaling_attrs: Mapping[str, Mapping[str, Any]] = _EMPTY
     variables: Mapping[str, MincVariable] = _EMPTY
     labels: Mapping[int, str] | None = None
 
@@ -236,6 +239,13 @@ class MincMeta:
             image_attrs=_attr_mapping(image._attributes),
             image_dtype=minc1_dtype(image),
             scaling_dims=scaling_dims,
+            scaling_attrs=MappingProxyType(
+                {
+                    name: _attr_mapping(ncfile.variables[name]._attributes)
+                    for name in ('image-max', 'image-min')
+                    if name in ncfile.variables
+                }
+            ),
             variables=MappingProxyType(variables),
         )
 
@@ -277,6 +287,13 @@ class MincMeta:
             image_attrs=_attr_mapping(image.attrs),
             image_dtype=np.dtype(image.dtype).newbyteorder('='),
             scaling_dims=scaling_dims,
+            scaling_attrs=MappingProxyType(
+                {
+                    name: _attr_mapping(group[name].attrs)
+                    for name in ('image-max', 'image-min')
+                    if name in group
+                }
+            ),
             variables=MappingProxyType(variables),
             labels=labels,
         )

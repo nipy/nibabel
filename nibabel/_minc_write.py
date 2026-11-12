@@ -161,40 +161,39 @@ def make_history_line(command):
     return f'{time.ctime()}>>> {command}\n'
 
 
-def _slice_shape(shape):
-    """Shape of slice-wise scaling arrays: all but the two fastest axes"""
-    return shape[:-2]
+def _slice_reduce(func, data, nscale):
+    """Reduce `data` over all but its first `nscale` axes with `func`"""
+    return func(data, axis=tuple(range(nscale, data.ndim)))
 
 
-def _slice_reduce(func, data):
-    """Reduce `data` over its two fastest axes with `func`"""
-    return func(data, axis=(-2, -1))
-
-
-def _float_ranges(raw):
+def _float_ranges(raw, nscale):
     """Return image-min, image-max and valid range for floating point `raw`
 
+    The image-min and image-max vary over the first `nscale` axes.
     Non-finite values are left out; a slice without finite values has range
     0 to 0.
     """
     finite = np.isfinite(raw)
     if not finite.any():
-        sshape = _slice_shape(raw.shape)
+        sshape = raw.shape[:nscale]
         return np.zeros(sshape), np.zeros(sshape), (0.0, 0.0)
     masked = np.where(finite, raw, np.nan)
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', RuntimeWarning)  # All-NaN slices
-        image_min = np.nan_to_num(_slice_reduce(np.nanmin, masked))
-        image_max = np.nan_to_num(_slice_reduce(np.nanmax, masked))
+        image_min = np.nan_to_num(_slice_reduce(np.nanmin, masked, nscale))
+        image_max = np.nan_to_num(_slice_reduce(np.nanmax, masked, nscale))
     valid_range = (float(raw[finite].min()), float(raw[finite].max()))
     return image_min.astype(np.float64), image_max.astype(np.float64), valid_range
 
 
-def _choose_scaling(data, dtype):
-    """Return image-min, image-max and valid range for integer `dtype`"""
+def _choose_scaling(data, dtype, nscale):
+    """Return image-min, image-max and valid range for integer `dtype`
+
+    The image-min and image-max vary over the first `nscale` axes.
+    """
     info = np.iinfo(dtype)
     valid_range = (float(info.min), float(info.max))
-    sshape = _slice_shape(data.shape)
+    sshape = data.shape[:nscale]
     if data.size == 0:
         return np.zeros(sshape), np.ones(sshape), valid_range
     if np.issubdtype(data.dtype, np.integer):
@@ -205,8 +204,8 @@ def _choose_scaling(data, dtype):
         integral = np.array_equal(data, np.rint(data))
     if integral and data.min() >= info.min and data.max() <= info.max:
         return np.full(sshape, valid_range[0]), np.full(sshape, valid_range[1]), valid_range
-    image_min = _slice_reduce(np.min, data).astype(np.float64)
-    image_max = _slice_reduce(np.max, data).astype(np.float64)
+    image_min = _slice_reduce(np.min, data, nscale).astype(np.float64)
+    image_max = _slice_reduce(np.max, data, nscale).astype(np.float64)
     return image_min, image_max, valid_range
 
 
@@ -428,6 +427,8 @@ class Layout:
         Attributes of the image variable, other than its dimensions.
     image_min, image_max : ndarray
         Real value range, over the first ``image_min.ndim`` dimensions.
+    scaling_attrs : dict
+        Attributes of the ``image-max`` and ``image-min`` variables, by name.
     info : list of MincVariable
         Info variables, from metadata.
     """
@@ -438,6 +439,7 @@ class Layout:
     image_attrs: dict
     image_min: np.ndarray
     image_max: np.ndarray
+    scaling_attrs: dict = field(default_factory=dict)
     info: list = field(default_factory=list)
 
     @property
@@ -490,13 +492,17 @@ def build_layout(
         raise MincWriteError(f'Can only write 3D or 4D data, not {data.ndim}D')
     out_dtype = check_dtype(data, dtype)
     names, starts, steps, cosines = affine_to_dimensions(affine)
+    # Slice-wise scaling, as libminc writes by default, or as the source
+    nscale = data.ndim - 2
+    if metadata is not None and metadata.scaling_dims is not None:
+        nscale = min(nscale, len(metadata.scaling_dims))
 
     if out_dtype.kind == 'f':
         raw = data.astype(out_dtype)
-        image_min, image_max, valid_range = _float_ranges(raw)
+        image_min, image_max, valid_range = _float_ranges(raw, nscale)
     else:
         if scaling is None:
-            image_min, image_max, valid_range = _choose_scaling(data, out_dtype)
+            image_min, image_max, valid_range = _choose_scaling(data, out_dtype, nscale)
         else:
             image_min, image_max, valid_range = scaling
             image_min = np.asarray(image_min, dtype=np.float64)
@@ -548,10 +554,23 @@ def build_layout(
         'valid_range': np.asarray(valid_range, dtype=np.float64),
         **std_attrs('group________'),
     }
+    scaling_attrs = {
+        'image-max': std_attrs('var_attribute'),
+        'image-min': std_attrs('var_attribute'),
+    }
     info = []
     if metadata is not None:
         _copy_attrs(global_attrs, metadata.global_attrs, FILE_ATTRS)
         _copy_attrs(image_attrs, metadata.image_attrs, STRUCTURE_ATTRS)
+        # Follow the source in what it leaves to its default
+        if 'complete' not in metadata.image_attrs:
+            del image_attrs['complete']
+        if 'valid_range' not in metadata.image_attrs and _default_range(
+            out_dtype, metadata.image_dtype, valid_range
+        ):
+            del image_attrs['valid_range']
+        for name, attrs in scaling_attrs.items():
+            _copy_attrs(attrs, metadata.scaling_attrs.get(name, {}), STRUCTURE_ATTRS)
         info = [var for var in metadata.info.values() if not _is_width_of(var, dims)]
     return Layout(
         raw=raw,
@@ -560,8 +579,23 @@ def build_layout(
         image_attrs=image_attrs,
         image_min=np.asarray(image_min, dtype=np.float64),
         image_max=np.asarray(image_max, dtype=np.float64),
+        scaling_attrs=scaling_attrs,
         info=info,
     )
+
+
+def _default_range(out_dtype, src_dtype, valid_range):
+    """True if `valid_range` is what a reader assumes without the attribute
+
+    That is the range of integer `out_dtype`, if the source had the same
+    type.  For floating point data, readers do not use the valid range.
+    """
+    if src_dtype is None or out_dtype != np.dtype(src_dtype):
+        return False
+    if out_dtype.kind == 'f':
+        return True
+    info = np.iinfo(out_dtype)
+    return tuple(valid_range) == (info.min, info.max)
 
 
 def write_replacing(filename, write):
