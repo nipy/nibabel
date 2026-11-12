@@ -203,3 +203,41 @@ def test_save_nifti_as_minc2(tmp_path):
     assert rt_img.get_data_dtype() == np.int16
     assert_array_equal(rt_img.get_fdata(), data)
     assert_array_equal(rt_img.affine, affine)
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_save_keeps_metadata(tmp_path):
+    img = load(pjoin(data_path, 'minc2_1_scale.mnc'))
+    fname = tmp_path / 'img.mnc'
+    save(img, fname)
+    rt_img = load(fname)
+    old, new = img.minc_meta, rt_img.minc_meta
+    assert new.info['patient'].attrs['full_name'] == 'mnc2nii tiny.mnc tiny.nii'
+    assert set(new.info) == set(old.info)
+    assert new.history.startswith(old.history)
+    assert new.history.count('\n') == old.history.count('\n') + 1
+    for name, dim in old.dimensions.items():
+        assert dict(new.dimensions[name].attrs).keys() == dict(dim.attrs).keys()
+    # A changed affine drops only the geometry of the dimensions that differ
+    img = load(pjoin(data_path, 'minc2-4d-d.mnc'))
+    affine = img.affine.copy()
+    affine[0, 3] += 5  # xspace start
+    img2 = Minc2Image(img.dataobj, affine)
+    img2.minc_meta = img.minc_meta
+    save(img2, fname)
+    with h5py.File(fname, 'r') as h5f:
+        dims = h5f['minc-2.0/dimensions']
+        assert (
+            dims['xspace'].attrs['start'] == img.minc_meta.dimensions['xspace'].attrs['start'] + 5
+        )
+        assert dims['xspace'].attrs['class'] == b'spatial'
+        assert_array_equal(dims['time'], [0, 100, 200, 300, 400])
+    # A changed time length drops the time values
+    img3 = Minc2Image(img.get_fdata()[:2], img.affine)
+    img3.minc_meta = img.minc_meta
+    save(img3, fname)
+    with h5py.File(fname, 'r') as h5f:
+        dims = h5f['minc-2.0/dimensions']
+        assert dims['time'].shape == ()
+        assert 'time-width' not in dims
+        assert dims['time'].attrs['class'] == b'time___'

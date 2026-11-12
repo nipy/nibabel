@@ -374,24 +374,34 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
     dim = Dimension(name, length, attrs)
     if source is None:
         return dim
-    _copy_attrs(attrs, source.attrs, GEOMETRY_ATTRS | STRUCTURE_ATTRS)
-    if not keep:
-        return dim
-    # The geometry matches, so keep it as the source has it, including
-    # attributes left to their defaults
-    for att in ('start', 'step', 'direction_cosines'):
-        if att in source.attrs:
-            attrs[att] = source.attrs[att]
-        else:
-            attrs.pop(att, None)
-    if source.data is not None and source.data.shape in ((), (length,)):
-        dim.data = source.data
-    if source.attrs.get('spacing') == 'irregular' and dim.data is not None and dim.data.ndim:
-        attrs['spacing'] = 'irregular'
-    width = _width_variable(metadata, name)
-    if width is not None and width.data.shape == (length,):
-        dim.widths = width.data
-        _copy_attrs(dim.width_attrs, width.attrs, STRUCTURE_ATTRS | {'length'})
+    # The attributes are those of the source, in its order, with the
+    # geometry of the data and the affine
+    geometry = {att: attrs[att] for att in GEOMETRY_ATTRS if att in attrs}
+    if keep:
+        # The geometry matches, so keep it as the source has it, including
+        # attributes left to their defaults
+        for att in ('start', 'step', 'direction_cosines'):
+            geometry.pop(att, None)
+            if att in source.attrs:
+                geometry[att] = source.attrs[att]
+        if source.data is not None and source.data.shape in ((), (length,)):
+            dim.data = source.data
+        width = _width_variable(metadata, name)
+        if width is not None and width.data.shape == (length,):
+            dim.widths = width.data
+            _copy_attrs(dim.width_attrs, width.attrs, STRUCTURE_ATTRS | {'length'})
+    if 'spacing' not in source.attrs:
+        del geometry['spacing']
+    elif keep and source.attrs['spacing'] == 'irregular' and dim.data is not None:
+        geometry['spacing'] = 'irregular' if dim.data.ndim else 'regular__'
+    dim.attrs = {}
+    for att, value in source.attrs.items():
+        if att in GEOMETRY_ATTRS:
+            if att in geometry:
+                dim.attrs[att] = geometry.pop(att)
+        elif att not in STRUCTURE_ATTRS:
+            dim.attrs[att] = value
+    dim.attrs.update(geometry)
     return dim
 
 

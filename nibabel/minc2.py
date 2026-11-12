@@ -213,11 +213,22 @@ class Minc2Image(Minc1Image):
         that file's integer type, the file's image-min / image-max scaling
         is kept, so that the stored values are written back unchanged.  See
         :mod:`nibabel.minc2_write` for the scaling chosen otherwise.
+
+        If the image has a metadata snapshot, ``self.minc_meta``, it is
+        passed to :func:`~nibabel.minc2_write.write_minc2`, which copies the
+        info variables and the global, image and dimension attributes, and
+        appends to the history.  If the data shape or the affine changed
+        since the image was read, so that a dimension of the snapshot no
+        longer matches, only the geometry of that dimension is dropped
+        from the snapshot: its exact start, step and direction cosines,
+        and the coordinates and widths of irregular samples.  The dimension
+        is then written regularly spaced, with the geometry of the data and
+        the affine, and keeps its other attributes.
         """
         if file_map is None:
             file_map = self.file_map
         out_dtype = np.dtype(self.get_data_dtype() if dtype is None else dtype)
-        scaling, time_start, time_step = _proxy_scaling(self.dataobj, out_dtype)
+        scaling = _proxy_scaling(self.dataobj, out_dtype)
         data = np.asanyarray(self.dataobj)
         holder = file_map['image']
         target = holder.fileobj if holder.fileobj is not None else holder.filename
@@ -227,14 +238,13 @@ class Minc2Image(Minc1Image):
             target,
             dtype=out_dtype,
             scaling=scaling,
-            time_start=time_start,
-            time_step=time_step,
+            metadata=self.minc_meta,
         )
         self.file_map = file_map
 
 
 def _proxy_scaling(dataobj, out_dtype):
-    """Scaling and time axis of the MINC file behind `dataobj`, if any
+    """Scaling of the MINC file behind `dataobj`, if any
 
     Returns
     -------
@@ -242,21 +252,13 @@ def _proxy_scaling(dataobj, out_dtype):
         ``(image_min, image_max, valid_range)`` of the source file, if
         `dataobj` is a MINC array proxy and `out_dtype` is its integer
         storage type; None otherwise.
-    time_start, time_step : float
-        ``start`` and ``step`` of the source time dimension, if `dataobj`
-        is a 4D MINC array proxy with time first; 0 and 1 otherwise.
     """
     if not isinstance(dataobj, MincImageArrayProxy):
-        return None, 0.0, 1.0
+        return None
     minc_file = dataobj.minc_file
-    time_start, time_step = 0.0, 1.0
-    if dataobj.ndim == 4 and not minc_file._dim_names[0].endswith('space'):
-        time_dim = minc_file._dims[0]
-        time_start = float(getattr(time_dim, 'start', 0.0))
-        time_step = float(getattr(time_dim, 'step', 1.0))
     in_dtype = minc_file.get_data_dtype()
     if out_dtype.kind == 'f' or in_dtype.newbyteorder('=') != out_dtype.newbyteorder('='):
-        return None, time_start, time_step
+        return None
     image_min = minc_file._image_min
     image_max = minc_file._image_max
     if minc_file._get_dimensions(image_min):
@@ -266,7 +268,7 @@ def _proxy_scaling(dataobj, out_dtype):
         image_min = float(minc_file._get_scalar(image_min))
         image_max = float(minc_file._get_scalar(image_max))
     valid_range = tuple(minc_file._get_valid_range())
-    return (image_min, image_max, valid_range), time_start, time_step
+    return image_min, image_max, valid_range
 
 
 load = Minc2Image.from_filename
