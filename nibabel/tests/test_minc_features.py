@@ -208,3 +208,51 @@ def test_compression_sitk(tmp_path):
     fname = tmp_path / 'img.mnc'
     write_minc2(data, np.eye(4), fname, compression=True, chunks=(5, 10, 50))
     assert_array_equal(sitk.GetArrayFromImage(sitk.ReadImage(str(fname))), data.transpose())
+
+
+LABELS = {0: 'background', 1: 'grey matter', 2: 'white matter', 7: 'csf'}
+
+
+@needs_h5py
+def test_labels(tmp_path):
+    # libminc keeps the label names of label volumes as an enumerated type
+    data = np.array([0, 1, 2, 7] * 15, dtype=np.uint8).reshape((3, 4, 5))
+    fname = tmp_path / 'img.mnc'
+    write_minc2(data, np.eye(4), fname, labels=LABELS)
+    with h5py.File(fname, 'r') as h5f:
+        image = h5f['minc-2.0/image/0/image']
+        assert h5py.check_enum_dtype(image.dtype) == {
+            name: value for value, name in LABELS.items()
+        }
+        assert h5f['minc-2.0'].attrs['class'] == b'label__'
+        assert_array_equal(image, data)
+    img = load(fname)
+    assert dict(img.minc_meta.labels) == LABELS
+    assert img.get_data_dtype() == np.uint8
+    assert_array_equal(img.get_fdata(), data)
+    # Saving keeps the labels
+    out = tmp_path / 'out.mnc'
+    save(img, out)
+    rt_img = load(out)
+    assert dict(rt_img.minc_meta.labels) == LABELS
+    assert rt_img.minc_meta.global_attrs['class'] == 'label__'
+    # Labels are integers stored unscaled
+    with pytest.raises(MincWriteError):
+        write_minc2(data + 0.5, np.eye(4), fname, labels=LABELS, dtype=np.uint8)
+    with pytest.raises(MincWriteError):
+        write_minc2(data.astype(np.float32), np.eye(4), fname, labels=LABELS)
+    with pytest.raises(MincWriteError):
+        write_minc2(data.astype(int) * 100, np.eye(4), fname, labels=LABELS, dtype=np.uint8)
+    # MINC1 has no labels
+    with pytest.warns(UserWarning, match='label names'):
+        save(Minc1Image.from_image(img), out)
+    assert_array_equal(load(out).get_fdata(), data)
+
+
+@pytest.mark.skipif(not have_h5py or not have_sitk, reason='Need h5py and SimpleITK')
+def test_labels_sitk(tmp_path):
+    # ITK reads the values of label volumes, but not their names
+    data = np.array([0, 1, 2, 7] * 15, dtype=np.int16).reshape((3, 4, 5))
+    fname = tmp_path / 'img.mnc'
+    write_minc2(data, np.eye(4), fname, labels=LABELS)
+    assert_array_equal(sitk.GetArrayFromImage(sitk.ReadImage(str(fname))), data.transpose())

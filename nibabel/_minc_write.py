@@ -463,6 +463,8 @@ class Layout:
         Info variables, from metadata.
     metadata : None or MincMeta
         The metadata the layout copies from.
+    labels : None or dict
+        Name of each label value, for a label volume.
     """
 
     raw: np.ndarray
@@ -474,6 +476,7 @@ class Layout:
     scaling_attrs: dict = field(default_factory=dict)
     info: list = field(default_factory=list)
     metadata: object = None
+    labels: dict | None = None
 
     @property
     def dimorder(self):
@@ -506,6 +509,7 @@ def build_layout(
     metadata=None,
     vector_dimension=None,
     slice_scaling=None,
+    labels=None,
     command='write_minc',
 ):
     """Work out what to store for `data` and `affine`
@@ -513,6 +517,10 @@ def build_layout(
     Parameters are as for :func:`nibabel.minc2_write.write_minc2`;
     `dtypes` are the data types the format can store, and `command` names
     the writer in the default history line.
+
+    `labels` maps label values to names, for a label volume; default is the
+    labels of `metadata`, if any.  The data of a label volume must be
+    integers that the stored type can hold, and are stored unscaled.
 
     `slice_scaling` chooses slice-wise (True) or volume-wise (False)
     image-min / image-max; default is the form of `metadata`, if any, and
@@ -559,6 +567,26 @@ def build_layout(
     elif not slice_scaling:
         nscale = 0
 
+    if labels is None and metadata is not None and metadata.labels:
+        labels = dict(metadata.labels)
+    if labels:
+        labels = {int(value): str(name) for value, name in labels.items()}
+        if out_dtype.kind not in 'iu':
+            raise MincWriteError(f'Label volumes need an integer type, not {out_dtype}')
+        if len(set(labels.values())) != len(labels):
+            raise MincWriteError('Label names must be unique')
+        limits = np.iinfo(out_dtype)
+        stored = np.asarray(data)
+        if stored.dtype.kind not in 'iu' and not np.array_equal(stored, np.rint(stored)):
+            raise MincWriteError('Label volumes need integer data')
+        if stored.size and (stored.min() < limits.min or stored.max() > limits.max):
+            raise MincWriteError(f'Label values do not fit in {out_dtype}')
+        # Labels are stored as they are
+        scaling = (
+            np.full(data.shape[:nscale], float(limits.min)),
+            np.full(data.shape[:nscale], float(limits.max)),
+            (float(limits.min), float(limits.max)),
+        )
     if out_dtype.kind == 'f':
         raw = data.astype(out_dtype)
         image_min, image_max, valid_range = _float_ranges(raw, nscale)
@@ -639,6 +667,8 @@ def build_layout(
     if out_dtype.kind == 'c':
         # libminc tells complex volumes by their class
         global_attrs['class'] = 'complex'
+    if labels:
+        global_attrs['class'] = 'label__'
     if metadata is not None:
         _copy_attrs(global_attrs, metadata.global_attrs, FILE_ATTRS)
         _copy_attrs(image_attrs, metadata.image_attrs, STRUCTURE_ATTRS)
@@ -662,6 +692,7 @@ def build_layout(
         scaling_attrs=scaling_attrs,
         info=info,
         metadata=metadata,
+        labels=labels,
     )
 
 

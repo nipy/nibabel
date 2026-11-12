@@ -138,6 +138,7 @@ def write_minc2(
     slice_scaling=None,
     compression=None,
     chunks=None,
+    labels=None,
 ):
     """Write `data` and `affine` to a MINC2 file
 
@@ -205,6 +206,12 @@ def write_minc2(
         bytes per chunk, each at most ``MINC_CHUNKING`` long if that is set
         (and at least 4).  Without compression, None stores the image
         contiguously, as libminc does.
+    labels : dict, optional
+        Name of each label value, for a label volume (MINC class
+        ``label__``), as ``{value: name}``.  libminc stores the names as the
+        members of an enumerated HDF5 type of the image.  Default is the
+        labels of `metadata`, if any.  The data must be integers that
+        `dtype` can hold; they are stored unscaled.
 
     Returns
     -------
@@ -224,6 +231,7 @@ def write_minc2(
         metadata=metadata,
         vector_dimension=vector_dimension,
         slice_scaling=slice_scaling,
+        labels=labels,
         command=f'write_minc2 {os.fspath(target)}',
     )
 
@@ -337,6 +345,8 @@ def libminc_chunks(shape, itemsize, chunk_length=0):
 
 def _write_groups(h5f, layout, storage=None):
     """Write the ``/minc-2.0`` group of `layout` to open ``h5f``"""
+    import h5py
+
     minc = h5f.create_group('minc-2.0')
     _set_attrs(minc, layout.global_attrs)
     dims = minc.create_group('dimensions')
@@ -364,6 +374,10 @@ def _write_groups(h5f, layout, storage=None):
         # libminc stores complex values as a compound of real and imag
         part = raw.real.dtype
         raw = raw.view(np.dtype([('real', part), ('imag', part)]))
+    if layout.labels:
+        # libminc stores label names as an enumerated type of the image
+        enum = {name: value for value, name in sorted(layout.labels.items())}
+        raw = raw.astype(h5py.enum_dtype(enum, basetype=raw.dtype))
     image = group.create_dataset('image', data=raw, **(storage or {}))
     _set_attrs(image, {'dimorder': ','.join(layout.dimorder), **layout.image_attrs})
     for name, values in (('image-max', layout.image_max), ('image-min', layout.image_min)):

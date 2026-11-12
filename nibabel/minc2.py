@@ -102,7 +102,8 @@ class Minc2File(Minc1File):
         dtype = self._image.dtype
         if _is_complex(dtype):
             return np.dtype(f'c{2 * dtype["real"].itemsize}')
-        return dtype
+        # The labels of label volumes are in minc_meta, not in the type
+        return np.dtype(dtype.str)
 
     def get_data_shape(self):
         return self._image.shape
