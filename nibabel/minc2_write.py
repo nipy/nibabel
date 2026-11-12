@@ -26,7 +26,8 @@ The file has a single group ``/minc-2.0`` with the attributes ``ident``,
 * ``dimensions/{x,y,z}space`` (and ``dimensions/time`` for 4D images):
   regularly spaced dimension variables with ``start``, ``step``,
   ``direction_cosines`` (spatial dimensions only), ``spacing='regular__'``,
-  ``alignment='centre'``, ``length`` and ``units``;
+  ``alignment`` (``'centre'``, or ``'start_'`` for time, as in libminc),
+  ``length`` and ``units``;
 * ``image/0/image``: the voxel data, with ``dimorder`` and ``valid_range``;
 * ``image/0/image-min``, ``image/0/image-max``: the real value range;
 * ``info``: the info variables of the ``metadata``, if given; otherwise

@@ -62,8 +62,6 @@ STRUCTURE_ATTRS = frozenset(
         'valid_max',
     )
 )
-#: Attributes that describe a dimension, kept from metadata
-DESCRIPTION_ATTRS = frozenset(('class', 'width', 'alignment'))
 #: Global attributes that belong to the file being written
 FILE_ATTRS = frozenset(('ident', 'minc_version', 'history'))
 
@@ -376,7 +374,8 @@ def build_layout(
                 'time',
                 raw.shape[0],
                 {
-                    'alignment': 'centre',
+                    # libminc aligns time samples to their start
+                    'alignment': 'start_',
                     'length': np.uint32(raw.shape[0]),
                     'spacing': 'regular__',
                     'start': float(time_start),
@@ -416,7 +415,7 @@ def build_layout(
     if metadata is not None:
         _copy_attrs(global_attrs, metadata.global_attrs, FILE_ATTRS)
         _copy_attrs(image_attrs, metadata.image_attrs, STRUCTURE_ATTRS)
-        skip = GEOMETRY_ATTRS | STRUCTURE_ATTRS | DESCRIPTION_ATTRS
+        skip = GEOMETRY_ATTRS | STRUCTURE_ATTRS
         for dim in dims:
             source = metadata.variables.get(dim.name)
             if source is not None and source.group == 'dimensions':

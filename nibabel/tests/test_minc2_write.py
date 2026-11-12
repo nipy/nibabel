@@ -342,6 +342,28 @@ def test_history_appended(tmp_path):
         assert h5f['minc-2.0'].attrs['history'].decode().count('\n') == 1
 
 
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_dimension_description(tmp_path):
+    fname = tmp_path / 'img.mnc'
+    # Without metadata, time samples are aligned to their start, as libminc
+    # does, and spatial samples to their centre
+    write_minc2(np.zeros((2, 3, 4, 5)), np.eye(4), fname)
+    dims = _load_dims(fname)
+    assert dims['time']['alignment'] == b'start_'
+    assert dims['xspace']['alignment'] == b'centre'
+    # Class, width and alignment come from metadata
+    meta = load(pjoin(data_path, 'minc2-4d-d.mnc')).minc_meta
+    write_minc2(np.zeros((5, 4, 3, 2)), np.eye(4), fname, metadata=meta)
+    dims = _load_dims(fname)
+    for name, src in meta.dimensions.items():
+        for att in ('class', 'width', 'alignment'):
+            assert dims[name][att] == (
+                src.attrs[att].encode() if isinstance(src.attrs[att], str) else src.attrs[att]
+            )
+    assert dims['time']['class'] == b'time___'
+    assert dims['time']['alignment'] == b'start_'
+
+
 # Tests against the MINC tools
 
 
