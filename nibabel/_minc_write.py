@@ -11,7 +11,8 @@
 :func:`build_layout` turns data, an affine and options into a
 :class:`Layout`: the stored values, the dimensions with their attributes,
 the scaling, and the global and image attributes.  The MINC2 writer in
-:mod:`nibabel.minc2_write` stores a layout in HDF5.
+:mod:`nibabel.minc2_write` stores a layout in HDF5, and the MINC1 writer in
+:mod:`nibabel.minc1_write` in NetCDF.
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .minc_meta import WIDTH_SUFFIX
+from .minc_meta import WIDTH_SUFFIX, MincVariable
 
 #: The libminc release whose file layout the writers follow.  It is written
 #: to the ``minc_version`` attribute, as libminc writes its version.
@@ -49,7 +50,7 @@ STD_VERSION = 'MINC Version    1.0'
 
 #: Attributes the writers work out from the data and the affine, and never
 #: copy from metadata
-GEOMETRY_ATTRS = frozenset(('start', 'step', 'direction_cosines', 'length', 'spacing'))
+GEOMETRY_ATTRS = ('spacing', 'step', 'start', 'direction_cosines', 'length')
 #: Attributes that describe the structure of a file, written by the writers
 STRUCTURE_ATTRS = frozenset(
     (
@@ -68,6 +69,9 @@ STRUCTURE_ATTRS = frozenset(
 )
 #: Global attributes that belong to the file being written
 FILE_ATTRS = frozenset(('ident', 'minc_version', 'history'))
+
+#: Value of MINC variables whose data are not used (the NetCDF int fill)
+MISSING_INT = -2147483647
 
 _ident_count = itertools.count(1)
 
@@ -351,25 +355,20 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
                 _, start, step, _ = _source_geometry(source, metadata)
     start = 0.0 if start is None else float(start)
     step = 1.0 if step is None else float(step)
-    attrs = {
-        # libminc aligns time samples to their start
-        'alignment': 'start_' if name == 'time' else 'centre',
-    }
+    # The attributes and their order of libminc's MINC1 dimension variables
+    attrs = dict(std_attrs('dimension____'))
     if spatial:
         attrs['comments'] = COMMENTS[name]
+    attrs['spacing'] = 'regular__'
+    # libminc aligns time samples to their start
+    attrs['alignment'] = 'start_' if name == 'time' else 'centre'
+    attrs['step'] = step
+    if spatial or name == 'time':
+        attrs['units'] = 'mm' if spatial else 's'
+    attrs['start'] = start
+    if spatial:
         attrs['direction_cosines'] = np.asarray(cosine, dtype=np.float64)
     attrs['length'] = np.uint32(length)
-    if spatial:
-        attrs['spacetype'] = 'native____'
-    attrs.update(
-        spacing='regular__',
-        start=start,
-        step=step,
-        units='mm' if spatial else 's' if name == 'time' else '',
-        **std_attrs('dimension____'),
-    )
-    if not attrs['units']:
-        del attrs['units']
     dim = Dimension(name, length, attrs)
     if source is None:
         return dim
@@ -431,6 +430,8 @@ class Layout:
         Attributes of the ``image-max`` and ``image-min`` variables, by name.
     info : list of MincVariable
         Info variables, from metadata.
+    metadata : None or MincMeta
+        The metadata the layout copies from.
     """
 
     raw: np.ndarray
@@ -441,17 +442,18 @@ class Layout:
     image_max: np.ndarray
     scaling_attrs: dict = field(default_factory=dict)
     info: list = field(default_factory=list)
+    metadata: object = None
 
     @property
     def dimorder(self):
         return [dim.name for dim in self.dims]
 
 
-def check_dtype(data, dtype):
+def check_dtype(data, dtype, dtypes=SUPPORTED_DTYPES):
     """Return the stored data type for `data` and requested `dtype`"""
     out_dtype = np.dtype(data.dtype if dtype is None else dtype).newbyteorder('=')
-    if out_dtype not in SUPPORTED_DTYPES:
-        allowed = ', '.join(str(t) for t in SUPPORTED_DTYPES)
+    if out_dtype not in dtypes:
+        allowed = ', '.join(str(t) for t in dtypes)
         raise MincWriteError(f'Cannot write data type {out_dtype}; use one of {allowed}')
     return out_dtype
 
@@ -461,6 +463,7 @@ def build_layout(
     affine,
     *,
     dtype=None,
+    dtypes=SUPPORTED_DTYPES,
     history=None,
     scaling=None,
     time_start=None,
@@ -471,7 +474,8 @@ def build_layout(
     """Work out what to store for `data` and `affine`
 
     Parameters are as for :func:`nibabel.minc2_write.write_minc2`;
-    `command` names the writer in the default history line.
+    `dtypes` are the data types the format can store, and `command` names
+    the writer in the default history line.
 
     With `metadata`, a :class:`~nibabel.minc_meta.MincMeta`, the info
     variables, and the global, image and dimension attributes are copied,
@@ -490,7 +494,7 @@ def build_layout(
     data = np.asanyarray(data)
     if data.ndim not in (3, 4):
         raise MincWriteError(f'Can only write 3D or 4D data, not {data.ndim}D')
-    out_dtype = check_dtype(data, dtype)
+    out_dtype = check_dtype(data, dtype, dtypes)
     names, starts, steps, cosines = affine_to_dimensions(affine)
     # Slice-wise scaling, as libminc writes by default, or as the source
     nscale = data.ndim - 2
@@ -558,7 +562,14 @@ def build_layout(
         'image-max': std_attrs('var_attribute'),
         'image-min': std_attrs('var_attribute'),
     }
-    info = []
+    # libminc tools such as nii2mnc make empty study, patient and
+    # acquisition groups
+    info = [
+        MincVariable(
+            name, 'info', std_attrs('group________'), data=np.array(MISSING_INT, np.int32)
+        )
+        for name in ('study', 'patient', 'acquisition')
+    ]
     if metadata is not None:
         _copy_attrs(global_attrs, metadata.global_attrs, FILE_ATTRS)
         _copy_attrs(image_attrs, metadata.image_attrs, STRUCTURE_ATTRS)
@@ -581,6 +592,7 @@ def build_layout(
         image_max=np.asarray(image_max, dtype=np.float64),
         scaling_attrs=scaling_attrs,
         info=info,
+        metadata=metadata,
     )
 
 

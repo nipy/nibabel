@@ -675,3 +675,31 @@ def test_nii2mnc_rewrite_mincinfo(tmp_path):
     out_fname = str(tmp_path / 'out.mnc')
     write_minc2(lib_img.get_fdata(), lib_img.affine, out_fname)
     _assert_dims_close(_mincinfo_dims(out_fname), _mincinfo_dims(lib_fname))
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_libminc_defaults(tmp_path):
+    # Without metadata, the file has the empty study, patient and
+    # acquisition groups and the dimension attributes that nii2mnc writes
+    fname = tmp_path / 'img.mnc'
+    write_minc2(np.zeros((2, 3, 4)), np.eye(4), fname)
+    with h5py.File(fname, 'r') as h5f:
+        info = h5f['minc-2.0/info']
+        assert set(info) == {'study', 'patient', 'acquisition'}
+        for name in info:
+            assert info[name].shape == ()
+            assert info[name].attrs['vartype'] == b'group________'
+    dims = _load_dims(fname)
+    assert set(dims['xspace']) == {
+        'varid',
+        'vartype',
+        'version',
+        'comments',
+        'spacing',
+        'alignment',
+        'step',
+        'units',
+        'start',
+        'direction_cosines',
+        'length',
+    }
