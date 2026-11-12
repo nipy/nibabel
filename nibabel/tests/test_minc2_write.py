@@ -9,16 +9,23 @@
 """Tests for the MINC2 writer module, independent of ``Minc2Image``
 
 Files are written with ``write_minc2`` and read back with ``nibabel.load``.
+The tests against the MINC tools need ``mincinfo``, ``mincstats``,
+``mnc2nii`` and ``nii2mnc`` on the ``PATH``, and skip without them.  Tests
+that run the tools on MINC2 files also skip if the tools were built without
+HDF5 support (libminc 1.x).
 """
 
+import shutil
+import subprocess
 from contextlib import nullcontext
+from functools import cache
 from os.path import join as pjoin
 
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
-from .. import load
+from .. import Nifti1Header, Nifti1Image, load
 from ..affines import from_matvec
 from ..eulerangles import euler2mat
 from ..minc2_write import (
@@ -268,3 +275,216 @@ def test_rewrite_minc2_files(tmp_path, basename):
     assert_array_equal(rt_img.affine, img.affine)
     with h5py.File(fname, 'r') as src, h5py.File(out, 'r') as dst:
         assert_array_equal(dst['minc-2.0/image/0/image'], src['minc-2.0/image/0/image'])
+
+
+# Tests against the MINC tools
+
+
+def _tool(name):
+    path = shutil.which(name)
+    if path is None:
+        pytest.skip(f'{name} not on PATH')
+    return path
+
+
+def _run(*args):
+    return subprocess.run(args, capture_output=True, text=True, check=True).stdout
+
+
+@cache
+def _tools_read_minc2():
+    """True if the MINC tools on the PATH can read MINC2 (HDF5) files"""
+    path = shutil.which('mincinfo')
+    if path is None:
+        return False
+    fname = pjoin(data_path, 'minc2_1_scale.mnc')
+    result = subprocess.run([path, fname], capture_output=True, text=True)
+    return result.returncode == 0
+
+
+def _need_minc2_tools(*names):
+    for name in names:
+        _tool(name)
+    if not _tools_read_minc2():
+        pytest.skip('MINC tools cannot read MINC2 (built without HDF5)')
+
+
+def _mincinfo_dims(fname):
+    """Return [(name, length, start, step, cosines)] from mincinfo"""
+    mincinfo = _tool('mincinfo')
+    names = _run(mincinfo, '-dimnames', fname).split()
+    dims = []
+    for name in names:
+        length = int(_run(mincinfo, '-dimlength', name, fname))
+        start = float(_run(mincinfo, '-attvalue', f'{name}:start', fname))
+        step = float(_run(mincinfo, '-attvalue', f'{name}:step', fname))
+        cosines = None
+        if name.endswith('space'):
+            cos_text = _run(mincinfo, '-attvalue', f'{name}:direction_cosines', fname)
+            cosines = np.array(cos_text.split(), dtype=float)
+        dims.append((name, length, start, step, cosines))
+    return dims
+
+
+def _minc2_dims(fname):
+    """Return [(name, length, start, step, cosines)] read with h5py"""
+    with h5py.File(fname, 'r') as h5f:
+        dimorder = h5f['minc-2.0/image/0/image'].attrs['dimorder'].decode().split(',')
+    attrs = _load_dims(fname)
+    return [
+        (
+            name,
+            int(attrs[name]['length']),
+            float(attrs[name]['start']),
+            float(attrs[name]['step']),
+            attrs[name].get('direction_cosines'),
+        )
+        for name in dimorder
+    ]
+
+
+def _assert_dims_close(dims_a, dims_b):
+    assert [d[:2] for d in dims_a] == [d[:2] for d in dims_b]
+    for (_, _, start_a, step_a, cos_a), (_, _, start_b, step_b, cos_b) in zip(dims_a, dims_b):
+        assert_allclose(start_a, start_b, rtol=1e-5, atol=1e-5)
+        assert_allclose(step_a, step_b, rtol=1e-6)
+        if cos_a is not None:
+            assert_allclose(cos_a, cos_b, atol=1e-6)
+
+
+def _mincstats(fname):
+    mincstats = _tool('mincstats')
+    out = _run(mincstats, '-quiet', '-min', '-max', '-mean', fname)
+    return np.array(out.split(), dtype=float)
+
+
+def _assert_same_in_world(ref_data, ref_affine, data, affine, atol):
+    """Compare two images whose voxel grids coincide up to axis order and flips"""
+    assert data.size == ref_data.size
+    ijk = np.indices(data.shape).reshape(data.ndim, -1)
+    vox2vox = np.linalg.solve(ref_affine, affine)
+    ref_ijk = vox2vox[:3, :3] @ ijk + vox2vox[:3, 3:]
+    assert_allclose(ref_ijk, np.round(ref_ijk), atol=1e-3)
+    ref_ijk = np.round(ref_ijk).astype(int)
+    assert_allclose(data.reshape(-1), ref_data[tuple(ref_ijk)], atol=atol)
+
+
+def _read_mnc2nii(fname):
+    """Read data, affine and zooms of a NIfTI file written by ``mnc2nii``
+
+    ``mnc2nii`` from libminc 1.5 writes a single file with ``vox_offset``
+    348, which nibabel's loader rejects, and sets neither the sform nor the
+    qform, so we parse the header and data directly.  The affine is None if
+    the file has no sform or qform.
+    """
+    with open(fname, 'rb') as fobj:
+        raw = fobj.read()
+    hdr = Nifti1Header(binaryblock=raw[:348], check=False)
+    shape = hdr.get_data_shape()
+    data = np.frombuffer(
+        raw, hdr.get_data_dtype(), count=int(np.prod(shape)), offset=int(hdr['vox_offset'])
+    ).reshape(shape, order='F')
+    has_affine = hdr['sform_code'] > 0 or hdr['qform_code'] > 0
+    return data, hdr.get_best_affine() if has_affine else None, hdr.get_zooms()
+
+
+def _check_mnc2nii(minc_fname, data, affine, tmp_path, atol):
+    """Convert `minc_fname` with mnc2nii and compare with `data`, `affine`"""
+    nii_fname = str(tmp_path / 'mnc2nii.nii')
+    _run(_tool('mnc2nii'), '-quiet', '-float', minc_fname, nii_fname)
+    nii_data, nii_affine, nii_zooms = _read_mnc2nii(nii_fname)
+    if nii_affine is not None:
+        _assert_same_in_world(data, affine, nii_data, nii_affine, atol)
+        return
+    # Without an affine, mnc2nii's axes are xspace, yspace, zspace
+    dims = _mincinfo_dims(minc_fname)
+    names = [dim[0] for dim in dims]
+    steps = np.array([dim[3] for dim in dims])
+    assert np.all(steps > 0)
+    order = [names.index(name) for name in ('xspace', 'yspace', 'zspace')]
+    assert_allclose(nii_data, data.transpose(order), atol=atol)
+    assert_allclose(nii_zooms, steps[order], rtol=1e-6)
+
+
+def _write_oblique(fname, dtype=np.float32):
+    rng = np.random.default_rng(3)
+    data = rng.normal(100, 30, (5, 6, 7)).astype(dtype)
+    write_minc2(data, OBLIQUE_AFFINE, fname)
+    return data
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_mincinfo_minc2(tmp_path):
+    _need_minc2_tools('mincinfo')
+    fname = str(tmp_path / 'img.mnc')
+    _write_oblique(fname)
+    _assert_dims_close(_mincinfo_dims(fname), _minc2_dims(fname))
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+@pytest.mark.parametrize('dtype', DTYPES)
+def test_mincstats_minc2(tmp_path, dtype):
+    _need_minc2_tools('mincstats')
+    fname = str(tmp_path / 'img.mnc')
+    rng = np.random.default_rng(4)
+    write_minc2(rng.normal(100, 30, (5, 6, 7)), OBLIQUE_AFFINE, fname, dtype=dtype)
+    data = load(fname).get_fdata()
+    assert_allclose(_mincstats(fname), [data.min(), data.max(), data.mean()], rtol=1e-6)
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_mnc2nii_minc2(tmp_path):
+    _need_minc2_tools('mnc2nii')
+    fname = str(tmp_path / 'img.mnc')
+    data = _write_oblique(fname)
+    _check_mnc2nii(fname, data, OBLIQUE_AFFINE, tmp_path, atol=1e-4)
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+@pytest.mark.parametrize('dtype', [np.float32, np.int16, np.uint8])
+def test_nii2mnc_rewrite(tmp_path, dtype):
+    # NIfTI -> nii2mnc (libminc) -> nibabel -> write_minc2.  This checks the
+    # start / step / cosine conversion against libminc's own, and works with
+    # MINC tools that write MINC1 only.
+    nii2mnc = _tool('nii2mnc')
+    _tool('mnc2nii')
+    rng = np.random.default_rng(5)
+    affine = from_matvec(euler2mat(0.3, -0.2, 0.5) @ np.diag([1.5, 2.0, 0.7]), [10, -20, 5])
+    nii_data = rng.uniform(0, 200, (7, 6, 5)).astype(dtype)
+    nii_fname = str(tmp_path / 'in.nii')
+    Nifti1Image(nii_data, affine).to_filename(nii_fname)
+    lib_fname = str(tmp_path / 'libminc.mnc')
+    _run(nii2mnc, '-quiet', nii_fname, lib_fname)
+    lib_img = load(lib_fname)
+    lib_data = lib_img.get_fdata()
+    _assert_same_in_world(nii_data, affine, lib_data, lib_img.affine, atol=1e-4)
+    out_fname = str(tmp_path / 'out.mnc')
+    write_minc2(lib_data, lib_img.affine, out_fname, dtype=lib_img.get_data_dtype())
+    out_img = load(out_fname)
+    out_data = out_img.get_fdata()
+    tol = 0 if np.dtype(dtype).kind == 'f' else 1e-6 * np.ptp(lib_data)
+    assert_allclose(out_data, lib_data, rtol=0, atol=tol)
+    assert_allclose(out_img.affine, lib_img.affine, rtol=0, atol=1e-12)
+    # Dimension names, order, starts, steps and cosines are those libminc chose
+    _assert_dims_close(_minc2_dims(out_fname), _mincinfo_dims(lib_fname))
+    # mincstats of the libminc file matches numpy on the re-written data
+    assert_allclose(
+        _mincstats(lib_fname), [out_data.min(), out_data.max(), out_data.mean()], rtol=1e-6
+    )
+    # mnc2nii of the libminc file matches the re-written data
+    _check_mnc2nii(lib_fname, out_data, out_img.affine, tmp_path, atol=1e-3)
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+def test_nii2mnc_rewrite_mincinfo(tmp_path):
+    # As above, then mincinfo on the re-written MINC2 file
+    _need_minc2_tools('nii2mnc', 'mincinfo')
+    nii_fname = str(tmp_path / 'in.nii')
+    affine = from_matvec(euler2mat(0.3, -0.2, 0.5) @ np.diag([1.5, 2.0, 0.7]), [10, -20, 5])
+    Nifti1Image(np.ones((7, 6, 5), dtype=np.float32), affine).to_filename(nii_fname)
+    lib_fname = str(tmp_path / 'libminc.mnc')
+    _run(_tool('nii2mnc'), '-quiet', nii_fname, lib_fname)
+    lib_img = load(lib_fname)
+    out_fname = str(tmp_path / 'out.mnc')
+    write_minc2(lib_img.get_fdata(), lib_img.affine, out_fname)
+    _assert_dims_close(_mincinfo_dims(out_fname), _mincinfo_dims(lib_fname))
