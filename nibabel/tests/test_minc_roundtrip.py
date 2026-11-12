@@ -8,7 +8,8 @@
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 """Load, save and compare every attribute of MINC files
 
-Each file is loaded with nibabel, saved, and loaded again.  Walking the two
+Each file is loaded with nibabel, saved in its own format or converted to
+the other, and loaded again.  Walking the two
 files, every group, attribute and small dataset must be the same, except for
 those a writer must change: ``ident``, ``minc_version`` and the history line
 that is appended.  The scaling (image-min, image-max and valid_range) may
@@ -33,13 +34,17 @@ import pytest
 from numpy.testing import assert_allclose, assert_array_equal
 
 from .. import load, save
+from ..externals.netcdf import netcdf_file
+from ..minc1 import Minc1Image
 from ..minc2 import Minc2Image
+from ..minc_meta import minc1_dtype, normalize_attr
 from ..optpkg import optional_package
 from ..testing import data_path
 
 h5py, have_h5py, _ = optional_package('h5py')
 sitk, have_sitk, _ = optional_package('SimpleITK')
 
+MINC1_MAGIC = b'CDF\x01'
 MINC2_MAGIC = b'\x89HDF'
 
 # Attributes written for the new file
@@ -71,6 +76,7 @@ def _test_files(magic):
     return fnames
 
 
+MINC1_FILES = _test_files(MINC1_MAGIC)
 MINC2_FILES = _test_files(MINC2_MAGIC)
 
 
@@ -122,16 +128,16 @@ def _is_scaling(key):
     return name == 'image' and item == '@valid_range'
 
 
-def _check_history(old, new):
-    old = old.decode() if old is not None else ''
-    new = new.decode()
+def _check_history(old, new, writer='write_minc2'):
+    old = '' if old is None else normalize_attr(old)
+    new = normalize_attr(new)
     if old and not old.endswith('\n'):
         old += '\n'
     assert new.startswith(old)
     added = new[len(old) :]
     assert added.count('\n') == 1
     assert added.endswith('\n')
-    assert '>>> write_minc2 ' in added
+    assert f'>>> {writer} ' in added
 
 
 @pytest.mark.skipif(not have_h5py, reason='Need h5py')
@@ -158,6 +164,135 @@ def test_minc2_attribute_round_trip(tmp_path, fname):
         raise AssertionError(f'{key}: {before.get(key)!r} -> {after.get(key)!r}')
     assert after[('minc-2.0', '@ident')] != before.get(('minc-2.0', '@ident'))
     _check_history(before.get(('minc-2.0', '@history')), after[('minc-2.0', '@history')])
+
+
+def _walk_minc1(fname):
+    """Return ``{(variable, key): value}`` for a MINC1 file
+
+    The variable is ``'GLOBAL'`` for global attributes; the keys are as for
+    :func:`_walk_minc2`, with ``'dims'`` for the variable dimensions.
+    """
+    items = {}
+    with open(fname, 'rb') as fobj:
+        ncfile = netcdf_file(fobj, 'r', mmap=False)
+        for key, value in ncfile._attributes.items():
+            items[('GLOBAL', f'@{key}')] = normalize_attr(value)
+        for name, var in ncfile.variables.items():
+            for key, value in var._attributes.items():
+                items[(name, f'@{key}')] = normalize_attr(value)
+            items[(name, 'dims')] = tuple(var.dimensions)
+            items[(name, 'dtype')] = minc1_dtype(var)
+            if var.data.size <= 1000 and name != 'image':
+                items[(name, 'value')] = np.array(var.data)
+        del var
+        ncfile.close()
+    return items
+
+
+def _walk_model(fname):
+    """Walk a MINC1 or MINC2 file into libminc's MINC1 model
+
+    MINC2 datasets are named as the MINC1 variables libminc maps them to
+    (``/minc-2.0/info/patient`` is ``patient``), and the attributes of
+    ``/minc-2.0`` are global.
+    """
+    with open(fname, 'rb') as fobj:
+        magic = fobj.read(4)
+    if magic == MINC1_MAGIC:
+        return _walk_minc1(fname)
+    items = {}
+    with h5py.File(fname, 'r') as h5f:
+        minc = h5f['minc-2.0']
+        for key, value in minc.attrs.items():
+            items[('GLOBAL', f'@{key}')] = normalize_attr(value)
+
+        def visit(name, obj):
+            for key, value in obj.attrs.items():
+                items[(name, f'@{key}')] = normalize_attr(value)
+            if isinstance(obj, h5py.Dataset):
+                dimorder = normalize_attr(obj.attrs.get('dimorder', ''))
+                dims = tuple(dim for dim in dimorder.split(',') if dim)
+                items[(name, 'dims')] = dims[: obj.ndim]
+                items[(name, 'dtype')] = obj.dtype.newbyteorder('=')
+                if obj.size <= 1000 and name != 'image':
+                    items[(name, 'value')] = obj[()]
+
+        for group in ('dimensions', 'image/0', 'info'):
+            if group in minc:
+                minc[group].visititems(visit)
+    return items
+
+
+# Attributes that link MINC1 variables, or describe the file structure, and
+# so differ between the formats
+FORMAT_ATTRS = (
+    '@parent',
+    '@children',
+    '@image-max',
+    '@image-min',
+    '@_FillValue',
+    '@signtype',
+    '@dimorder',
+    '@length',
+)
+
+
+@pytest.mark.parametrize('fname', MINC1_FILES, ids=basename)
+def test_minc1_attribute_round_trip(tmp_path, fname):
+    img = load(fname)
+    assert isinstance(img, Minc1Image)
+    out = str(tmp_path / 'out.mnc')
+    save(img, out)
+    rt_img = load(out)
+    assert isinstance(rt_img, Minc1Image)
+    assert_array_equal(rt_img.get_fdata(), img.get_fdata())
+    assert_array_equal(rt_img.affine, img.affine)
+    before, after = _walk_minc1(fname), _walk_minc1(out)
+    for key in _diff(before, after):
+        if key[0] == 'GLOBAL' and key[1][1:] in NEW_ATTRS:
+            continue
+        if _is_scaling(key):
+            continue
+        raise AssertionError(f'{key}: {before.get(key)!r} -> {after.get(key)!r}')
+    _check_history(
+        before.get(('GLOBAL', '@history')), after[('GLOBAL', '@history')], 'write_minc1'
+    )
+
+
+@pytest.mark.skipif(not have_h5py, reason='Need h5py')
+@pytest.mark.parametrize(
+    ('fname', 'klass'),
+    [(fname, Minc2Image) for fname in MINC1_FILES]
+    + [(fname, Minc1Image) for fname in MINC2_FILES],
+    ids=lambda value: basename(value) if isinstance(value, str) else value.__name__,
+)
+def test_convert_attribute_round_trip(tmp_path, fname, klass):
+    # MINC1 to MINC2 and MINC2 to MINC1: in libminc's MINC1 model, only the
+    # attributes that describe each format's structure may differ
+    img = load(fname)
+    out = str(tmp_path / 'out.mnc')
+    save(klass.from_image(img), out)
+    rt_img = load(out)
+    assert isinstance(rt_img, klass)
+    assert_array_equal(rt_img.get_fdata(), img.get_fdata())
+    assert_array_equal(rt_img.affine, img.affine)
+    before, after = _walk_model(fname), _walk_model(out)
+    corrected = {
+        (path.rsplit('/', 1)[-1], item): value
+        for (path, item), value in CORRECTED.get(basename(fname), {}).items()
+    }
+    for key in _diff(before, after):
+        name, item = key
+        if name == 'GLOBAL' and item[1:] in NEW_ATTRS:
+            continue
+        if _is_scaling(key) or name == 'rootvariable' or item in FORMAT_ATTRS:
+            continue
+        if key in corrected:
+            assert after[key] == normalize_attr(corrected[key])
+            continue
+        raise AssertionError(f'{key}: {before.get(key)!r} -> {after.get(key)!r}')
+    writer = 'write_minc1' if klass is Minc1Image else 'write_minc2'
+    _check_history(before.get(('GLOBAL', '@history')), after[('GLOBAL', '@history')], writer)
 
 
 def _sitk_geometry(fname):
