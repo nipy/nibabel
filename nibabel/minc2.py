@@ -10,6 +10,9 @@
 
 Use with care; I haven't tested this against a wide range of MINC files.
 
+Writing goes through :func:`nibabel.minc2_write.write_minc2`; see that module
+for the layout, axis order and scaling of written files.
+
 If you have a file that isn't read correctly, please send an example.
 
 Test reading with something like::
@@ -30,7 +33,8 @@ import warnings
 
 import numpy as np
 
-from .minc1 import Minc1File, Minc1Image, MincError, MincHeader
+from .minc1 import Minc1File, Minc1Image, MincError, MincHeader, MincImageArrayProxy
+from .minc2_write import write_minc2
 
 
 class Hdf5Bunch:
@@ -159,6 +163,7 @@ class Minc2Image(Minc1Image):
     _compressed_suffixes = ()
     header_class = Minc2Header
     header: Minc2Header
+    rw = True
 
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
@@ -180,6 +185,81 @@ class Minc2Image(Minc1Image):
         header = klass.header_class(data_dtype, shape, zooms)
         data = klass.ImageArrayProxy(minc_file)
         return klass(data, affine, header, extra=None, file_map=file_map)
+
+    def to_file_map(self, file_map=None, dtype=None):
+        """Write image to `file_map` or contained ``self.file_map``
+
+        Parameters
+        ----------
+        file_map : None or mapping, optional
+           files mapping.  If None (default) use object's ``file_map``
+           attribute instead
+        dtype : dtype-like, optional
+           The on-disk data type to coerce the data array.  Default is the
+           header data type.
+
+        Notes
+        -----
+        The data array axes are the MINC dimensions, slowest varying first;
+        a 4D array has time on axis 0, as the reader returns it.  If the
+        data are still the unmodified proxy of a MINC file, and `dtype` is
+        that file's integer type, the file's image-min / image-max scaling
+        is kept, so that the stored values are written back unchanged.  See
+        :mod:`nibabel.minc2_write` for the scaling chosen otherwise.
+        """
+        if file_map is None:
+            file_map = self.file_map
+        out_dtype = np.dtype(self.get_data_dtype() if dtype is None else dtype)
+        scaling, time_start, time_step = _proxy_scaling(self.dataobj, out_dtype)
+        data = np.asanyarray(self.dataobj)
+        holder = file_map['image']
+        target = holder.fileobj if holder.fileobj is not None else holder.filename
+        write_minc2(
+            data,
+            self.affine,
+            target,
+            dtype=out_dtype,
+            scaling=scaling,
+            time_start=time_start,
+            time_step=time_step,
+        )
+        self.file_map = file_map
+
+
+def _proxy_scaling(dataobj, out_dtype):
+    """Scaling and time axis of the MINC file behind `dataobj`, if any
+
+    Returns
+    -------
+    scaling : None or tuple
+        ``(image_min, image_max, valid_range)`` of the source file, if
+        `dataobj` is a MINC array proxy and `out_dtype` is its integer
+        storage type; None otherwise.
+    time_start, time_step : float
+        ``start`` and ``step`` of the source time dimension, if `dataobj`
+        is a 4D MINC array proxy with time first; 0 and 1 otherwise.
+    """
+    if not isinstance(dataobj, MincImageArrayProxy):
+        return None, 0.0, 1.0
+    minc_file = dataobj.minc_file
+    time_start, time_step = 0.0, 1.0
+    if dataobj.ndim == 4 and not minc_file._dim_names[0].endswith('space'):
+        time_dim = minc_file._dims[0]
+        time_start = float(getattr(time_dim, 'start', 0.0))
+        time_step = float(getattr(time_dim, 'step', 1.0))
+    in_dtype = minc_file.get_data_dtype()
+    if out_dtype.kind == 'f' or in_dtype.newbyteorder('=') != out_dtype.newbyteorder('='):
+        return None, time_start, time_step
+    image_min = minc_file._image_min
+    image_max = minc_file._image_max
+    if minc_file._get_dimensions(image_min):
+        image_min = np.array(minc_file._get_array(image_min), dtype=np.float64)
+        image_max = np.array(minc_file._get_array(image_max), dtype=np.float64)
+    else:
+        image_min = float(minc_file._get_scalar(image_min))
+        image_max = float(minc_file._get_scalar(image_max))
+    valid_range = tuple(minc_file._get_valid_range())
+    return (image_min, image_max, valid_range), time_start, time_step
 
 
 load = Minc2Image.from_filename

@@ -857,6 +857,22 @@ class TestMinc2API(TestMinc1API):
     klass = image_maker = Minc2Image
     loader = minc2.load
     example_images = MINC2_EXAMPLE_IMAGES
+    has_scaling = True
+    can_save = True
+    standard_extension = '.mnc'
+    # MINC2 images have three spatial axes, after time for 4D images
+    example_shapes = ((2, 3, 4), (2, 3, 4, 5))
+    storable_dtypes = (np.uint8, np.int16, np.uint16, np.int32, np.float32, np.float64)
+
+    def validate_filenames(self, imaker, params):
+        # The generic test saves as float32 to avoid rounding, but the scaled
+        # values of the example files are float64; give it float32 values
+        def float32_imaker():
+            img = imaker()
+            data = img.get_fdata(dtype=np.float32)
+            return self.klass(data, img.affine, img.header)
+
+        super().validate_filenames(float32_imaker, params)
 
 
 class TestPARRECAPI(LoadImageAPI):
