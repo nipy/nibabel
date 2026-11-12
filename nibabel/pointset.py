@@ -53,7 +53,7 @@ class Pointset:
 
     Parameters
     ----------
-    coords : array-like
+    coordinates : array-like
       (*N*, *n*) array with *N* being points and columns their *n*-dimensional coordinates
     affine : :class:`numpy.ndarray`
       Affine transform to be applied to coordinates array
