@@ -16,6 +16,7 @@ import numpy as np
 
 from .externals.netcdf import netcdf_file
 from .fileslice import canonical_slicers
+from .minc_meta import MincMeta
 from .spatialimages import SpatialHeader, SpatialImage
 
 _dt_dict = {
@@ -319,11 +320,17 @@ class Minc1Image(SpatialImage):
 
     ImageArrayProxy = MincImageArrayProxy
 
+    #: :class:`~nibabel.minc_meta.MincMeta` snapshot of the metadata of the
+    #: file the image was loaded from, or None
+    minc_meta: MincMeta | None = None
+
     @classmethod
     def from_file_map(klass, file_map, *, mmap=True, keep_file_open=None):
         # Note that mmap and keep_file_open are included for proper
         with file_map['image'].get_prepare_fileobj() as fobj:
-            minc_file = Minc1File(netcdf_file(fobj))
+            ncfile = netcdf_file(fobj)
+            minc_file = Minc1File(ncfile)
+            minc_meta = MincMeta.from_netcdf(ncfile)
             affine = minc_file.get_affine()
             if affine.shape != (4, 4):
                 raise MincError('Image does not have 3 spatial dimensions')
@@ -332,7 +339,9 @@ class Minc1Image(SpatialImage):
             zooms = minc_file.get_zooms()
             header = klass.header_class(data_dtype, shape, zooms)
             data = klass.ImageArrayProxy(minc_file)
-        return klass(data, affine, header, extra=None, file_map=file_map)
+        img = klass(data, affine, header, extra=None, file_map=file_map)
+        img.minc_meta = minc_meta
+        return img
 
 
 load = Minc1Image.from_filename

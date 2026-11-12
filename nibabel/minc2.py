@@ -35,6 +35,7 @@ import numpy as np
 
 from .minc1 import Minc1File, Minc1Image, MincError, MincHeader, MincImageArrayProxy
 from .minc2_write import write_minc2
+from .minc_meta import MincMeta
 
 
 class Hdf5Bunch:
@@ -175,7 +176,9 @@ class Minc2Image(Minc1Image):
         source = holder.fileobj if holder.fileobj is not None else holder.filename
         if source is None:
             raise MincError('MINC2 needs filename or file object for load')
-        minc_file = Minc2File(h5py.File(source, 'r'))
+        h5file = h5py.File(source, 'r')
+        minc_file = Minc2File(h5file)
+        minc_meta = MincMeta.from_hdf5(h5file)
         affine = minc_file.get_affine()
         if affine.shape != (4, 4):
             raise MincError('Image does not have 3 spatial dimensions')
@@ -184,7 +187,9 @@ class Minc2Image(Minc1Image):
         zooms = minc_file.get_zooms()
         header = klass.header_class(data_dtype, shape, zooms)
         data = klass.ImageArrayProxy(minc_file)
-        return klass(data, affine, header, extra=None, file_map=file_map)
+        img = klass(data, affine, header, extra=None, file_map=file_map)
+        img.minc_meta = minc_meta
+        return img
 
     def to_file_map(self, file_map=None, dtype=None):
         """Write image to `file_map` or contained ``self.file_map``
