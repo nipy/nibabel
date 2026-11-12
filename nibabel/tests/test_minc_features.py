@@ -139,3 +139,24 @@ def test_integer_types_sitk(tmp_path, dtype):
     assert_array_equal(load(fname).get_fdata(), data)
     sitk_data = sitk.GetArrayFromImage(sitk.ReadImage(str(fname)))
     assert_allclose(sitk_data, data.transpose((2, 1, 0)), rtol=1e-7)
+
+
+@pytest.mark.parametrize(('writer', 'klass'), WRITERS)
+@pytest.mark.parametrize('dtype', [np.uint8, np.int16, np.float32])
+def test_volume_scaling(tmp_path, writer, klass, dtype):
+    rng = np.random.default_rng(2)
+    data = rng.normal(100, 30, (2, 3, 4, 5))
+    fname = tmp_path / 'img.mnc'
+    for slice_scaling, nscale in ((True, 2), (False, 0)):
+        writer(data, np.eye(4), fname, dtype=dtype, slice_scaling=slice_scaling)
+        img = load(fname)
+        assert len(img.minc_meta.scaling_dims) == nscale
+        scale = 1 if dtype == np.float32 else np.ptp(data) / np.iinfo(dtype).max
+        assert_allclose(img.get_fdata(), data, atol=scale, rtol=1e-6)
+    # Saving keeps the volume-wise scaling of the source; images made in
+    # memory are scaled slice-wise
+    out = tmp_path / 'out.mnc'
+    save(load(fname), out)
+    assert load(out).minc_meta.scaling_dims == ()
+    save(klass(data.astype(dtype), np.eye(4)), out)
+    assert len(load(out).minc_meta.scaling_dims) == 2

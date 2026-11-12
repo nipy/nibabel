@@ -84,6 +84,7 @@ def write_minc1(
     time_step=None,
     metadata=None,
     vector_dimension=None,
+    slice_scaling=None,
 ):
     """Write `data` and `affine` to a MINC1 file
 
@@ -123,6 +124,13 @@ def write_minc1(
         the spatial axes.  Default is true if `metadata` ends with a vector
         dimension, and `data` has as many axes as `metadata`.
 
+    slice_scaling : bool, optional
+        True for slice-wise image-min / image-max (one value per index of
+        all but the two fastest varying spatial dimensions), as libminc
+        writes by default, False for a single volume-wise range.  Default
+        is the form of `metadata`, if any, and slice-wise otherwise.
+        Ignored if `scaling` is given.
+
     Returns
     -------
     None
@@ -144,6 +152,7 @@ def write_minc1(
         time_step=time_step,
         metadata=metadata,
         vector_dimension=vector_dimension,
+        slice_scaling=slice_scaling,
         command=f'write_minc1 {os.fspath(target)}',
     )
     contents = _netcdf_bytes(layout)

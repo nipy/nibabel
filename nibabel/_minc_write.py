@@ -505,6 +505,7 @@ def build_layout(
     time_step=None,
     metadata=None,
     vector_dimension=None,
+    slice_scaling=None,
     command='write_minc',
 ):
     """Work out what to store for `data` and `affine`
@@ -512,6 +513,10 @@ def build_layout(
     Parameters are as for :func:`nibabel.minc2_write.write_minc2`;
     `dtypes` are the data types the format can store, and `command` names
     the writer in the default history line.
+
+    `slice_scaling` chooses slice-wise (True) or volume-wise (False)
+    image-min / image-max; default is the form of `metadata`, if any, and
+    slice-wise otherwise.
 
     With `vector_dimension` true, the last axis of `data` is the MINC
     ``vector_dimension`` (such as the components of RGB data).  Default is
@@ -548,8 +553,11 @@ def build_layout(
     # Slice-wise scaling, as libminc writes by default, or as the source.
     # Scaling does not vary over the vector dimension, as in libminc.
     nscale = ndim - 2
-    if metadata is not None and metadata.scaling_dims is not None:
-        nscale = min(nscale, len(metadata.scaling_dims))
+    if slice_scaling is None:
+        if metadata is not None and metadata.scaling_dims is not None:
+            nscale = min(nscale, len(metadata.scaling_dims))
+    elif not slice_scaling:
+        nscale = 0
 
     if out_dtype.kind == 'f':
         raw = data.astype(out_dtype)
