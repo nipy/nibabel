@@ -27,8 +27,10 @@ File Formats
    gifti
    freesurfer
    minc1
+   minc1_write
    minc2
    minc2_write
+   minc_meta
    nicom
    nifti1
    nifti2
