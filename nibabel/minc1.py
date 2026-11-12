@@ -31,8 +31,19 @@ format.  ``nib.save`` passes keyword arguments to the writer, such as
 ``slice_scaling``.
 
 The data axes are the MINC dimensions in file order, slowest varying first:
-an optional non-spatial dimension such as time, three spatial dimensions,
-and an optional ``vector_dimension``.  The affine maps the spatial axes.
+an optional non-spatial dimension such as ``time`` or ``tfrequency``, three
+spatial dimensions, and an optional ``vector_dimension``.  The affine maps
+the spatial axes.  As in libminc, the spatial frequency dimensions
+(``xfrequency``, ``yfrequency``, ``zfrequency``) count as spatial, mapped
+to the world axis of their name, so that the affine maps their samples to
+frequency coordinates; ``dimension_names`` of the writers chooses them.
+
+MINC1 files may have a record (unlimited) first dimension, named by
+``img.minc_meta.record_dimension`` and kept on save.  MINC1 cannot hold
+label names or resolution levels, and MINC2 no record dimension; as libminc
+cannot write them either, the writers refuse them, with an error that names
+the argument (``labels={}``, ``levels=0``, ``record_dimension=False``) that
+writes the data without them.
 """
 
 from __future__ import annotations

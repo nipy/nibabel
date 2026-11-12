@@ -138,12 +138,21 @@ libminc, MINC2) and FreeSurfer's MINC tools (libminc 1.5, MINC1 only).
      - yes
      - yes
      - libminc 2.4, SimpleITK, FreeSurfer
-   * - Frequency dimensions (``xfrequency`` and others)
-     - no
-     - no
-     - no
-     - no
-     - not supported: the affine needs three spatial dimensions
+   * - Spatial frequency dimensions (``xfrequency``, ``yfrequency``,
+       ``zfrequency``), alone or mixed with spatial ones
+     - yes
+     - yes
+     - yes
+     - yes
+     - libminc 2.4 (files from ``rawtominc``; ``mincinfo``); mapped to the
+       world axis of their name, as libminc does, so the affine maps
+       samples to frequency coordinates
+   * - ``tfrequency``
+     - yes
+     - yes
+     - yes
+     - yes
+     - libminc 2.4 (``rawtominc``); the first, non-spatial axis, like time
    * - uint8, int8, int16, uint16, int32, uint32 (``signtype``)
      - yes
      - yes
@@ -167,7 +176,8 @@ libminc, MINC2) and FreeSurfer's MINC tools (libminc 1.5, MINC1 only).
      - n/a
      - no
      - no
-     - not supported: libminc defines no scaling for it
+     - not supported: libminc defines no valid range or scaling for it, so
+       its real values are undefined
    * - Slice-wise and volume-wise scaling, ``valid_range``
      - yes
      - yes
@@ -191,32 +201,55 @@ libminc, MINC2) and FreeSurfer's MINC tools (libminc 1.5, MINC1 only).
      - n/a
      - yes
      - yes
-     - left out with a warning when writing MINC1
+     - left out with a warning when writing MINC1, as libminc's
+       conversion leaves them out
    * - Label volumes (names in an enumerated type, class ``label__``)
-     - n/a
-     - n/a
+     - study modality ``label``
+     - refused
      - yes
      - yes
      - SimpleITK (values); libminc's MINC1 interface tools cannot read
-       them; left out with a warning when writing MINC1
+       them, and libminc cannot write label names to MINC1 (``mincconvert``
+       fails), so ``write_minc1`` refuses them (``labels={}`` writes the
+       values only)
    * - gzip compression and chunking
      - ``.mnc.gz``
      - no
      - yes
      - yes
      - libminc 2.4, SimpleITK
-   * - Multi-resolution images (``/minc-2.0/image/1``...)
+   * - Resolution levels (``/minc-2.0/image/1``, ``/2``...)
      - n/a
+     - refused
+     - yes
+     - yes (3D)
+     - libminc 2.4 (a file written with ``miset_props_multi_resolution``);
+       ``resolution_level`` of ``nib.load`` reads a level, ``levels`` of
+       ``write_minc2`` writes them, and saving keeps them.  libminc writes
+       levels of 3D images only, and none to MINC1, so the writers refuse
+       other cases (``levels=0`` writes the full resolution only).  libminc
+       makes level ``n`` from level ``n - 1`` with the wrong scaling;
+       nibabel makes every level from the full resolution
+   * - Record (unlimited) dimension
+     - yes
+     - yes
      - n/a
+     - refused
+     - libminc 2.4 (``mincgen``), FreeSurfer; libminc cannot write a
+       record dimension to MINC2 (``mincconvert -2`` fails), so
+       ``write_minc2`` refuses it (``record_dimension=False`` writes an
+       ordinary dimension)
+   * - Uniform record volumes (class ``array__``)
      - no
      - no
-     - not read or written; resolution 0 only
-   * - Record volumes (class ``array__``)
      - no
      - no
-     - no
-     - no
-     - not supported
+     - not supported: libminc makes them with an empty compound type and
+       no tool writes them
+
+Where libminc cannot write a feature to a format, nibabel reads it but
+refuses to write it, with an error that names the argument that writes the
+data without it.
 
 Writing follows libminc: the MINC1 header of a new file is that of
 ``nii2mnc`` for the same data but for the valid range (of the type rather

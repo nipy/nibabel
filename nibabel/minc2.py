@@ -21,11 +21,17 @@ order and scaling of written files.  It shares the interface of
     nib.save(nib.Minc1Image.from_image(img), 'v1.mnc')  # convert to MINC1
 
 ``img.minc_meta`` is a :class:`~nibabel.minc_meta.MincMeta`; for label
-volumes, ``img.minc_meta.labels`` maps label values to names.  Saving passes
+volumes, ``img.minc_meta.labels`` maps label values to names.  Lower
+resolution levels that libminc keeps in ``/minc-2.0/image/<n>`` are listed
+in ``img.minc_meta.resolution_levels``; ``nib.load(fname,
+resolution_level=n)`` reads one, and saving writes them again (``levels``
+argument of the writer).  Saving passes
 it to the writer, and ``from_image`` carries it between
 :class:`~nibabel.minc1.Minc1Image` and :class:`Minc2Image`.  ``nib.save``
 passes keyword arguments to the writer: ``slice_scaling``, ``compression``,
-``chunks`` and ``labels``.
+``chunks``, ``labels``, ``levels``, ``dimension_names`` and
+``record_dimension``.  Frequency dimensions and the rest of the data layout
+are as for :mod:`nibabel.minc1`.
 
 If you have a file that isn't read correctly, please send an example, and
 compare with the output of::
