@@ -274,6 +274,10 @@ class Dimension:
         Width of each sample, for the ``<name>-width`` variable, or None.
     width_attrs : dict
         Attributes of the ``<name>-width`` variable.
+    width_group : str
+        MINC2 group of the ``<name>-width`` variable: ``'dimensions'``, as
+        libminc's MINC2 functions write it, or ``'info'``, as its MINC1
+        functions do in MINC2 files.
     """
 
     name: str
@@ -282,6 +286,7 @@ class Dimension:
     data: np.ndarray | None = None
     widths: np.ndarray | None = None
     width_attrs: dict = field(default_factory=dict)
+    width_group: str = 'dimensions'
 
 
 def _source_geometry(source, metadata):
@@ -402,6 +407,9 @@ def _dimension(name, length, metadata, start=None, step=None, cosine=None):
         if width is not None and width.data.shape == (length,):
             dim.widths = width.data
             _copy_attrs(dim.width_attrs, width.attrs, STRUCTURE_ATTRS | {'length'})
+            if 'length' in width.attrs:
+                dim.width_attrs['length'] = np.uint32(length)
+            dim.width_group = width.group
     if 'spacing' not in source.attrs:
         del geometry['spacing']
     elif keep and source.attrs['spacing'] == 'irregular' and dim.data is not None:

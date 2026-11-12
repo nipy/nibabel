@@ -362,10 +362,11 @@ def _write_groups(h5f, layout, storage=None):
                 attrs['dimorder'] = dim.name
         _set_attrs(var, attrs)
         if dim.widths is not None:
-            var = dims.create_dataset(dim.name + WIDTH_SUFFIX, data=dim.widths)
-            attrs = {'dimorder': dim.name, 'length': np.uint32(dim.length), **dim.width_attrs}
+            group = minc.require_group(dim.width_group)
+            var = group.create_dataset(dim.name + WIDTH_SUFFIX, data=dim.widths)
+            attrs = {'dimorder': dim.name, **dim.width_attrs}
             _set_attrs(var, attrs)
-    info = minc.create_group('info')
+    info = minc.require_group('info')
     for var in layout.info:
         _write_info(info, var)
     group = minc.create_group('image').create_group('0')

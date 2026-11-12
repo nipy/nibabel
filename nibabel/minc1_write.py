@@ -331,6 +331,9 @@ def _netcdf_bytes(layout):
         attrs['complete'] = layout.image_attrs['complete']
     if signtype is not None:
         attrs['signtype'] = signtype
+    elif links.has('image', 'signtype', default=False):
+        # libminc 1.x also gives float images a signtype
+        attrs['signtype'] = 'signed__'
     if 'valid_range' in layout.image_attrs:
         # libminc writes the valid range as double
         attrs['valid_range'] = np.asarray(layout.image_attrs['valid_range'], dtype=np.float64)
