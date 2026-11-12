@@ -715,7 +715,7 @@ data:
 """.replace('{image}', ', '.join(str(i % 101) for i in range(72)))
 
 
-def test_libminc_record_dimension(tmp_path):
+def test_libminc_record_dimension(tmp_path, monkeypatch):
     # mincgen of libminc 2.4 writes a MINC1 record dimension (with
     # MINC_FORCE_V2=0); nibabel reads it, keeps every attribute through a
     # save, and libminc reads nibabel's file
@@ -723,11 +723,8 @@ def test_libminc_record_dimension(tmp_path):
     cdl = tmp_path / 'rec.cdl'
     cdl.write_text(RECORD_CDL)
     ref = str(tmp_path / 'ref.mnc')
-    os.environ['APPTAINERENV_MINC_FORCE_V2'] = '0'
-    try:
-        SIF_TOOLS.run('mincgen', '-b', '-o', ref, cdl)
-    finally:
-        del os.environ['APPTAINERENV_MINC_FORCE_V2']
+    monkeypatch.setenv('APPTAINERENV_MINC_FORCE_V2', '0')
+    SIF_TOOLS.run('mincgen', '-b', '-o', ref, cdl)
     assert _magic(ref) == MAGIC['MINC1']
     img = load(ref)
     assert img.minc_meta.record_dimension == 'time'
@@ -790,7 +787,7 @@ int main(int argc, char **argv)
 """
 
 
-def _libminc_multires(tmp_path, depth=2):
+def _libminc_multires(tmp_path, monkeypatch, depth=2):
     """A file with resolution levels that libminc writes, or skip"""
     _need(SIF_TOOLS, 'mincinfo', minc2=True)
     source = tmp_path / 'multires.c'
@@ -811,18 +808,15 @@ def _libminc_multires(tmp_path, depth=2):
     if result.returncode:
         pytest.skip('Cannot compile against libminc in the minc-toolkit image')
     fname = str(tmp_path / 'multires.mnc')
-    os.environ['APPTAINERENV_MINC_COMPRESS'] = '0'
-    try:
-        SIF_TOOLS.run(program, fname, depth)
-    finally:
-        del os.environ['APPTAINERENV_MINC_COMPRESS']
+    monkeypatch.setenv('APPTAINERENV_MINC_COMPRESS', '0')
+    SIF_TOOLS.run(program, fname, depth)
     return fname
 
 
-def test_libminc_resolution_levels(tmp_path):
+def test_libminc_resolution_levels(tmp_path, monkeypatch):
     # libminc writes lower resolution levels with miset_props_multi_resolution
     # and miflush_from_resolution; nibabel reads each of them
-    fname = _libminc_multires(tmp_path)
+    fname = _libminc_multires(tmp_path, monkeypatch)
     img = load(fname)
     assert dict(img.minc_meta.resolution_levels) == {1: (4, 6, 8), 2: (2, 3, 4)}
     full = img.get_fdata()
@@ -845,11 +839,11 @@ def test_libminc_resolution_levels(tmp_path):
     assert SIF_TOOLS.run('mincinfo', '-dimlength', 'xspace', fname).strip() == '16'
 
 
-def test_libminc_resolution_levels_round_trip(tmp_path):
+def test_libminc_resolution_levels_round_trip(tmp_path, monkeypatch):
     # Saving libminc's multi-resolution file keeps every attribute and its
     # levels; level 1 matches libminc's to the last stored bit, level 2
     # differs as libminc makes it from level 1 with the wrong scaling
-    fname = _libminc_multires(tmp_path)
+    fname = _libminc_multires(tmp_path, monkeypatch)
     img = load(fname)
     out = str(tmp_path / 'out.mnc')
     save(img, out)
