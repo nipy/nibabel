@@ -847,22 +847,21 @@ class TestMinc1API(ImageHeaderAPI):
     klass = image_maker = Minc1Image
     loader = minc1.load
     example_images = MINC1_EXAMPLE_IMAGES
-
-
-class TestMinc2API(TestMinc1API):
-    def setup_method(self):
-        if not have_h5py:
-            raise unittest.SkipTest('Need h5py for these tests')
-
-    klass = image_maker = Minc2Image
-    loader = minc2.load
-    example_images = MINC2_EXAMPLE_IMAGES
     has_scaling = True
     can_save = True
     standard_extension = '.mnc'
-    # MINC2 images have three spatial axes, after time for 4D images
+    # MINC images have three spatial axes, after time for 4D images
     example_shapes = ((2, 3, 4), (2, 3, 4, 5))
-    storable_dtypes = (np.uint8, np.int16, np.uint16, np.int32, np.float32, np.float64)
+    storable_dtypes = (
+        np.uint8,
+        np.int8,
+        np.int16,
+        np.uint16,
+        np.int32,
+        np.uint32,
+        np.float32,
+        np.float64,
+    )
 
     def validate_filenames(self, imaker, params):
         # The generic test saves as float32 to avoid rounding, but the scaled
@@ -873,6 +872,17 @@ class TestMinc2API(TestMinc1API):
             return self.klass(data, img.affine, img.header)
 
         super().validate_filenames(float32_imaker, params)
+
+
+class TestMinc2API(TestMinc1API):
+    def setup_method(self):
+        if not have_h5py:
+            raise unittest.SkipTest('Need h5py for these tests')
+
+    klass = image_maker = Minc2Image
+    loader = minc2.load
+    example_images = MINC2_EXAMPLE_IMAGES
+    storable_dtypes = (np.uint8, np.int16, np.uint16, np.int32, np.float32, np.float64)
 
 
 class TestPARRECAPI(LoadImageAPI):

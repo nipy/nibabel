@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from .. import Nifti1Image, load, minc1
+from .. import Nifti1Image, load, minc1, save
 from .._compression import HAVE_ZSTD, zstd
 from ..externals.netcdf import netcdf_file
 from ..minc1 import Minc1File, Minc1Image, MincHeader
@@ -213,3 +213,36 @@ class TestMinc1Image(tsi.TestSpatialImage):
                 img.header.data_to_fileobj(arr, bio)
             with pytest.raises(NotImplementedError):
                 img.header.data_from_fileobj(bio)
+
+
+def _magic(fname):
+    with open(fname, 'rb') as fobj:
+        return fobj.read(4)
+
+
+@pytest.mark.parametrize('tp', EXAMPLE_IMAGES)
+def test_save_example_images(tmp_path, tp):
+    # A loaded MINC1 image saves as MINC1, with the same stored values,
+    # scaling and data
+    img = load(tp['fname'])
+    fname = tmp_path / 'img.mnc'
+    save(img, fname)
+    assert _magic(fname) == b'CDF\x01'
+    rt_img = load(fname)
+    assert isinstance(rt_img, Minc1Image)
+    assert rt_img.get_data_dtype() == img.get_data_dtype()
+    assert_array_equal(rt_img.get_fdata(), img.get_fdata())
+    assert_array_equal(rt_img.affine, img.affine)
+    assert rt_img.header.get_zooms() == img.header.get_zooms()
+
+
+def test_save_formats(tmp_path):
+    # .mnc keeps the class of the image; other images become MINC1, the
+    # first class nibabel registers for .mnc
+    data = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+    fname = tmp_path / 'img.mnc'
+    save(Minc1Image(data, np.eye(4)), fname)
+    assert _magic(fname) == b'CDF\x01'
+    save(Nifti1Image(data, np.eye(4)), fname)
+    assert _magic(fname) == b'CDF\x01'
+    assert_array_equal(load(fname).get_fdata(), data)

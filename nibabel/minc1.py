@@ -6,7 +6,10 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Read MINC1 format images"""
+"""Read and write MINC1 format images
+
+Writing goes through :func:`nibabel.minc1_write.write_minc1`.
+"""
 
 from __future__ import annotations
 
@@ -17,6 +20,7 @@ import numpy as np
 
 from .externals.netcdf import netcdf_file
 from .fileslice import canonical_slicers
+from .minc1_write import write_minc1
 from .minc_meta import MincMeta
 from .spatialimages import SpatialHeader, SpatialImage
 
@@ -354,7 +358,7 @@ class Minc1Image(SpatialImage):
     _compressed_suffixes: tuple[str, ...] = ('.gz', '.bz2', '.zst')
 
     makeable = True
-    rw = False
+    rw = True
 
     ImageArrayProxy = MincImageArrayProxy
 
@@ -380,6 +384,92 @@ class Minc1Image(SpatialImage):
         img = klass(data, affine, header, extra=None, file_map=file_map)
         img.minc_meta = minc_meta
         return img
+
+    @staticmethod
+    def _write(*args, **kwargs):
+        return write_minc1(*args, **kwargs)
+
+    def to_file_map(self, file_map=None, dtype=None):
+        """Write image to `file_map` or contained ``self.file_map``
+
+        A :class:`Minc1Image` writes MINC1 and a
+        :class:`~nibabel.minc2.Minc2Image` writes MINC2, with
+        :func:`~nibabel.minc1_write.write_minc1` and
+        :func:`~nibabel.minc2_write.write_minc2`.
+
+        Parameters
+        ----------
+        file_map : None or mapping, optional
+           files mapping.  If None (default) use object's ``file_map``
+           attribute instead
+        dtype : dtype-like, optional
+           The on-disk data type to coerce the data array.  Default is the
+           header data type.
+
+        Notes
+        -----
+        The data array axes are the MINC dimensions, slowest varying first;
+        a 4D array has time on axis 0, as the reader returns it.  If the
+        data are still the unmodified proxy of a MINC file, and `dtype` is
+        that file's integer type, the file's image-min / image-max scaling
+        is kept, so that the stored values are written back unchanged.  See
+        :mod:`nibabel.minc2_write` for the scaling chosen otherwise.
+
+        If the image has a metadata snapshot, ``self.minc_meta``, it is
+        passed to the writer, which copies the info variables and the
+        global, image and dimension attributes, and appends to the history.
+        If the data shape or the affine changed since the image was read,
+        so that a dimension of the snapshot no longer matches, only the
+        geometry of that dimension is dropped from the snapshot: its exact
+        start, step and direction cosines, and the coordinates and widths
+        of irregular samples.  The dimension is then written regularly
+        spaced, with the geometry of the data and the affine, and keeps its
+        other attributes.
+        """
+        if file_map is None:
+            file_map = self.file_map
+        out_dtype = np.dtype(self.get_data_dtype() if dtype is None else dtype)
+        scaling = _proxy_scaling(self.dataobj, out_dtype)
+        data = np.asanyarray(self.dataobj)
+        holder = file_map['image']
+        target = holder.fileobj if holder.fileobj is not None else holder.filename
+        self._write(
+            data,
+            self.affine,
+            target,
+            dtype=out_dtype.newbyteorder('='),
+            scaling=scaling,
+            metadata=self.minc_meta,
+        )
+        self.file_map = file_map
+
+
+def _proxy_scaling(dataobj, out_dtype):
+    """Scaling of the MINC file behind `dataobj`, if any
+
+    Returns
+    -------
+    scaling : None or tuple
+        ``(image_min, image_max, valid_range)`` of the source file, if
+        `dataobj` is a MINC array proxy and `out_dtype` is its integer
+        storage type; None otherwise.
+    """
+    if not isinstance(dataobj, MincImageArrayProxy):
+        return None
+    minc_file = dataobj.minc_file
+    in_dtype = minc_file.get_data_dtype()
+    if out_dtype.kind == 'f' or in_dtype.newbyteorder('=') != out_dtype.newbyteorder('='):
+        return None
+    image_min = minc_file._image_min
+    image_max = minc_file._image_max
+    if minc_file._get_dimensions(image_min):
+        image_min = np.array(minc_file._get_array(image_min), dtype=np.float64)
+        image_max = np.array(minc_file._get_array(image_max), dtype=np.float64)
+    else:
+        image_min = float(minc_file._get_scalar(image_min))
+        image_max = float(minc_file._get_scalar(image_max))
+    valid_range = tuple(minc_file._get_valid_range())
+    return image_min, image_max, valid_range
 
 
 load = Minc1Image.from_filename
