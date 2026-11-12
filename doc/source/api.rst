@@ -28,6 +28,7 @@ File Formats
    freesurfer
    minc1
    minc2
+   minc2_write
    nicom
    nifti1
    nifti2
