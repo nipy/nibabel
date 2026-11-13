@@ -484,6 +484,12 @@ class Minc1Image(SpatialImage):
            Further options of the writer, such as ``slice_scaling``, and
            ``compression`` and ``chunks`` for MINC2.
 
+        Raises
+        ------
+        MincWriteError
+           If the writer cannot hold the data, the affine or the options in
+           the format of the image.
+
         Notes
         -----
         The data array axes are the MINC dimensions, slowest varying first;
