@@ -296,7 +296,7 @@ class MincMeta:
     @classmethod
     def from_hdf5(klass, h5file):
         """Snapshot of an open MINC2 ``h5py.File``"""
-        import h5py
+        import h5py  # type: ignore[import]
 
         minc = h5file['minc-2.0']
         group = minc['image/0']
@@ -361,7 +361,7 @@ def _dimorder(dset):
 
 
 def _hdf5_variable(name, group, obj):
-    import h5py
+    import h5py  # type: ignore[import]
 
     if isinstance(obj, h5py.Group):
         return MincVariable(name=name, group=group, attrs=_attr_mapping(obj.attrs), is_group=True)

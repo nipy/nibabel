@@ -115,7 +115,7 @@ Minc2WriteError = MincWriteError
 
 def _string_attr(obj, name, value):
     """Set ASCII string attribute as a null-terminated fixed length string"""
-    import h5py
+    import h5py  # type: ignore[import]
 
     value = value.encode('ascii')
     tid = h5py.h5t.C_S1.copy()
@@ -249,7 +249,7 @@ def write_minc2(
     -------
     None
     """
-    import h5py
+    import h5py  # type: ignore[import]
 
     target = filename if isinstance(filename, (str, os.PathLike)) else '<file object>'
     layout = build_layout(
@@ -386,7 +386,7 @@ def libminc_chunks(shape, itemsize, chunk_length=0):
 
 def _write_groups(h5f, layout, storage=None):
     """Write the ``/minc-2.0`` group of `layout` to open ``h5f``"""
-    import h5py
+    import h5py  # type: ignore[import]
 
     minc = h5f.create_group('minc-2.0')
     _set_attrs(minc, layout.global_attrs)
