@@ -89,6 +89,18 @@ def minc1_dtype(var):
 
     Without a valid ``signtype``, bytes are unsigned and other integers
     signed, as in libminc.
+
+    Parameters
+    ----------
+    var : netcdf_variable
+        Variable of a MINC1 file open with
+        :class:`nibabel.externals.netcdf.netcdf_file`.
+
+    Returns
+    -------
+    dtype : numpy dtype
+        Data type in native byte order; unsigned for ``signtype``
+        ``unsigned``.
     """
     dtype = np.dtype(var.data.dtype).newbyteorder('=')
     if dtype.kind != 'i':
@@ -106,6 +118,16 @@ def normalize_attr(value):
     trailing nulls; a list of strings is joined.  Numbers become a read-only
     array, with zero dimensions if there is a single value, as MINC1
     (NetCDF) attributes have no scalar form.
+
+    Parameters
+    ----------
+    value : bytes, str, scalar or array-like
+        Attribute value as read from a MINC1 or MINC2 file.
+
+    Returns
+    -------
+    value : str or ndarray
+        Text, or a read-only array in native byte order.
     """
     if isinstance(value, bytes):
         return value.decode('latin-1').rstrip('\x00')
@@ -247,7 +269,19 @@ class MincMeta:
 
     @classmethod
     def from_netcdf(klass, ncfile):
-        """Snapshot of an open MINC1 ``netcdf_file``"""
+        """Snapshot of an open MINC1 ``netcdf_file``
+
+        Parameters
+        ----------
+        ncfile : netcdf_file
+            MINC1 file open with
+            :class:`nibabel.externals.netcdf.netcdf_file`.
+
+        Returns
+        -------
+        meta : MincMeta
+            Snapshot with ``format`` ``'MINC1'``.
+        """
         image = ncfile.variables['image']
         scaling_dims = None
         if 'image-max' in ncfile.variables:
@@ -295,7 +329,18 @@ class MincMeta:
 
     @classmethod
     def from_hdf5(klass, h5file):
-        """Snapshot of an open MINC2 ``h5py.File``"""
+        """Snapshot of an open MINC2 ``h5py.File``
+
+        Parameters
+        ----------
+        h5file : h5py.File
+            MINC2 file open for reading.
+
+        Returns
+        -------
+        meta : MincMeta
+            Snapshot with ``format`` ``'MINC2'``.
+        """
         import h5py  # type: ignore[import]
 
         minc = h5file['minc-2.0']
