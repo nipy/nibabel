@@ -472,8 +472,13 @@ def test_bitwise_determinism():
             with Opener('b.gz', 'wb') as fobj:
                 fobj.write(msg)
 
-        assert md5sum('a.gz') == anon_chksum
-        assert md5sum('b.gz') == anon_chksum
+        # ISA-L may produce different gzip bytes; both backends must still
+        # be independent of file name and current time.
+        assert md5sum('a.gz') == md5sum('b.gz')
+        from .._compression import HAVE_ISAL
+
+        if not HAVE_ISAL:
+            assert md5sum('a.gz') == anon_chksum
 
         # Users can still set mtime, but filenames will not be embedded
         with Opener('filenameA.gz', 'wb', mtime=0xCAFE10C0) as fobj:
@@ -482,4 +487,4 @@ def test_bitwise_determinism():
             fobj.write(msg)
         fnameA_chksum = md5sum('filenameA.gz')
         fnameB_chksum = md5sum('filenameB.gz')
-        assert fnameA_chksum == fnameB_chksum != anon_chksum
+        assert fnameA_chksum == fnameB_chksum != md5sum('a.gz')
