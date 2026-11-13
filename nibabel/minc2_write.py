@@ -245,9 +245,17 @@ def write_minc2(
         mean of blocks of ``2 ** n`` samples of the full resolution.
         Default is as many levels as `metadata` has; 0 writes the full
         resolution only.
+
     Returns
     -------
     None
+
+    Raises
+    ------
+    MincWriteError
+        If `data`, `affine`, `dtype`, `scaling` or the options cannot be
+        written to MINC2, such as a record dimension, or levels of an
+        image that is not 3D or of a label volume.
     """
     import h5py  # type: ignore[import]
 

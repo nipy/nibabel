@@ -172,6 +172,12 @@ def write_minc1(
     Returns
     -------
     None
+
+    Raises
+    ------
+    MincWriteError
+        If `data`, `affine`, `dtype`, `scaling` or the options cannot be
+        written to MINC1, such as label names or resolution levels.
     """
     data = np.asanyarray(data)
     out_dtype = np.dtype(data.dtype if dtype is None else dtype).newbyteorder('=')
