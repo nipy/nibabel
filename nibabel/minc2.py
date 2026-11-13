@@ -64,6 +64,19 @@ class Minc2File(Minc1File):
     Although it has some of the same methods as a ``Header``, we use
     this only when reading a MINC2 file, to pull out useful header
     information, and for the method of reading the data out
+
+    Parameters
+    ----------
+    mincfile : h5py.File
+        MINC2 file open for reading.
+    resolution_level : int, optional
+        Resolution level to read: 0, the full resolution (default), or a
+        lower resolution level in ``/minc-2.0/image/<level>``.
+
+    Raises
+    ------
+    MincError
+        If the file has no `resolution_level`.
     """
 
     def __init__(self, mincfile, resolution_level=0):
@@ -221,7 +234,22 @@ class Minc2Image(Minc1Image):
 
     @classmethod
     def from_filename(klass, filename, *, mmap=True, keep_file_open=None, resolution_level=0):
-        """Load an image from `filename`; see :meth:`from_file_map`"""
+        """Load an image from `filename`; see :meth:`from_file_map`
+
+        Parameters
+        ----------
+        filename : str or os.PathLike
+            MINC2 file name.
+        mmap, keep_file_open
+            Not used; for compatibility with other image classes.
+        resolution_level : int, optional
+            Resolution level to read, as for :meth:`from_file_map`.
+
+        Returns
+        -------
+        img : Minc2Image
+            Image with the metadata snapshot of the file as ``minc_meta``.
+        """
         if mmap not in (True, False, 'c', 'r'):
             raise ValueError("mmap should be one of {True, False, 'c', 'r'}")
         file_map = klass.filespec_to_file_map(filename)
@@ -249,6 +277,17 @@ class Minc2Image(Minc1Image):
             blocks of ``2 ** n`` samples along each dimension; its affine
             has ``2 ** n`` times the voxel size, with the origin at the
             centre of the first block.
+
+        Returns
+        -------
+        img : Minc2Image
+            Image with the metadata snapshot of the file as ``minc_meta``.
+
+        Raises
+        ------
+        MincError
+            If `file_map` has no file, the file has no `resolution_level`,
+            or the image does not have three spatial dimensions.
         """
         # Import of h5py might take awhile for MPI-enabled builds
         # So we are importing it here "on demand"
