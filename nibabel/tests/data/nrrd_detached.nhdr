@@ -1,0 +1,14 @@
+NRRD0004
+# Written by gen_nrrd.py
+type: short
+dimension: 3
+sizes: 3 4 5
+kinds: domain domain domain
+endian: little
+encoding: raw
+space: left-posterior-superior
+space directions: (1.2,0.9,0) (-1.2,1.6,0) (0,0,2.5)
+space origin: (10,-20,30)
+line skip: 1
+byte skip: 4
+data file: nrrd_detached.raw

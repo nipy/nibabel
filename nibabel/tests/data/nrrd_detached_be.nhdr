@@ -1,0 +1,12 @@
+NRRD0004
+# Written by gen_nrrd.py
+type: short
+dimension: 3
+sizes: 3 4 5
+kinds: domain domain domain
+endian: big
+encoding: gzip
+space: left-posterior-superior
+space directions: (1.2,0.9,0) (-1.2,1.6,0) (0,0,2.5)
+space origin: (10,-20,30)
+data file: nrrd_detached_be.raw.gz

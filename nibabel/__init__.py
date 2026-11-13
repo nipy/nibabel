@@ -60,6 +60,7 @@ from .minc1 import Minc1Image
 from .minc2 import Minc2Image
 from .nifti1 import Nifti1Header, Nifti1Image, Nifti1Pair
 from .nifti2 import Nifti2Header, Nifti2Image, Nifti2Pair
+from .nrrd import NrrdHeader, NrrdImage
 from .orientations import (
     OrientationError,
     aff2axcodes,

@@ -31,6 +31,7 @@ File Formats
    nicom
    nifti1
    nifti2
+   nrrd
    ecat
    parrec
    streamlines
