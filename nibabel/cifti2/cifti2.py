@@ -31,6 +31,7 @@ from ..dataobj_images import DataobjImage
 from ..filebasedimages import FileBasedHeader, SerializableImage
 from ..nifti1 import Nifti1Extensions
 from ..nifti2 import Nifti2Header, Nifti2Image
+from ..spatialimages import HeaderDataError
 from ..volumeutils import Recoder, make_dt_codes
 
 
@@ -156,6 +157,18 @@ def _underscore(string):
 
 class LimitedNifti2Header(Nifti2Header):
     _data_type_codes = data_type_codes
+
+    def set_zooms(self, zooms):
+        # CIFTI-2 does not use pixdim[1:4] and wb_command writes them as 0,
+        # so only reject negative zooms, as before 5.5.0
+        hdr = self._structarr
+        ndim = hdr['dim'][0]
+        zooms = np.asarray(zooms)
+        if len(zooms) != ndim:
+            raise HeaderDataError(f'Expecting {ndim} zoom values for ndim {ndim}')
+        if np.any(zooms < 0):
+            raise HeaderDataError('zooms must be positive')
+        hdr['pixdim'][1 : ndim + 1] = zooms
 
 
 class Cifti2MetaData(CaretMetaData):

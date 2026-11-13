@@ -578,3 +578,25 @@ def test_wrong_shape():
 
         with pytest.raises(ValueError):
             img.to_file_map()
+
+
+@pytest.mark.thread_unsafe
+def test_zero_spatial_pixdims():
+    # wb_command writes pixdim[1:4] as 0; such files must still load (gh-1626)
+    matrix = ci.Cifti2Matrix()
+    matrix.extend((create_series_map((0,)), create_geometry_map((1,))))
+    data = np.random.randn(13, 10)
+    img = ci.Cifti2Image(data, ci.Cifti2Header(matrix))
+    img.nifti_header.set_intent('NIFTI_INTENT_CONNECTIVITY_DENSE_SERIES')
+    offset = nib.Nifti2Header.template_dtype.fields['pixdim'][1]
+
+    with InTemporaryDirectory():
+        ci.save(img, 'test.dtseries.nii')
+        with open('test.dtseries.nii', 'r+b') as fobj:
+            fobj.seek(offset + 8)
+            fobj.write(np.zeros(3, '<f8').tobytes())
+        with suppress_warnings():
+            img2 = nib.load('test.dtseries.nii')
+        assert isinstance(img2, ci.Cifti2Image)
+        assert_array_equal(img2.get_fdata(), data)
+        del img2
