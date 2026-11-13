@@ -678,9 +678,7 @@ class GiftiImage(xml.XmlSerializable, SerializableImage):
     def remove_gifti_data_array_by_intent(self, intent):
         """Removes all the data arrays with the given intent type"""
         intent2remove = intent_codes.code[intent]
-        for dele in self.darrays:
-            if dele.intent == intent2remove:
-                self.darrays.remove(dele)
+        self.darrays[:] = [da for da in self.darrays if da.intent != intent2remove]
 
     def get_arrays_from_intent(self, intent):
         """Return list of GiftiDataArray elements matching given intent"""
