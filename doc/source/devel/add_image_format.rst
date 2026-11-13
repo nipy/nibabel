@@ -50,10 +50,11 @@ The format can be read-only
 ***************************
 
 Read-only access to a format is better than no access to a format, and often
-much better.  For example, we can read but not write PAR / REC and MINC files.
+much better.  For example, we can read but not write PAR / REC files.
 Having the code to read the files makes it easier to work with these files in
 Python, and easier for someone else to add the ability to write the format
-later.
+later, as happened for MINC, which nibabel read for years before it could
+write it.
 
 *************
 The image API
