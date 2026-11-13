@@ -9,6 +9,7 @@
 
 from os.path import dirname
 from os.path import join as pjoin
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -375,6 +376,30 @@ def test_read_series():
     assert series_mapping.number_of_series_points == img.shape[0]
 
 
+def test_read_series_zero_pixdim(tmp_path: Path) -> None:
+    # Regression test for gh-1626, courtesy of Patrick Sadil
+    test_file = tmp_path / 'zero_pixdim.dtseries.nii'
+    bm = ci.BrainModelAxis.from_surface(np.arange(10), 12, 'CortexLeft')
+    img = ci.Cifti2Image(
+        np.zeros((5, 10), np.float32),
+        ci.Cifti2Header.from_axes((ci.SeriesAxis(0, 0.72, 5), bm)),
+    )
+    img.nifti_header.set_intent('ConnDenseSeries')
+    img.to_filename(test_file)
+
+    # Set pixdim[1:4] to 0 on disk, as wb_command writes it
+    offset = nib.Nifti2Header.template_dtype.fields['pixdim'][1]
+    with open(test_file, 'r+b') as f:
+        f.seek(offset)
+        pixdim = np.frombuffer(f.read(64), dtype='<f8').copy()
+        pixdim[1:4] = 0
+        f.seek(offset)
+        f.write(pixdim.tobytes())
+
+    # Should not error
+    ci.Cifti2Image.from_filename(test_file)
+
+
 @needs_nibabel_data('nitest-cifti2')
 def test_read_labels():
     img = ci.Cifti2Image.from_filename(DATA_FILE5)
@@ -415,13 +440,19 @@ def test_read_labels():
 
 class TestCifti2SingleHeader(tn2.TestNifti2SingleHeader):
     header_class = _Cifti2AsNiftiHeader
-    _pixdim_message = 'pixdim[1,2,3] should be zero or positive'
+    _pixdim_message = 'pixdim[1,2,3] should be positive'
 
     def test_pixdim_checks(self):
         hdr_t = self.header_class()
-        for i in (1, 2, 3):
+        idcs = range(1, 4)
+        for i in idcs:
             hdr = hdr_t.copy()
             hdr['pixdim'][i] = -1
+            assert self._dxer(hdr) == self._pixdim_message
+
+        for i in idcs:
+            hdr = hdr_t.copy()
+            hdr['pixdim'][i] = 0
             assert self._dxer(hdr) == self._pixdim_message
 
     @pytest.mark.thread_unsafe
@@ -454,6 +485,8 @@ class TestCifti2SingleHeader(tn2.TestNifti2SingleHeader):
         pytest.raises(*raiser)
 
         hdr = HC()
-        hdr['pixdim'][1:4] = 0  # No error or warning
-        fhdr, message, raiser = self.log_chk(hdr, 0)
-        assert raiser == ()
+        hdr['pixdim'][1:4] = 0  # Warnings for zero spatial dimensions
+        fhdr, message, raiser = self.log_chk(hdr, 35)
+        assert message == f'{self._pixdim_message}; setting 0 pixdim values to 1'
+
+        pytest.raises(*raiser)
