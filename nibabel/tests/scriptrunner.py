@@ -69,7 +69,7 @@ class ScriptRunner:
         module_sdir : str, optional
             Name of subdirectory in top-level directory (directory containing
             setup.py), to find main package directory.
-        debug_print_vsr : str, optional
+        debug_print_var : str, optional
             Name of environment variable that indicates whether to do debug
             printing or no.
         output_processor : callable
