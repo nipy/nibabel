@@ -110,13 +110,21 @@ class _Cifti2AsNiftiHeader(Nifti2Header):
         rep = Report(HeaderDataError)
         pixdims = hdr['pixdim']
         spat_dims = pixdims[1:4]
-        if not np.any(spat_dims < 0):
+        zeros = spat_dims == 0
+        negatives = spat_dims < 0
+        if not np.any(zeros | negatives):
             return hdr, rep
         rep.problem_level = 35
-        rep.problem_msg = 'pixdim[1,2,3] should be zero or positive'
+        rep.problem_msg = 'pixdim[1,2,3] should be positive'
         if fix:
-            hdr['pixdim'][1:4] = np.abs(spat_dims)
-            rep.fix_msg = 'setting to abs of pixdim values'
+            fixes = []
+            if np.any(zeros):
+                spat_dims[zeros] = 1
+                fixes.append('setting 0 pixdim values to 1')
+            if np.any(negatives):
+                hdr['pixdim'][1:4] = np.abs(spat_dims)
+                fixes.append('setting to abs of pixdim values')
+            rep.fix_msg = ', '.join(fixes)
         return hdr, rep
 
 
