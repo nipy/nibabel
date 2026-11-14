@@ -1231,6 +1231,85 @@ def test_array_from_file_overflow():
     )
 
 
+def test_array_from_file_short_before_allocating():
+    # gh-1566: a header claiming far more data than the file holds should give
+    # our OSError up front, not try to allocate a buffer for the claimed size
+    shape = (2**20,) * 3
+    dtype = np.dtype(np.int8)
+    n_bytes = 2**60
+    for mmap in (True, False):
+        bio = BytesIO(b'\x00' * 352)
+        with pytest.raises(OSError, match=f'Expected {n_bytes} bytes, got 342 bytes'):
+            array_from_file(shape, dtype, bio, offset=10, mmap=mmap)
+    # Offset past the end of the data
+    with pytest.raises(OSError, match=f'Expected {n_bytes} bytes, got 0 bytes'):
+        array_from_file(shape, dtype, BytesIO(b'\x00' * 10), offset=20)
+    with InTemporaryDirectory():
+        with open('short.bin', 'wb') as fobj:
+            fobj.write(b'\x00' * 352)
+        for mmap in (True, False):
+            with open('short.bin', 'rb') as fobj:
+                with pytest.raises(OSError, match=r'got 352 bytes from .*short\.bin'):
+                    array_from_file(shape, dtype, fobj, mmap=mmap)
+    # Exactly enough data still reads fine
+    arr = np.arange(24, dtype=np.int16).reshape((2, 3, 4))
+    bio = BytesIO(b'\x00' * 5 + arr.tobytes('F'))
+    assert_array_equal(array_from_file((2, 3, 4), arr.dtype, bio, offset=5, mmap=False), arr)
+
+
+def test_array_from_file_short_compressed():
+    # gh-1566: compressed streams cannot be sized up front, so a header claiming
+    # a huge shape must fail on the short read without allocating for the
+    # claimed size.  2**32 bytes is usually lazily allocated, 2**60 bytes
+    # cannot be allocated at all; both should give our OSError
+    with InTemporaryDirectory():
+        for ext in ('.gz', '.bz2'):
+            fname = f'short.bin{ext}'
+            with Opener(fname, 'wb') as fobj:
+                fobj.write(b'\x00' * 10)
+            for shape, dtype in (
+                ((2, 3, 4), np.float32),
+                ((2**16,) * 2, np.int8),
+                ((2**20,) * 3, np.int8),
+            ):
+                n_bytes = np.prod(shape, dtype=object) * np.dtype(dtype).itemsize
+                for mmap in (True, False):
+                    with Opener(fname, 'rb') as fobj:
+                        with pytest.raises(
+                            OSError, match=f'Expected {n_bytes} bytes, got 10 bytes'
+                        ):
+                            array_from_file(shape, dtype, fobj, mmap=mmap)
+
+
+def test_array_from_file_chunks(monkeypatch):
+    # Data spanning several reads, with and without readinto
+    monkeypatch.setattr('nibabel.volumeutils._READ_CHUNK_SIZE', 7)
+    arr = np.arange(60, dtype='>i4').reshape((3, 4, 5))
+
+    class ReadOnly:  # file-like without readinto
+        def __init__(self, data):
+            self._bio = BytesIO(data)
+
+        def seek(self, pos):
+            self._bio.seek(pos)
+
+        def read(self, n_bytes):
+            return self._bio.read(n_bytes)
+
+    for order in 'FC':
+        data = b'\x00' * 3 + arr.tobytes(order)
+        for fobj in (BytesIO(data), ReadOnly(data)):
+            out = array_from_file(arr.shape, arr.dtype, fobj, offset=3, order=order, mmap=False)
+            assert_array_equal(out, arr)
+            assert out.flags.writeable
+        for fobj in (BytesIO(data[:-1]), ReadOnly(data[:-1])):
+            with pytest.raises(OSError, match='Expected 240 bytes, got 239 bytes'):
+                array_from_file(arr.shape, arr.dtype, fobj, offset=3, order=order, mmap=False)
+    # If the data are there but too big to allocate, the allocation error stands
+    with pytest.raises((MemoryError, ValueError)):
+        array_from_file((2**20,) * 3, np.int8, BytesIO(b'\x00' * 10), mmap=False)
+
+
 def test__ftype4scaled_finite_warningfilters():
     # This test checks our ability to properly manage the thread-unsafe
     # warnings filter list.
