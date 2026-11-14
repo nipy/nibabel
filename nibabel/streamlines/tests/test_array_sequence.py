@@ -383,6 +383,29 @@ class TestArraySequence(unittest.TestCase):
         with pytest.raises(TypeError):
             seq[object()] = None
 
+    def test_empty_arraysequence_operators(self):
+        for source in (ArraySequence(), ArraySequence([np.ones((2, 3))])[:0]):
+            for op, value in (
+                ('__add__', 1),
+                ('__truediv__', 2),
+                ('__eq__', 1),
+                ('__neg__', None),
+                ('__add__', source.copy()),
+                ('__iadd__', 1),
+            ):
+                seq = source.copy()
+                args = [] if value is None else [value]
+                result = getattr(seq, op)(*args)
+                expected_args = [value._data[:0]] if isinstance(value, ArraySequence) else args
+                expected = getattr(source._data[:0], op)(*expected_args)
+                assert len(result) == 0
+                assert result._data.shape == expected.shape
+                assert result._data.dtype == expected.dtype
+                assert (result is seq) == (op == '__iadd__')
+
+            with pytest.raises(ValueError):
+                source + ArraySequence([np.ones((2, 3))])
+
     def test_arraysequence_operators(self):
         # Disable division per zero warnings.
         flags = np.seterr(divide='ignore', invalid='ignore')
