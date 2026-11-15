@@ -92,6 +92,8 @@ def _pack_rgb(rgb):
     out : ndarray, shape (n, 1)
         Annotation values for each color.
     """
+    if rgb.dtype.kind in 'iu' and rgb.dtype.itemsize < 4:
+        rgb = rgb.astype(np.int32)
     bitshifts = 2 ** np.array([[0], [8], [16]], dtype=rgb.dtype)
     return rgb.dot(bitshifts)
 
