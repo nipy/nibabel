@@ -1089,6 +1089,28 @@ class TestMultiFrameWrapper(TestCase):
         )
 
     @dicom_test
+    def test_scale_data_4d(self):
+        # Per-frame factors must follow slices and volumes through frame sorting.
+        fake_mf = deepcopy(self.MINIMAL_MF)
+        fake_mf.Rows = 2
+        fake_mf.Columns = 3
+        div_seq = ((1, 2, 2), (1, 1, 1), (1, 2, 1), (1, 1, 2))
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        frames = fake_mf.PerFrameFunctionalGroupsSequence
+        slopes = [1.0, 2.0, 3.0, 4.0]
+        intercepts = [-1.0, -2.0, -3.0, -4.0]
+        fake_frames('PixelValueTransformationSequence', 'RescaleSlope', slopes, frames)
+        fake_frames('PixelValueTransformationSequence', 'RescaleIntercept', intercepts, frames)
+        pixels = np.arange(1, 25).reshape(4, 2, 3)
+        fake_mf.pixel_array = pixels
+        expected = np.empty((2, 3, 2, 2))
+        for frame, (_, slice_index, volume) in enumerate(div_seq):
+            expected[..., slice_index - 1, volume - 1] = (
+                pixels[frame] * slopes[frame] + intercepts[frame]
+            )
+        assert_array_equal(self.WRAPCLASS(fake_mf).get_data(), expected)
+
+    @dicom_test
     def test_philips_scale_data(self):
         fake_mf = deepcopy(self.MINIMAL_MF)
         fake_mf.Manufacturer = 'Philips'
