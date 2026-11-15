@@ -804,6 +804,73 @@ class TestMultiFrameWrapper(TestCase):
         assert_array_equal(MFW(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
 
     @dicom_test
+    def test_voxel_sizes_time_fastest(self):
+        # Repeated positions must not give zero spacing, even with small rounding errors.
+        for delta in (0, 1e-5):
+            fake_mf = deepcopy(self.MINIMAL_MF)
+            fake_mf.Rows, fake_mf.Columns = 2, 3
+            div_seq = [(1, s, t) for s in (1, 2, 3) for t in (1, 2)]
+            spacing = 1 + 2 * delta
+            ipps = [
+                [-1, -1, -1 - delta + (s - 1) * spacing + (t - 1) * delta] for _, s, t in div_seq
+            ]
+            fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0, ipp_seq=ipps))
+            fake_mf.SharedFunctionalGroupsSequence = fake_frames(
+                'PixelMeasuresSequence', 'PixelSpacing', [[2.1, 3.2]]
+            )
+            dw = self.WRAPCLASS(fake_mf)
+            assert dw.image_shape == (2, 3, 3, 2)
+            assert_array_almost_equal(dw.voxel_sizes, [2.1, 3.2, spacing])
+            assert_array_almost_equal(
+                dw.affine,
+                [[2.1, 0, 0, -1], [0, 3.2, 0, -1], [0, 0, spacing, -1 - delta], [0, 0, 0, 1]],
+            )
+
+    @dicom_test
+    def test_voxel_sizes_single_slice(self):
+        # Several frames at one slice position must use the single-slice fallback.
+        for z_positions in ((-1, -1, -1), (-1.00001, -1, -0.99999)):
+            fake_mf = deepcopy(self.MINIMAL_MF)
+            div_seq = [(1, 1, t) for t in (1, 2, 3)]
+            ipps = [[-1, -1, z] for z in z_positions]
+            fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0, ipp_seq=ipps))
+            shared = fake_frames('PixelMeasuresSequence', 'PixelSpacing', [[2.1, 3.2]])[0]
+            fake_mf.SharedFunctionalGroupsSequence = [shared]
+            fake_mf.SpacingBetweenSlices = 4.3
+            shared.PixelMeasuresSequence[0].SliceThickness = 5.4
+            assert_array_equal(self.WRAPCLASS(fake_mf).voxel_sizes, [2.1, 3.2, 5.4])
+            assert_array_equal(self.WRAPCLASS(fake_mf).affine[:, 2], [0, 0, 5.4, 0])
+            del shared.PixelMeasuresSequence[0].SliceThickness
+            assert_array_equal(self.WRAPCLASS(fake_mf).voxel_sizes, [2.1, 3.2, 4.3])
+            assert_array_equal(self.WRAPCLASS(fake_mf).affine[:, 2], [0, 0, 4.3, 0])
+
+    @dicom_test
+    def test_voxel_sizes_slice_fastest(self):
+        # Control: slices stored first and ascending still give the same spacing.
+        fake_mf = deepcopy(self.MINIMAL_MF)
+        div_seq = [(1, s, t) for t in (1, 2) for s in (1, 2, 3)]
+        fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0))
+        fake_mf.SharedFunctionalGroupsSequence = fake_frames(
+            'PixelMeasuresSequence', 'PixelSpacing', [[2.1, 3.2]]
+        )
+        assert_array_equal(self.WRAPCLASS(fake_mf).voxel_sizes, [2.1, 3.2, 1])
+
+    @dicom_test
+    def test_voxel_sizes_slice_order(self):
+        # Descending and interleaved storage must give a positive adjacent-slice step.
+        for slice_order in ((6, 5, 4, 3, 2, 1), (1, 3, 5, 2, 4, 6)):
+            fake_mf = deepcopy(self.MINIMAL_MF)
+            div_seq = [(1, s, t) for t in (1, 2) for s in slice_order]
+            ipps = [[-1, -1, 3 * (s - 1)] for _, s, _ in div_seq]
+            fake_mf.update(fake_shape_dependents(div_seq, sid_dim=0, ipp_seq=ipps))
+            fake_mf.SharedFunctionalGroupsSequence = fake_frames(
+                'PixelMeasuresSequence', 'PixelSpacing', [[2.1, 3.2]]
+            )
+            dw = self.WRAPCLASS(fake_mf)
+            assert_array_equal(dw.voxel_sizes, [2.1, 3.2, 3])
+            assert_array_equal(dw.affine[:, 2], [0, 0, 3, 0])
+
+    @dicom_test
     def test_image_position(self):
         # Test image_position property for multiframe
         fake_mf = deepcopy(self.MINIMAL_MF)
