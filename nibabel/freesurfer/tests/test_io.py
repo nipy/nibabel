@@ -407,3 +407,159 @@ def test_write_annot_maxstruct():
         assert np.array_equal(labels, rt_labels)
         assert np.array_equal(rgba, rt_ctab[:, :4])
         assert names == [n.decode('ascii') for n in rt_names]
+
+
+@pytest.mark.parametrize(
+    ('read_metadata', 'read_stamp'), [(False, False), (True, False), (False, True), (True, True)]
+)
+def test_read_geometry_to_scanner(tmp_path, read_metadata, read_stamp):
+    coords = np.array([[0, 1, 2], [3, 4, 5], [-1, -2, -3]], dtype=float)
+    faces = np.array([[0, 1, 2]])
+    cras = np.array([11.5, -4.0, 2.25])
+    info = dict(
+        head=np.array([2, 0, 20]),
+        valid='1',
+        filename='test',
+        volume=[10, 10, 10],
+        voxelsize=[1.0, 1.0, 1.0],
+        xras=[-1.0, 0.0, 0.0],
+        yras=[0.0, 0.0, -1.0],
+        zras=[0.0, 1.0, 0.0],
+        cras=cras,
+    )
+    path = tmp_path / 'surface'
+    write_geometry(path, coords, faces, create_stamp='test stamp', volume_info=info)
+    baseline = read_geometry(path, read_metadata=read_metadata, read_stamp=read_stamp)
+    shifted = read_geometry(
+        path, read_metadata=read_metadata, read_stamp=read_stamp, to_scanner=True
+    )
+    assert_allclose(baseline[0], coords)
+    assert_allclose(shifted[0], coords + cras)
+    assert np.array_equal(shifted[1], faces)
+    if read_metadata:
+        assert_allclose(shifted[2]['cras'], cras)
+    if read_stamp:
+        assert shifted[-1] == 'test stamp'
+
+
+def test_read_geometry_to_scanner_missing_metadata(tmp_path):
+    path = tmp_path / 'surface'
+    write_geometry(path, np.zeros((3, 3)), np.array([[0, 1, 2]]), create_stamp='test')
+    with pytest.raises(ValueError, match='no volume information'):
+        read_geometry(path, to_scanner=True)
+
+
+@pytest.mark.parametrize('magic', [16777215, 16777213])
+def test_read_geometry_to_scanner_quad_without_metadata(tmp_path, magic):
+    path = tmp_path / 'quad'
+    # Zero vertices and faces are enough to exercise each quad file format.
+    path.write_bytes(magic.to_bytes(3, 'big') + b'\x00' * 6)
+    coords, faces = read_geometry(path)
+    assert coords.shape == faces.shape == (0, 3)
+    with pytest.raises(ValueError, match='no volume information'):
+        read_geometry(path, to_scanner=True)
+
+
+@pytest.mark.parametrize(
+    ('valid', 'cras_line'),
+    [
+        ('0 # volume info invalid', b'cras   = 9 8 7\n'),
+        ('1 # volume info valid', b'cras   = 9\n'),
+        ('1 # volume info valid', b'cras   = nan 2 3\n'),
+        ('1 # volume info valid', b'cras   = inf 2 3\n'),
+    ],
+)
+def test_read_geometry_to_scanner_rejects_invalid_volume_info(tmp_path, valid, cras_line):
+    info = dict(
+        head=np.array([2, 0, 20]),
+        valid=valid,
+        filename='test',
+        volume=[10, 10, 10],
+        voxelsize=[1.0, 1.0, 1.0],
+        xras=[1.0, 0.0, 0.0],
+        yras=[0.0, 1.0, 0.0],
+        zras=[0.0, 0.0, 1.0],
+        cras=[9.0, 8.0, 7.0],
+    )
+    path = tmp_path / 'surface'
+    write_geometry(path, np.zeros((3, 3)), np.array([[0, 1, 2]]), volume_info=info)
+    content = path.read_bytes()
+    assert b'cras   = 9 8 7\n' in content
+    path.write_bytes(content.replace(b'cras   = 9 8 7\n', cras_line))
+    with pytest.raises(ValueError, match='volume information'):
+        read_geometry(path, to_scanner=True)
+
+
+def test_read_geometry_to_scanner_oblique(tmp_path):
+    from ...affines import apply_affine
+    from ..mghformat import MGHHeader
+
+    coords = np.array([[3.0, 4.0, 5.0], [-2.0, 7.0, 1.0], [0.0, 0.0, 0.0]])
+    info = dict(
+        head=np.array([2, 0, 20]),
+        valid='1 # volume info valid',
+        filename='test',
+        volume=[10, 12, 14],
+        voxelsize=[1.5, 2.0, 2.5],
+        xras=[0.0, 1.0, 0.0],
+        yras=[-1.0, 0.0, 0.0],
+        zras=[0.0, 0.0, 1.0],
+        cras=[11.5, -4.0, 2.25],
+    )
+    path = tmp_path / 'oblique'
+    write_geometry(path, coords, np.array([[0, 1, 2]]), volume_info=info)
+    hdr = MGHHeader()
+    hdr['dims'] = [*info['volume'], 1]
+    hdr['delta'] = info['voxelsize']
+    hdr['Mdc'] = [info['xras'], info['yras'], info['zras']]
+    hdr['Pxyz_c'] = info['cras']
+    expected = apply_affine(hdr.get_affine() @ np.linalg.inv(hdr.get_vox2ras_tkr()), coords)
+    assert_allclose(read_geometry(path, to_scanner=True)[0], expected, rtol=1e-6, atol=1e-6)
+    assert not np.allclose(expected, coords + info['cras'])
+
+
+def test_read_geometry_to_scanner_rejects_realras_footer(tmp_path):
+    info = dict(
+        head=np.array([2, 0, 20]),
+        valid='1',
+        filename='test',
+        volume=[10, 10, 10],
+        voxelsize=[1.0, 1.0, 1.0],
+        xras=[1.0, 0.0, 0.0],
+        yras=[0.0, 1.0, 0.0],
+        zras=[0.0, 0.0, 1.0],
+        cras=[1.0, 2.0, 3.0],
+    )
+    path = tmp_path / 'scanner-ras'
+    write_geometry(path, np.zeros((3, 3)), np.array([[0, 1, 2]]), volume_info=info)
+    content = path.read_bytes()
+    normal = np.array([2, 0, 20], dtype='>i4').tobytes()
+    realras = np.array([2, 1, 20], dtype='>i4').tobytes()
+    assert normal in content
+    path.write_bytes(content.replace(normal, realras, 1))
+    with pytest.warns(UserWarning, match='Unknown extension code'):
+        with pytest.raises(ValueError, match='no volume information'):
+            read_geometry(path, to_scanner=True)
+
+
+@pytest.mark.parametrize(
+    ('key', 'value'),
+    [('volume', [0, 10, 10]), ('voxelsize', [1.0, 0.0, 1.0]), ('xras', [0.0, 0.0, 0.0])],
+)
+def test_read_geometry_to_scanner_rejects_degenerate_geometry(tmp_path, key, value):
+    info = dict(
+        head=np.array([2, 0, 20]),
+        valid='1',
+        filename='test',
+        volume=[10, 10, 10],
+        voxelsize=[1.0, 1.0, 1.0],
+        xras=[1.0, 0.0, 0.0],
+        yras=[0.0, 1.0, 0.0],
+        zras=[0.0, 0.0, 1.0],
+        cras=[1.0, 2.0, 3.0],
+    )
+    info[key] = value
+    path = tmp_path / 'surface'
+    write_geometry(path, np.zeros((3, 3)), np.array([[0, 1, 2]]), volume_info=info)
+    with pytest.raises(ValueError, match='Invalid volume information'):
+        read_geometry(path, to_scanner=True)
