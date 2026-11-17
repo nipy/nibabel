@@ -425,7 +425,9 @@ class ArrayProxy(ArrayLike):
             scl_inter = scl_inter.astype(use_dtype)
         # Read array and upcast as necessary for big slopes, intercepts
         scaled = apply_read_scaling(self._get_unscaled(slicer=slicer), scl_slope, scl_inter)
-        if dtype is not None:
+        # Promotion normalizes byte order, so skip it when the dtype already
+        # matches, or a big-endian file would be cast twice to come back as is
+        if dtype is not None and scaled.dtype != np.dtype(dtype):
             scaled = scaled.astype(np.promote_types(scaled.dtype, dtype), copy=False)
         return scaled
 

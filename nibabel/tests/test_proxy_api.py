@@ -204,11 +204,7 @@ class _TestProxyAPI(ValidateAPI):
             (None, dtype_out, other),
             (None, True, False),
         ):
-            # Asking for the stored dtype only avoids a cast in native byte
-            # order: _get_scaled promotes, and promotion normalizes to native
-            shares = params.get('memmap', False) and (
-                dtype is None or (dtype is dtype_out and dtype_out.isnative)
-            )
+            shares = params.get('memmap', False) and dtype is not other
             if copy is False and not shares:
                 with pytest.raises(ValueError, match='Unable to avoid copy'):
                     arrmethod(prox, dtype=dtype, copy=copy)
@@ -217,6 +213,9 @@ class _TestProxyAPI(ValidateAPI):
             expected = params['arr_out'] if dtype is None else params['arr_out'].astype(dtype)
             assert_allclose(out, expected, rtol=1e-6)
             assert _maps_file(out) == (shares and copy is not True)
+            if copy:
+                # Whatever the buffer, a copy must not alias the proxy's data
+                assert not np.shares_memory(out, np.asanyarray(prox))
             if arrmethod is not np.asanyarray:
                 assert type(out) is np.ndarray
             elif shares:

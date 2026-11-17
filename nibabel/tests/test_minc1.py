@@ -213,3 +213,34 @@ class TestMinc1Image(tsi.TestSpatialImage):
                 img.header.data_to_fileobj(arr, bio)
             with pytest.raises(NotImplementedError):
                 img.header.data_from_fileobj(bio)
+
+
+def test_float_array_copy(tmp_path):
+    # gh-1318: float data needs no scaling, so the proxy reads it as a view on
+    # the netcdf variable.  Once __array__ accepts copy=, numpy relies on it to
+    # honour copy=True, so the copy has to be made there.
+    fname = str(tmp_path / 'float.mnc')
+    shape = (2, 3, 4)
+    data = np.arange(24, dtype=np.float32).reshape(shape)
+    with netcdf_file(fname, 'w') as mnc:
+        dims = ('zspace', 'yspace', 'xspace')
+        for name, size in zip(dims, shape):
+            mnc.createDimension(name, size)
+            dim = mnc.createVariable(name, 'd', ())
+            dim.spacing = b'regular__'
+            dim.step = 1.0
+            dim.start = 0.0
+        image = mnc.createVariable('image', 'f', dims)
+        image[:] = data
+        image.signtype = b'signed__'
+        for name in ('image-max', 'image-min'):
+            mnc.createVariable(name, 'd', ()).data[()] = 1.0
+
+    prox = Minc1Image.from_filename(fname).dataobj
+    for arrmethod in (np.array, np.asarray, np.asanyarray):
+        out = arrmethod(prox, copy=True)
+        assert not np.shares_memory(out, np.asanyarray(prox))
+        out[...] = -1
+        assert_array_equal(np.asanyarray(prox), data)
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        np.asarray(prox, copy=False)

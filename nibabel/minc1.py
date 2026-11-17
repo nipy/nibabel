@@ -282,6 +282,10 @@ class MincImageArrayProxy:
         arr = self.minc_file.get_scaled_data(sliceobj=())
         if dtype is not None:
             arr = arr.astype(dtype, copy=False)
+        # Float data that needs no scaling comes back as a view on the netcdf
+        # variable, so a requested copy has to be made here
+        if copy and not arr.flags.owndata:
+            arr = arr.copy()
         return arr
 
     def __getitem__(self, sliceobj):
