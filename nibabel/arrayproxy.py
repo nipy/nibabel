@@ -28,6 +28,7 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 
 from __future__ import annotations
 
+import mmap
 import typing as ty
 import warnings
 from contextlib import contextmanager
@@ -451,25 +452,33 @@ class ArrayProxy(ArrayLike):
         dtype : numpy dtype specifier, optional
             A numpy dtype specifier specifying the type of the returned array.
         copy : {None, True, False}, optional
-            Part of the numpy array protocol.  ``False`` asks for an array that
-            shares memory with this object, which it cannot provide, and so
-            raises ``ValueError``.  ``None`` and ``True`` both return a new
-            array.
+            Part of the numpy array protocol.  When the data is memory-mapped
+            and needs neither scaling nor casting, the memory map itself is the
+            array: ``None`` and ``False`` return it, and ``True`` returns a
+            copy of it.  Otherwise the data is read into a new array, which
+            ``None`` and ``True`` return and ``False`` refuses with
+            ``ValueError``.
 
         Returns
         -------
         array
             Scaled image data with type `dtype`.
         """
-        if copy is False:
-            raise ValueError(
-                'Unable to avoid copy while creating an array as requested.\n'
-                'The data is read from file and scaled on the way out, so there is '
-                'no existing array to return a view on.'
-            )
-        arr = self._get_scaled(dtype=dtype, slicer=())
+        arr = scaled = self._get_scaled(dtype=dtype, slicer=())
+        # Anything but a live memory map was allocated by the read, the scaling
+        # or a cast; a cast memmap is still a memmap instance, but not on the file
+        copied = not (isinstance(arr, np.memmap) and isinstance(arr.base, mmap.mmap))
         if dtype is not None:
             arr = arr.astype(dtype, copy=False)
+            copied |= arr is not scaled
+        if copy is False and copied:
+            raise ValueError(
+                'Unable to avoid copy while creating an array as requested.\n'
+                'The data is not memory-mapped, or has to be scaled or cast, so '
+                'there is no existing array to return a view on.'
+            )
+        if copy and not copied:
+            arr = arr.copy()
         return arr
 
     def __getitem__(self, slicer):

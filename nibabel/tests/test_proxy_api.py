@@ -28,6 +28,8 @@ And:
 These last are to allow the proxy to be reused with different images.
 """
 
+import gzip
+import mmap
 import unittest
 import warnings
 from io import BytesIO
@@ -61,6 +63,13 @@ try:
     from numpy.exceptions import ComplexWarning
 except ModuleNotFoundError:  # NumPy < 1.25
     from numpy import ComplexWarning
+
+
+def _maps_file(arr):
+    """True if `arr` is, or is a view on, a live memory map"""
+    while isinstance(arr, np.ndarray):
+        arr = arr.base
+    return isinstance(arr, mmap.mmap)
 
 
 def _some_slicers(shape):
@@ -178,6 +187,41 @@ class _TestProxyAPI(ValidateAPI):
 
         if context is not None:
             context.__exit__()
+
+    @pytest.mark.thread_unsafe
+    def validate_array_copy(self, pmaker, params):
+        # gh-1318: numpy 2 forwards copy= to __array__.  Only a memory map that
+        # needs no scaling or casting is an existing array to share; any other
+        # read allocates, so copy=False must refuse it.
+        prox, fio, hdr = pmaker()
+        dtype_out = np.dtype(params['dtype_out'])
+        if dtype_out.kind == 'c':
+            other = np.complex128 if dtype_out != np.complex128 else np.complex64
+        else:
+            other = np.float64 if dtype_out != np.float64 else np.float32
+        for arrmethod, dtype, copy in product(
+            (np.array, np.asarray, np.asanyarray),
+            (None, dtype_out, other),
+            (None, True, False),
+        ):
+            # Asking for the stored dtype only avoids a cast in native byte
+            # order: _get_scaled promotes, and promotion normalizes to native
+            shares = params.get('memmap', False) and (
+                dtype is None or (dtype is dtype_out and dtype_out.isnative)
+            )
+            if copy is False and not shares:
+                with pytest.raises(ValueError, match='Unable to avoid copy'):
+                    arrmethod(prox, dtype=dtype, copy=copy)
+                continue
+            out = arrmethod(prox, dtype=dtype, copy=copy)
+            expected = params['arr_out'] if dtype is None else params['arr_out'].astype(dtype)
+            assert_allclose(out, expected, rtol=1e-6)
+            assert _maps_file(out) == (shares and copy is not True)
+            if arrmethod is not np.asanyarray:
+                assert type(out) is np.ndarray
+            elif shares:
+                assert isinstance(out, np.memmap)
+            del out
 
     @pytest.mark.thread_unsafe
     def validate_header_isolated(self, pmaker, params):
@@ -318,7 +362,8 @@ class TestAnalyzeProxyAPI(_TestProxyAPI):
                     new_hdr = hdr.copy()
                     return (self.proxy_class(fname, new_hdr), fname, new_hdr)
 
-                params = params.copy()
+                # Unscaled data in an uncompressed file is memory-mapped
+                params = dict(params, memmap=(slope, inter) == (1, 0))
                 yield fname_func, params
 
     @pytest.mark.thread_unsafe
@@ -468,3 +513,40 @@ class TestPARRECAPI(_TestProxyAPI):
     def obj_params(self):
         yield self._func_dict(EG_REC)
         yield self._func_dict(VARY_REC)
+
+
+@pytest.mark.parametrize('compressed', [False, True])
+@pytest.mark.parametrize('scaled', [False, True])
+@pytest.mark.parametrize('dtype', [None, np.int16, np.float64])
+@pytest.mark.parametrize('arrmethod', [np.array, np.asarray, np.asanyarray])
+@pytest.mark.parametrize('copy', [None, True, False])
+def test_array_copy(tmp_path, compressed, scaled, dtype, arrmethod, copy):
+    # gh-1318: the full cross-product of the conditions that decide whether
+    # ArrayProxy.__array__ has an existing array to share.  Only uncompressed,
+    # unscaled data read at its stored dtype comes back as the memory map
+    # itself; copy=True copies it and copy=False accepts it.  Everything else is
+    # a new array, which copy=False refuses.
+    shape = (5, 5, 5)
+    data = np.arange(125, dtype=np.int16).reshape(shape)
+    fname = tmp_path / ('data.bin.gz' if compressed else 'data.bin')
+    with (gzip.open if compressed else open)(fname, 'wb') as fobj:
+        fobj.write(data.tobytes(order='F'))
+    slope, inter = (2.0, 1.0) if scaled else (1.0, 0.0)
+    prox = ArrayProxy(str(fname), (shape, np.int16, 0, slope, inter))
+
+    shares = not compressed and not scaled and dtype in (None, np.int16)
+    if copy is False and not shares:
+        with pytest.raises(ValueError, match='Unable to avoid copy'):
+            arrmethod(prox, dtype=dtype, copy=copy)
+        return
+
+    out = arrmethod(prox, dtype=dtype, copy=copy)
+    expected = data * slope + inter if scaled else data
+    assert_array_equal(out, expected if dtype is None else expected.astype(dtype))
+    assert _maps_file(out) == (shares and copy is not True)
+    if arrmethod is not np.asanyarray:
+        assert type(out) is np.ndarray
+    elif shares:
+        # A copy of a memory map is still a memmap instance, as with
+        # np.asanyarray(np.asanyarray(prox), copy=True)
+        assert isinstance(out, np.memmap)
