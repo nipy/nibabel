@@ -204,7 +204,7 @@ def test_tag_data_roundtrip():
     # the tag data, so the exact encoding is immaterial here -- what matters is that
     # trailing bytes of any length survive unchanged.
     cmdline = b'mri_convert wm.mgz wm.mgz\x00'
-    tags = struct.pack('>i', 3) + struct.pack('>q', len(cmdline)) + cmdline
+    tags = struct.pack('>iq', 3, len(cmdline)) + cmdline
     with InTemporaryDirectory():
         MGHImage(v, np.eye(4)).to_filename('tagless.mgz')
         with ImageOpener('tagless.mgz') as fobj:
@@ -270,12 +270,11 @@ def test_tag_data_not_reused_across_volumes():
 def test_tag_data_not_laundered_from_reused_stream():
     # Writing a smaller image over a reused stream must not leave bytes from the
     # previous, larger image behind to be read back as tag data (gh-1402).
-    fmap = lambda fobj: {'image': FileHolder(fileobj=fobj)}
     bio = io.BytesIO()
-    MGHImage(np.ones((8, 8, 8), dtype=np.uint8), np.eye(4)).to_file_map(fmap(bio))
+    MGHImage(np.ones((8, 8, 8), dtype=np.uint8), np.eye(4)).to_stream(bio)
     bio.seek(0)
-    MGHImage(np.ones((2, 2, 2), dtype=np.uint8), np.eye(4)).to_file_map(fmap(bio))
-    reread = MGHImage.from_file_map(fmap(io.BytesIO(bio.getvalue())))
+    MGHImage(np.ones((2, 2, 2), dtype=np.uint8), np.eye(4)).to_stream(bio)
+    reread = MGHImage.from_stream(bio)
     assert reread.shape == (2, 2, 2)
     assert reread.header._tags == b''
 
@@ -284,17 +283,13 @@ def test_tag_data_not_laundered_from_reused_stream():
 def test_tag_data_bounded():
     # A file whose `dims` understate the data makes the voxel data itself look
     # like tag data; that must not be read without bound (gh-1402).
-    v = np.zeros((2, 3, 4), dtype=np.uint8)
-    with InTemporaryDirectory():
-        MGHImage(v, np.eye(4)).to_filename('base.mgz')
-        with ImageOpener('base.mgz') as fobj:
-            base = fobj.read()
-        with ImageOpener('huge.mgz', 'wb') as fobj:
-            fobj.write(base + b'\x00' * (MAX_TAG_BYTES + 1))
-        with pytest.warns(UserWarning, match='exceeds'):
-            img = load('huge.mgz')
-        assert img.header._tags == b''
-        assert img.header._tags_valid is False
+    pad = bytes(MAX_TAG_BYTES + 1)
+    img_bytes = MGHImage(np.zeros((2, 3, 4), dtype='u1'), np.eye(4)).to_bytes()
+    with pytest.warns(UserWarning, match='exceeds'):
+        img = MGHImage.from_bytes(img_bytes + pad)
+    assert img.header._tags == b''
+    assert img.header._tags_valid is False
+    assert img.to_bytes() == img_bytes
 
 
 @pytest.mark.thread_unsafe
