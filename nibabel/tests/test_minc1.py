@@ -24,6 +24,7 @@ from ..testing import assert_data_similar, data_path
 from ..tmpdirs import InTemporaryDirectory
 from . import test_spatialimages as tsi
 from .test_fileslice import slicer_samples
+from .test_proxy_api import COPY_ARRAY_FUNCS
 
 EG_FNAME = pjoin(data_path, 'tiny.mnc')
 
@@ -237,7 +238,7 @@ def test_float_array_copy(tmp_path):
             mnc.createVariable(name, 'd', ()).data[()] = 1.0
 
     prox = Minc1Image.from_filename(fname).dataobj
-    for arrmethod in (np.array, np.asarray, np.asanyarray):
+    for arrmethod in COPY_ARRAY_FUNCS:
         out = arrmethod(prox, copy=True)
         assert not np.shares_memory(out, np.asanyarray(prox))
         out[...] = -1
