@@ -110,7 +110,7 @@ def test_is_supported_detect_format(tmp_path):
             assert nib.streamlines.detect_format(f) is tfile_cls
 
     # Good extension but wrong magic number
-    for ext, tfile_cls in FORMATS.items():
+    for ext in FORMATS:
         fpath = tmp_path / f'test{ext}'
         with open(fpath, 'w+b') as f:
             f.write(b'pass')

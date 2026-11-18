@@ -229,8 +229,8 @@ def test_header_scaling():
     # And that it's almost the same as that from the converted nifti
     assert_almost_equal(dv_scaling, [[1.2903541326522827], [0.0]], 5)
     # Check that default for get_slope_inter is dv scaling
-    for hdr in (hdr, PARRECHeader(HDR_INFO, HDR_DEFS)):
-        scaling = [np.unique(x) for x in hdr.get_data_scaling()]
+    for h in (hdr, PARRECHeader(HDR_INFO, HDR_DEFS)):
+        scaling = [np.unique(x) for x in h.get_data_scaling()]
         assert_array_equal(scaling, dv_scaling)
     # Check we can change the default
     assert not np.all(fp_scaling == dv_scaling)

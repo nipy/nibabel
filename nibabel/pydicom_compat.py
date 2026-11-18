@@ -23,10 +23,13 @@ A deprecated copy is available here for backward compatibility.
 from __future__ import annotations
 
 import warnings
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from .deprecated import deprecate_with_version
 from .optpkg import optional_package
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 warnings.warn(
     "We will remove the 'pydicom_compat' module from nibabel 7.0. "

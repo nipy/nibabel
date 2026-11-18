@@ -470,19 +470,20 @@ def test_input_ranges():
     working_type = np.float32
     work_eps = np.finfo(working_type).eps
     for out_type, offset in itertools.product(IUINT_TYPES, range(-1000, 1000, 100)):
-        aw = SlopeInterArrayWriter(arr, out_type)
+        arr1 = arr + offset
+        aw = SlopeInterArrayWriter(arr1, out_type)
         aw.to_fileobj(bio)
-        arr2 = array_from_file(arr.shape, out_type, bio)
+        arr2 = array_from_file(arr1.shape, out_type, bio)
         arr3 = apply_read_scaling(arr2, aw.slope, aw.inter)
         # Max rounding error for integer type
         # Slope might be negative
         max_miss = np.abs(aw.slope) / working_type(2.0) + work_eps * 10
-        abs_err = np.abs(arr - arr3)
-        max_err = np.abs(arr) * work_eps + max_miss
+        abs_err = np.abs(arr1 - arr3)
+        max_err = np.abs(arr1) * work_eps + max_miss
         assert np.all(abs_err <= max_err)
-        if out_type in UINT_TYPES and 0 in (min(arr), max(arr)):
+        if out_type in UINT_TYPES and 0 in (min(arr1), max(arr1)):
             # Check that error is minimized for 0 as min or max
-            assert min(abs_err) == abs_err[arr == 0]
+            assert min(abs_err) == abs_err[arr1 == 0]
         bio.truncate(0)
         bio.seek(0)
 

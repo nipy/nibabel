@@ -11,8 +11,8 @@ import nibabel as nib
 @pytest.mark.parametrize(
     ('verbose', 'v_args'), [(-2, ['-qq']), (-1, ['-q']), (0, []), (1, ['-v']), (2, ['-vv'])]
 )
-@pytest.mark.parametrize('doctests', (True, False))
-@pytest.mark.parametrize('coverage', (True, False))
+@pytest.mark.parametrize('doctests', [True, False])
+@pytest.mark.parametrize('coverage', [True, False])
 def test_nibabel_test(verbose, v_args, doctests, coverage):
     expected_args = v_args + ['--doctest-modules', '--cov', 'nibabel', '--pyargs', 'nibabel']
     if not doctests:
