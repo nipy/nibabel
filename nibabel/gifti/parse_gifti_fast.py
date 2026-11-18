@@ -382,7 +382,8 @@ class GiftiImageParser(XmlParser):
         elif self.write_to == 'MatrixData':
             # conversion to numpy array
             c = StringIO(data)
-            self.coordsys.xform = np.loadtxt(c)
+            # 16 values in row-major order, which need not be on 4 lines
+            self.coordsys.xform = np.loadtxt(c).reshape(4, 4)
             c.close()
 
         elif self.write_to == 'Data':
