@@ -1,4 +1,5 @@
-"""Read / write FreeSurfer geometry, morphometry, label, annotation formats"""
+"""Read / write FreeSurfer geometry, morphometry, label, stats, annotation formats"""
+from __future__ import annotations
 
 import getpass
 import time
@@ -617,3 +618,50 @@ def _serialize_volume_info(volume_info):
             val = volume_info[key]
             strings.append(f'{key:6s} = {val[0]:.10g} {val[1]:.10g} {val[2]:.10g}\n'.encode())
     return b''.join(strings)
+
+def read_stats_file(file_path):
+    """Extracts stats from stats files except '*curv.stats' files
+
+    Parameters
+    ----------
+    file_path: str, required
+
+    Examples
+    --------
+    >>> stats_a2009, column_names = read_stats_file(r'lh.aparc.a2009s.stats')
+
+    """
+    with open(file_path, 'r') as f:
+        for line in f:
+            if line.startswith('# ColHeaders '):
+                columns = line.split()[2:]
+                break
+        return np.genfromtxt(f, dtype=None, names=columns, encoding='utf-8')
+
+
+def read_stats_file_both_hemispheres(file_path: str):
+    """Extracts stats data of both hemispheres and merges them
+
+    Parameters
+    ----------
+    file_path: str, required
+        Path of the stats file belong to left (lh) or right(rh) hemisphere
+
+    Returns
+    -------
+    stats_both_hemispheres: ndarray
+        Stats data of both hemisphers
+    column_naems: ndarray
+        Name of columns
+
+    Examples
+    --------
+    >>> stats_a2009, column_names = read_stats_file_both_hemispheres(r'lh.aparc.a2009s.stats')
+
+    """
+    stats_left, columns_left = read_stats_file(file_path.replace('rh', 'lh'))
+    stats_right, columns_right = read_stats_file(file_path.replace('lh', 'rh'))
+    stats_both_hemispheres = np.concatenate((stats_left, stats_right[:, 1:]), axis=1)
+    column_names = [col_name + '_left' for col_name in columns_left] + [col_name + '_right' for col_name in
+                                                                        columns_right[1:]]
+    return stats_both_hemispheres, column_names
