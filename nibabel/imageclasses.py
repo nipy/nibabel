@@ -21,6 +21,7 @@ from .minc1 import Minc1Image
 from .minc2 import Minc2Image
 from .nifti1 import Nifti1Image, Nifti1Pair
 from .nifti2 import Nifti2Image, Nifti2Pair
+from .nrrd import NrrdImage
 from .parrec import PARRECImage
 from .spm2analyze import Spm2AnalyzeImage
 from .spm99analyze import Spm99AnalyzeImage
@@ -45,6 +46,7 @@ all_image_classes: list[type[FileBasedImage]] = [
     PARRECImage,
     GiftiImage,
     AFNIImage,
+    NrrdImage,
 ]
 
 # Image classes known to require spatial axes to be first in index ordering.
@@ -61,6 +63,7 @@ KNOWN_SPATIAL_FIRST: tuple[type[FileBasedImage], ...] = (
     MGHImage,
     PARRECImage,
     AFNIImage,
+    NrrdImage,
 )
 
 

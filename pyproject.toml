@@ -50,12 +50,13 @@ nib-roi = "nibabel.cmdline.roi:main"
 parrec2nii = "nibabel.cmdline.parrec2nii:main"
 
 [project.optional-dependencies]
-all = ["nibabel[dicomfs,indexed_gzip,minc2,spm,zstd]"]
+all = ["nibabel[dicomfs,indexed_gzip,minc2,nrrd,spm,zstd]"]
 # Features
 indexed_gzip = ["indexed_gzip >=1.9.1"]
 dicom = ["pydicom >=2.3"]
 dicomfs = ["nibabel[dicom]", "pillow >=10.2"]
 minc2 = ["h5py >=3.11"]
+nrrd = ["pynrrd >=1.1.1"]
 spm = ["scipy >=1.12"]
 viewers = ["matplotlib >=3.9"]
 zstd = ["backports.zstd >=1.1; python_version<'3.14'"]

@@ -15,6 +15,7 @@ long_description = """
 Read and write access to common neuroimaging file formats, including:
 ANALYZE_ (plain, SPM99, SPM2 and later), GIFTI_, NIfTI1_, NIfTI2_, `CIFTI-2`_,
 MINC1_, MINC2_, `AFNI BRIK/HEAD`_, ECAT_ and Philips PAR/REC.
+NiBabel can also read NRRD_ images.
 In addition, NiBabel also supports FreeSurfer_'s MGH_, geometry, annotation and
 morphometry files, and provides some limited support for DICOM_.
 
@@ -38,6 +39,7 @@ NiBabel's `documentation site`_ and `API reference`_.
     https://en.wikibooks.org/wiki/MINC/Reference/MINC2.0_File_Format_Reference
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
 .. _NIfTI2: http://nifti.nimh.nih.gov/nifti-2/
+.. _NRRD: http://teem.sourceforge.net/nrrd/format.html
 
 Installation
 ============
