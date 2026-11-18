@@ -153,6 +153,21 @@ def test_write_noaffine_mgh():
     assert_array_almost_equal(h['Pxyz_c'], [0, 0, 0])
 
 
+def test_mgh_intent_version():
+    # FreeSurfer writes the intent of the content into the version field as
+    # (intent << 8) | 1, e.g. 513 for curvature converted to MGH
+    data = np.arange(10, dtype=np.float32).reshape(10, 1, 1)
+    img = MGHImage(data, np.eye(4))
+    for version in ((2 << 8) | 1, (3 << 8) | 1):
+        img.header['version'] = version
+        bio = io.BytesIO()
+        img.to_file_map({'image': FileHolder(fileobj=bio)})
+        bio.seek(0)
+        img2 = MGHImage.from_file_map({'image': FileHolder(fileobj=bio)})
+        assert img2.header['version'] == version
+        assert_array_equal(img2.get_fdata(), data)
+
+
 def test_set_zooms():
     mgz = load(MGZ_FNAME)
     h = mgz.header

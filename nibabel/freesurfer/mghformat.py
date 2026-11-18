@@ -134,7 +134,9 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
     @staticmethod
     def chk_version(hdr, fix=False):
         rep = Report()
-        if hdr['version'] != 1:
+        # FreeSurfer stores the content intent (e.g. 2 for surface overlays,
+        # 3 for warps) in the higher bytes: version = (intent << 8) | 1
+        if hdr['version'] & 0xFF != 1:
             rep = Report(HeaderDataError, 40)
             rep.problem_msg = 'Unknown MGH format version'
             if fix:
