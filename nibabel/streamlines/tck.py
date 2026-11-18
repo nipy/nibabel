@@ -226,16 +226,42 @@ class TckFile(TractogramFile):
                 )
                 warnings.warn(msg, DataWarning)
 
-            for t in tractogram:
-                data = np.r_[t.streamline, self.FIBER_DELIMITER]
-                f.write(data.astype(dtype).tobytes())
-                nb_streamlines += 1
+            if not isinstance(self.tractogram, LazyTractogram) and np.allclose(
+                self.tractogram.affine_to_rasmm, np.eye(4)
+            ):
+                # Streamlines are already in RAS+ and mm: write them in blocks
+                # rather than one at a time.
+                nb_streamlines = self._write_streamlines(f, self.tractogram.streamlines, dtype)
+            else:
+                for t in tractogram:
+                    data = np.r_[t.streamline, self.FIBER_DELIMITER]
+                    f.write(data.astype(dtype).tobytes())
+                    nb_streamlines += 1
 
             header[Field.NB_STREAMLINES] = nb_streamlines
 
             # Add the EOF_DELIMITER.
             f.write(self.EOF_DELIMITER.tobytes())
             self._finalize_header(f, header, offset=beginning)
+
+    @classmethod
+    def _write_streamlines(cls, fileobj, streamlines, dtype, block_size=10000):
+        """Write `streamlines` to `fileobj`, each followed by ``FIBER_DELIMITER``
+
+        Streamlines are concatenated and written `block_size` at a time.
+
+        Returns
+        -------
+        nb_streamlines : int
+            Number of streamlines written.
+        """
+        nb_streamlines = len(streamlines)
+        for start in range(0, nb_streamlines, block_size):
+            parts = []
+            for streamline in streamlines[start : start + block_size]:
+                parts.extend((streamline, cls.FIBER_DELIMITER))
+            fileobj.write(np.concatenate(parts).astype(dtype).tobytes())
+        return nb_streamlines
 
     @staticmethod
     def _write_header(fileobj, header):
