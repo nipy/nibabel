@@ -145,3 +145,26 @@ class TestBadVars:
         for var in self.vars:
             with pytest.raises(self.module.AFNIHeaderError):
                 self.module._unpack_var(var)
+
+
+def test_complex_brick(tmp_path):
+    # BRICK_TYPES 5 is complex: two float32 values per voxel
+    shape = (4, 5, 6)
+    data = (np.arange(120) + 1j * np.arange(120, 0, -1)).astype('<c8').reshape(shape, order='F')
+    attrs = [
+        ('integer', 'DATASET_RANK', '3 1'),
+        ('integer', 'DATASET_DIMENSIONS', '4 5 6'),
+        ('integer', 'BRICK_TYPES', '5'),
+        ('float', 'DELTA', '1 1 1'),
+        ('float', 'IJK_TO_DICOM_REAL', '1 0 0 0 0 1 0 0 0 0 1 0'),
+    ]
+    head = ''.join(
+        f'\ntype = {kind}-attribute\nname = {name}\ncount = {len(vals.split())}\n{vals}\n'
+        for kind, name, vals in attrs
+    )
+    head += "\ntype = string-attribute\nname = BYTEORDER_STRING\ncount = 9\n'LSB_FIRST~\n"
+    (tmp_path / 'complex+orig.HEAD').write_text(head)
+    (tmp_path / 'complex+orig.BRIK').write_bytes(data.tobytes(order='F'))
+    img = brikhead.load(tmp_path / 'complex+orig.HEAD')
+    assert img.get_data_dtype() == np.dtype('<c8')
+    assert_array_equal(img.dataobj[..., 0], data)
