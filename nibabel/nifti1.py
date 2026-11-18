@@ -2406,6 +2406,25 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         img.header.set_dim_info(*new_dim)
 
+        # Flipping the slice axis reverses the slice acquisition order
+        slice_dim = self.header.get_dim_info()[2]
+        reversed_order = {
+            'sequential increasing': 'sequential decreasing',
+            'sequential decreasing': 'sequential increasing',
+            'alternating increasing': 'alternating decreasing',
+            'alternating decreasing': 'alternating increasing',
+            'alternating increasing 2': 'alternating decreasing 2',
+            'alternating decreasing 2': 'alternating increasing 2',
+        }.get(self.header.get_value_label('slice_code'))
+        if slice_dim is not None and ornt[slice_dim, 1] == -1 and reversed_order is not None:
+            n_slices = self.header.get_n_slices()
+            slice_start = int(self.header['slice_start'])
+            slice_end = int(self.header['slice_end']) or n_slices - 1
+            img.header['slice_code'] = slice_order_codes.code[reversed_order]
+            if (slice_start, slice_end) != (0, n_slices - 1):
+                img.header['slice_start'] = n_slices - 1 - slice_end
+                img.header['slice_end'] = n_slices - 1 - slice_start
+
         # Reorienting the affine will set the qform and sform to the new affine,
         # with codes 0 and 2, respectively.
         # For the purposes of this function, no orientation information has been

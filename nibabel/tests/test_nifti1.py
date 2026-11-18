@@ -1649,6 +1649,26 @@ class TestNifti1General:
         assert int(reoriented.header['qform_code']) == 0
         assert_array_equal(reoriented.affine, reoriented.header.get_best_affine())
 
+    def test_reoriented_slice_times(self):
+        # Each slice keeps its acquisition time when the slice axis is flipped
+        arr = np.zeros((7, 3, 7), dtype='f4')
+        img = self.single_class(arr, np.diag([2, 3, 4, 1]))
+        for slice_code in range(1, 7):
+            for slice_start, slice_end in ((0, 0), (0, 6), (1, 5), (2, 6), (0, 4)):
+                for slic in (0, 2):
+                    img.header.set_dim_info(slice=slic)
+                    img.header.set_slice_duration(0.1)
+                    img.header['slice_code'] = slice_code
+                    img.header['slice_start'] = slice_start
+                    img.header['slice_end'] = slice_end
+                    times = np.array(img.header.get_slice_times(), dtype=float)
+                    for ornt in ALL_ORNTS:
+                        ornt = np.array(ornt)
+                        rimg = img.as_reoriented(ornt)
+                        new_times = np.array(rimg.header.get_slice_times(), dtype=float)
+                        expected = times[::-1] if ornt[slic, 1] == -1 else times
+                        assert_array_equal(new_times, expected)
+
     def test_reoriented_dim_info(self):
         # Check that dim_info is reoriented correctly
         arr = np.arange(24, dtype='f4').reshape((2, 3, 4))
