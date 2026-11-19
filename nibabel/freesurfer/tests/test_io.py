@@ -299,7 +299,8 @@ def test_write_annot_fill_ctab():
 
 
 @pytest.mark.parametrize(
-    'dtype', [np.uint8, np.int16, np.uint16, np.int32, np.int64, np.float32, np.float64]
+    'dtype',
+    [np.uint8, np.int16, np.uint16, np.int32, np.int64, np.float16, np.float32, np.float64],
 )
 def test_write_annot_ctab_dtype(tmp_path, dtype):
     """Test annotation values for colour tables with different dtypes."""
