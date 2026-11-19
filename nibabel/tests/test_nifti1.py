@@ -1653,21 +1653,21 @@ class TestNifti1General:
         # Each slice keeps its acquisition time when the slice axis is flipped
         arr = np.zeros((7, 3, 7), dtype='f4')
         img = self.single_class(arr, np.diag([2, 3, 4, 1]))
-        for slice_code in range(1, 7):
-            for slice_start, slice_end in ((0, 0), (0, 6), (1, 5), (2, 6), (0, 4)):
-                for slic in (0, 2):
-                    img.header.set_dim_info(slice=slic)
-                    img.header.set_slice_duration(0.1)
-                    img.header['slice_code'] = slice_code
-                    img.header['slice_start'] = slice_start
-                    img.header['slice_end'] = slice_end
+        for slice_dim in (0, 2):
+            img.header.set_dim_info(slice=slice_dim)
+            img.header.set_slice_duration(0.1)
+            for slice_code in range(1, 7):
+                img.header['slice_code'] = slice_code
+                for slice_start, slice_end in ((0, 0), (0, 6), (1, 5), (2, 6), (0, 4)):
+                    img.header['slice_start'], img.header['slice_end'] = slice_start, slice_end
                     times = np.array(img.header.get_slice_times(), dtype=float)
                     for ornt in ALL_ORNTS:
                         ornt = np.array(ornt)
                         rimg = img.as_reoriented(ornt)
                         new_times = np.array(rimg.header.get_slice_times(), dtype=float)
-                        expected = times[::-1] if ornt[slic, 1] == -1 else times
-                        assert_array_equal(new_times, expected)
+                        # See test_reoriented_dim_info() if you can't remember how to read ornts
+                        # off the top of your head. This is the cheapest test for a slice flip.
+                        assert_array_equal(new_times, times[:: ornt[slice_dim, 1]])
 
     def test_reoriented_dim_info(self):
         # Check that dim_info is reoriented correctly
@@ -1699,6 +1699,11 @@ class TestNifti1General:
                 new_pdir = dirs[new_phas] if new_phas is not None else None
                 new_sdir = dirs[new_slic] if new_slic is not None else None
                 assert (new_fdir, new_pdir, new_sdir) == (fdir, pdir, sdir)
+                # Verify ornt[slic, 1] is a shorthand for flipping the slice direction
+                # This is just to convince ourselves that we are using the right condition
+                # in test_reoriented_slice_times()
+                if sdir is not None:
+                    assert (sdir in axcode) == (ornt[slic][1] == 1)
 
 
 @runif_extra_has('slow')
