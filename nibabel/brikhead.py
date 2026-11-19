@@ -53,7 +53,7 @@ _dtype_dict = {
     0: 'B',
     1: 'h',
     3: 'f',
-    5: 'D',
+    5: 'F',
 }
 
 space_codes = Recoder(
