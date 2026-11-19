@@ -2406,6 +2406,14 @@ class Nifti1Pair(analyze.AnalyzeImage):
 
         img.header.set_dim_info(*new_dim)
 
+        # Flipping the slice axis reverses the slice acquisition order
+        slice_dim = self.header.get_dim_info()[2]
+        if slice_dim is not None and ornt[slice_dim, 1] == -1 and self.header['slice_code'] != 0:
+            orig_duration = self.header['slice_duration']
+            img.header.set_slice_times(img.header.get_slice_times()[::-1])
+            # set_slice_times can flip the lowest order bit, but we know it's unchanged
+            img.header['slice_duration'] = orig_duration
+
         # Reorienting the affine will set the qform and sform to the new affine,
         # with codes 0 and 2, respectively.
         # For the purposes of this function, no orientation information has been
