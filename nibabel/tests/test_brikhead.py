@@ -16,6 +16,7 @@ from numpy.testing import assert_array_equal
 from .. import Nifti1Image, brikhead
 from ..testing import assert_data_similar, data_path
 from .test_fileslice import slicer_samples
+from .test_proxy_api import _maps_file
 
 EXAMPLE_IMAGES = [
     dict(
@@ -145,3 +146,34 @@ class TestBadVars:
         for var in self.vars:
             with pytest.raises(self.module.AFNIHeaderError):
                 self.module._unpack_var(var)
+
+
+def test_array_no_copy_big_endian(tmp_path):
+    # gh-1318: an unscaled big-endian BRIK read at its stored dtype is the
+    # memory map itself, so copy=False must return it and not a native copy
+    class Header:
+        def get_data_shape(self):
+            return (2, 3, 4)
+
+        def get_data_dtype(self):
+            return np.dtype('>i2')
+
+        def get_data_offset(self):
+            return 0
+
+        def get_slope_inter(self):
+            return None, None
+
+        def get_data_scaling(self):
+            return None
+
+    data = np.arange(24, dtype='>i2').reshape((2, 3, 4), order='F')
+    fname = tmp_path / 'be.BRIK'
+    fname.write_bytes(data.tobytes(order='F'))
+    prox = brikhead.AFNIArrayProxy(str(fname), Header())
+    for dtype in (None, '>i2'):
+        out = np.asarray(prox, dtype=dtype, copy=False)
+        assert _maps_file(out)
+        assert_array_equal(out, data)
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        np.asarray(prox, dtype='<i2', copy=False)

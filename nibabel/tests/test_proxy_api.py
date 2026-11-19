@@ -556,3 +556,43 @@ def test_array_copy(tmp_path, compressed, scaled, dtype, arrmethod, copy):
         # A copy of a memory map is still a memmap instance, as with
         # np.asanyarray(np.asanyarray(prox), copy=True)
         assert isinstance(out, np.memmap)
+
+
+@pytest.mark.parametrize(
+    ('mmap', 'slope', 'dtype'),
+    [(False, 1.0, None), (True, 2.0, None), (True, 1.0, np.float64)],
+)
+def test_array_no_copy_refused_before_read(tmp_path, monkeypatch, mmap, slope, dtype):
+    # copy=False is refused where the allocation would happen.  When the proxy
+    # can tell beforehand (no memory map, scaling, a cast), that is before
+    # any data is read from the file.
+    shape = (5, 5, 5)
+    fname = tmp_path / 'data.bin'
+    fname.write_bytes(np.arange(125, dtype=np.int16).tobytes(order='F'))
+    prox = ArrayProxy(str(fname), (shape, np.int16, 0, slope, 0.0), mmap=mmap)
+
+    def no_read(*args, **kwargs):
+        raise AssertionError('data read before copy=False was refused')
+
+    monkeypatch.setattr('nibabel.arrayproxy.array_from_file', no_read)
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        np.asarray(prox, dtype=dtype, copy=False)
+
+
+def test_array_old_private_signatures(tmp_path):
+    # Subclasses that override the private readers without ``copy`` keep
+    # working for every call that does not ask for copy=False or copy=True
+    class OldProxy(ArrayProxy):
+        def _get_scaled(self, dtype, slicer):
+            return super()._get_scaled(dtype, slicer)
+
+        def _get_unscaled(self, slicer):
+            return super()._get_unscaled(slicer)
+
+    shape = (5, 5, 5)
+    data = np.arange(125, dtype=np.int16).reshape(shape, order='F')
+    fname = tmp_path / 'data.bin'
+    fname.write_bytes(data.tobytes(order='F'))
+    prox = OldProxy(str(fname), (shape, np.int16, 0, 1.0, 0.0))
+    assert_array_equal(np.asarray(prox), data)
+    assert_array_equal(prox[0], data[0])

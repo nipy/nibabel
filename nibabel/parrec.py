@@ -700,7 +700,7 @@ class PARRECArrayProxy:
         """
         return self._get_unscaled(slicer=())
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self, dtype=None, *, copy=None):
         """Read data from file and apply scaling, casting to ``dtype``
 
         If ``dtype`` is unspecified, the dtype of the returned array is the

@@ -42,12 +42,12 @@ class CoordinateArray(ty.Protocol):
 
     @ty.overload
     def __array__(
-        self, dtype: None = ..., /, *, copy: bool | None = ...
+        self, dtype: None = ..., *, copy: bool | None = ...
     ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
 
     @ty.overload
     def __array__(
-        self, dtype: _DType, /, *, copy: bool | None = ...
+        self, dtype: _DType, *, copy: bool | None = ...
     ) -> np.ndarray[ty.Any, _DType]: ...
 
 
@@ -193,7 +193,7 @@ class GridIndices:
     def __repr__(self):
         return f'<{self.__class__.__name__}{self.gridshape}>'
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self, dtype=None, *, copy=None):
         if copy is False:
             raise ValueError(
                 'Unable to avoid copy while creating an array as requested.\n'

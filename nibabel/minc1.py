@@ -253,7 +253,7 @@ class MincImageArrayProxy:
     def is_proxy(self):
         return True
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self, dtype=None, *, copy=None):
         """Read data from file and apply scaling, casting to ``dtype``
 
         If ``dtype`` is unspecified, the dtype is automatically determined.
@@ -263,10 +263,13 @@ class MincImageArrayProxy:
         dtype : numpy dtype specifier, optional
             A numpy dtype specifier specifying the type of the returned array.
         copy : {None, True, False}, optional
-            Part of the numpy array protocol.  ``False`` asks for an array that
-            shares memory with this object, which it cannot provide, and so
-            raises ``ValueError``.  ``None`` and ``True`` both return a new
-            array.
+            By default, calling ``__array__`` returns data with as few memory allocations
+            as possible. If ``copy=True`` is passed, the resulting array is guaranteed to be
+            newly allocated. If ``copy=False`` is passed, only data that is already in
+            memory will be returned, and a ``ValueError`` is raised if that is not possible.
+
+            Only floating point MINC1 data, which is stored unscaled and held by the
+            netCDF reader, can be returned with ``copy=False``.
 
         Returns
         -------
@@ -274,16 +277,28 @@ class MincImageArrayProxy:
             Scaled image data with type `dtype`.
         """
         if copy is False:
-            raise ValueError(
-                'Unable to avoid copy while creating an array as requested.\n'
-                'The data is read from file and scaled on the way out, so there is '
-                'no existing array to return a view on.'
-            )
+            # Integer data is scaled and a cast allocates; refuse before reading
+            ddt = self.minc_file.get_data_dtype()
+            if not np.issubdtype(ddt.type, np.floating):
+                raise ValueError(
+                    'Unable to avoid copy while creating an array as requested.\n'
+                    'The data has to be scaled.'
+                )
+            if dtype is not None and np.dtype(dtype) != ddt:
+                raise ValueError(
+                    'Unable to avoid copy while creating an array as requested.\n'
+                    f'The data has to be cast from {ddt} to {dtype}.'
+                )
         arr = self.minc_file.get_scaled_data(sliceobj=())
         if dtype is not None:
             arr = arr.astype(dtype, copy=False)
-        # Float data that needs no scaling comes back as a view on the netcdf
-        # variable, so a requested copy has to be made here
+        # Unscaled float data comes back as a view on the netCDF variable for
+        # MINC1 and as a newly read array for MINC2
+        if copy is False and arr.flags.owndata:
+            raise ValueError(
+                'Unable to avoid copy while creating an array as requested.\n'
+                'The data was read from file into a new array.'
+            )
         if copy and not arr.flags.owndata:
             arr = arr.copy()
         return arr

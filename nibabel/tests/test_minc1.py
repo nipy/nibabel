@@ -243,5 +243,17 @@ def test_float_array_copy(tmp_path):
         assert not np.shares_memory(out, np.asanyarray(prox))
         out[...] = -1
         assert_array_equal(np.asanyarray(prox), data)
+    # The variable is existing data, so copy=False can return a view on it,
+    # unless a cast would allocate
+    out = np.asarray(prox, copy=False)
+    assert np.shares_memory(out, prox.minc_file._image.data)
+    assert_array_equal(out, data)
+    with pytest.raises(ValueError, match='Unable to avoid copy'):
+        np.asarray(prox, dtype=np.float64, copy=False)
+
+
+def test_scaled_array_no_copy():
+    # Integer data is scaled on the way out, so there is nothing to view
+    prox = Minc1Image.from_filename(pjoin(data_path, 'tiny.mnc')).dataobj
     with pytest.raises(ValueError, match='Unable to avoid copy'):
         np.asarray(prox, copy=False)

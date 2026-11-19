@@ -33,7 +33,7 @@ from copy import deepcopy
 
 import numpy as np
 
-from .arrayproxy import ArrayProxy
+from .arrayproxy import _NO_COPY_MSG, ArrayProxy
 from .fileslice import strided_scalar
 from .spatialimages import HeaderDataError, ImageDataError, SpatialHeader, SpatialImage
 from .volumeutils import Recoder
@@ -245,10 +245,22 @@ class AFNIArrayProxy(ArrayProxy):
     def scaling(self):
         return self._scaling
 
-    def _get_scaled(self, dtype, slicer):
-        raw_data = self._get_unscaled(slicer=slicer)
+    def _get_scaled(self, dtype, slicer, copy=None):
+        if copy is False:
+            # Scaling and casting both allocate, so refuse before the read
+            if self.scaling is not None:
+                raise ValueError(_NO_COPY_MSG + 'The data has to be scaled.')
+            if dtype is not None and np.dtype(dtype) != self._dtype:
+                raise ValueError(
+                    _NO_COPY_MSG + f'The data has to be cast from {self._dtype} to {dtype}.'
+                )
+        # Subclasses written before ``copy`` existed do not take it
+        kwargs = {} if copy is None else {'copy': copy}
+        raw_data = self._get_unscaled(slicer=slicer, **kwargs)
         if self.scaling is None:
-            if dtype is None:
+            # Promotion normalizes byte order, so skip it when the dtype already
+            # matches, or a big-endian file would be cast twice to come back as is
+            if dtype is None or raw_data.dtype == np.dtype(dtype):
                 return raw_data
             final_type = np.promote_types(raw_data.dtype, dtype)
             return raw_data.astype(final_type, copy=False)

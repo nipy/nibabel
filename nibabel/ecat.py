@@ -687,7 +687,7 @@ class EcatImageArrayProxy:
     def is_proxy(self):
         return True
 
-    def __array__(self, dtype=None, copy=None):
+    def __array__(self, dtype=None, *, copy=None):
         """Read of data from file
 
         This reads ALL FRAMES into one array, can be memory expensive.
@@ -700,10 +700,12 @@ class EcatImageArrayProxy:
         dtype : numpy dtype specifier, optional
             A numpy dtype specifier specifying the type of the returned array.
         copy : {None, True, False}, optional
-            Part of the numpy array protocol.  ``False`` asks for an array that
-            shares memory with this object, which it cannot provide, and so
-            raises ``ValueError``.  ``None`` and ``True`` both return a new
-            array.
+            By default, calling ``__array__`` returns data with as few memory allocations
+            as possible. If ``copy=True`` is passed, the resulting array is guaranteed to be
+            newly allocated. If ``copy=False`` is passed, only arrays that can be memory
+            mapped will be returned, and a ``ValueError`` is raised if that is not possible.
+
+            ``EcatImageArrayProxy`` always raises a ``ValueError`` on ``copy=False``.
 
         Returns
         -------
