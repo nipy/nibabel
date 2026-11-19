@@ -148,23 +148,21 @@ class TestBadVars:
 
 
 def test_complex_brick(tmp_path):
-    # BRICK_TYPES 5 is complex: two float32 values per voxel
-    shape = (4, 5, 6)
-    data = (np.arange(120) + 1j * np.arange(120, 0, -1)).astype('<c8').reshape(shape, order='F')
-    attrs = [
-        ('integer', 'DATASET_RANK', '3 1'),
-        ('integer', 'DATASET_DIMENSIONS', '4 5 6'),
-        ('integer', 'BRICK_TYPES', '5'),
-        ('float', 'DELTA', '1 1 1'),
-        ('float', 'IJK_TO_DICOM_REAL', '1 0 0 0 0 1 0 0 0 0 1 0'),
-    ]
-    head = ''.join(
-        f'\ntype = {kind}-attribute\nname = {name}\ncount = {len(vals.split())}\n{vals}\n'
-        for kind, name, vals in attrs
+    # BRICK_TYPES 5 is complex64: two float32 values per voxel
+    info = brikhead.parse_AFNI_header(EXAMPLE_IMAGES[0]['head'])
+    info.update(
+        DATASET_DIMENSIONS=[4, 5, 6],
+        DATASET_RANK=[3, 1, 0, 0, 0, 0, 0, 0],
+        BRICK_TYPES=5,
+        BRICK_FLOAT_FACS=0,
     )
-    head += "\ntype = string-attribute\nname = BYTEORDER_STRING\ncount = 9\n'LSB_FIRST~\n"
-    (tmp_path / 'complex+orig.HEAD').write_text(head)
-    (tmp_path / 'complex+orig.BRIK').write_bytes(data.tobytes(order='F'))
-    img = brikhead.load(tmp_path / 'complex+orig.HEAD')
-    assert img.get_data_dtype() == np.dtype('<c8')
-    assert_array_equal(img.dataobj[..., 0], data)
+    hdr = brikhead.AFNIHeader(info)
+    assert hdr.get_data_dtype() == np.dtype('<c8')
+    data = (
+        (np.arange(120) + 1j * np.arange(120, 0, -1))
+        .astype('<c8')
+        .reshape(hdr.get_data_shape(), order='F')
+    )
+    brik = tmp_path / 'complex+orig.BRIK'
+    brik.write_bytes(data.tobytes(order='F'))
+    assert_array_equal(np.asanyarray(brikhead.AFNIArrayProxy(brik, hdr)), data)
