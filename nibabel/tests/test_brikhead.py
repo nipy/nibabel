@@ -165,4 +165,4 @@ def test_complex_brick(tmp_path):
     )
     brik = tmp_path / 'complex+orig.BRIK'
     brik.write_bytes(data.tobytes(order='F'))
-    assert_array_equal(np.asanyarray(brikhead.AFNIArrayProxy(brik, hdr)), data)
+    assert_array_equal(np.asanyarray(brikhead.AFNIArrayProxy(str(brik), hdr)), data)
