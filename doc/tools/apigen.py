@@ -471,8 +471,6 @@ class ApiDocWriter:
 
         Parameters
         ----------
-        path : string
-            Filename to write index to
         outdir : string
             Directory to which to write generated index file
         froot : string, optional
