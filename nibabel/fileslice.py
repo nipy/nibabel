@@ -228,15 +228,23 @@ def fill_slicer(slicer, in_len):
     if step > 0:
         if start is None:
             start = 0
+        else:
+            start = max(start, 0)
         if stop is None:
             stop = in_len
         else:
-            stop = min(stop, in_len)
+            stop = max(min(stop, in_len), 0)
     else:  # step < 0
         if start is None:
             start = in_len - 1
+        elif start < 0:
+            # Before the first element, nothing to select
+            start = stop = 0
         else:
             start = min(start, in_len - 1)
+        if stop is not None and stop < 0:
+            # Slice down through the first element
+            stop = None
     return slice(start, stop, step)
 
 

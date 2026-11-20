@@ -216,6 +216,17 @@ def test_fill_slicer():
     # start after stop
     assert fill_slicer(slice(3, 2, 1), 10) == slice(3, 2, 1)
     assert fill_slicer(slice(2, 3, -1), 10) == slice(2, 3, -1)
+    # Negative start, stop that are still negative after adding the length
+    # are clipped as in numpy
+    assert fill_slicer(slice(4, -12, 1), 10) == slice(4, 0, 1)
+    assert fill_slicer(slice(-12, 2, 1), 10) == slice(0, 2, 1)
+    assert fill_slicer(slice(None, -12, -1), 10) == slice(9, None, -1)
+    assert fill_slicer(slice(-12, None, -1), 10) == slice(0, 0, -1)
+    for start in (None, *range(-13, 13)):
+        for stop in (None, *range(-13, 13)):
+            for step in (-3, -1, 1, 2):
+                sl = slice(start, stop, step)
+                assert slice2len(sl, 10) == len(np.arange(10)[sl])
 
 
 def test__positive_slice():
