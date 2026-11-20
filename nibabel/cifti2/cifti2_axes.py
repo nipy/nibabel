@@ -847,7 +847,10 @@ class ParcelsAxis(Axis):
                             f'vertices for surface structure {name}'
                         )
                     nvertices[name] = bm.nvertices[name]
-                    vertices[name] = bm_part.vertex
+                    if name in vertices:
+                        vertices[name] = np.concatenate((vertices[name], bm_part.vertex))
+                    else:
+                        vertices[name] = bm_part.vertex
             all_vertices[idx_parcel] = vertices
         return ParcelsAxis(all_names, all_voxels, all_vertices, affine, volume_shape, nvertices)
 
