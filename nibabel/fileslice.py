@@ -285,6 +285,8 @@ def _positive_slice(slicer):
         stop = -1
     gap = stop - start
     n = gap / step
+    if n <= 0:  # empty slice
+        return slice(0, 0, -step)
     n = int(n) - 1 if int(n) == n else int(n)
     end = start + n * step
     return slice(end, start + 1, -step)
@@ -668,6 +670,11 @@ def read_segments(fileobj, segments, n_bytes, lock=None):
             raise ValueError('Whoops, not enough data in file')
         return bytes
     # More than one segment
+    if n_bytes == 0:
+        # Empty slice; mmap cannot have zero length
+        if any(length for _, length in segments):
+            raise ValueError('Oh dear, n_bytes does not look right')
+        return b''
     bytes = mmap(-1, n_bytes)
     for offset, length in segments:
         with lock:

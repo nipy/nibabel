@@ -790,6 +790,15 @@ def test_fileslice_errors():
         fileslice(fobj, (np.array([1]),), (2, 3, 4), arr.dtype)
 
 
+def test_fileslice_empty():
+    # Empty slices, including negative steps that select nothing
+    arr = np.arange(320).reshape((4, 4, 5, 4))
+    fobj = BytesIO(arr.tobytes(order='F'))
+    _check_slicer((0, 0, slice(1, 2, -2)), arr, fobj, 0, 'F')
+    # Empty slice read as several zero-length segments
+    _check_slicer((0, slice(0, 2), slice(3, 2)), arr, fobj, 0, 'F')
+
+
 def test_fileslice_heuristic():
     # Just check that any of several heuristics gives the right answer
     shape = (15, 16, 17)
