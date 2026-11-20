@@ -115,13 +115,10 @@ def concat_images(images, check_affines=True, axis=None):
     klass = img0.__class__
     shape0 = img0.shape
     n_dim = len(shape0)
-    if axis is None:
-        # collect images in output array for efficiency
-        out_shape = (n_imgs,) + shape0
-        out_data = np.empty(out_shape)
-    else:
-        # collect images in list for use with np.concatenate
-        out_data = [None] * n_imgs
+    # collect images in a list; stacking/concatenating later preserves the input
+    # data dtype instead of upcasting to float64, so an integer image round-trips
+    # through save/load without precision loss (gh-986)
+    out_data = [None] * n_imgs
     # Get part of shape we need to check inside loop
     idx_mask = np.ones((n_dim,), dtype=bool)
     if axis is not None:
@@ -141,7 +138,7 @@ def concat_images(images, check_affines=True, axis=None):
         out_data[i] = np.asanyarray(img.dataobj)
 
     if axis is None:
-        out_data = np.rollaxis(out_data, 0, out_data.ndim)
+        out_data = np.stack(out_data, axis=-1)
     else:
         out_data = np.concatenate(out_data, axis=axis)
 
