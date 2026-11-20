@@ -6,7 +6,56 @@
 #   copyright and license terms.
 #
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
-"""Utilities for calculating and applying affine orientations"""
+"""Utilities for calculating and applying affine orientations
+
+The orientation system in NiBabel represents the transformation from
+data array indices to world coordinates, conventionally using RAS+ (Right,
+Anterior, Superior) as the standard world coordinate system.
+
+An orientation is represented as a (n, 2) array where:
+- Each row corresponds to an input axis
+- The first column indicates the output axis that the input axis maps to
+- The second column indicates the direction (1 for same direction, -1 for opposite)
+
+For example, an orientation [[0, 1], [1, -1], [2, 1]] means:
+- Input axis 0 maps to output axis 0 (same direction)
+- Input axis 1 maps to output axis 1 (opposite direction)
+- Input axis 2 maps to output axis 2 (same direction)
+
+The orientation system is designed to work with the concept of transforming
+images to/from RAS+ coordinate system, where:
+- RAS+ is the standard world coordinate system
+- Input images are described by their orientation relative to RAS+
+- The system allows composition of transformations through ornt_transform
+
+Examples
+--------
+>>> from nibabel.orientations import *
+>>> import numpy as np
+
+>>> # Basic orientation calculation
+>>> affine = np.eye(4)
+>>> ornt = io_orientation(affine)
+>>> print(ornt)
+[[0. 1.]
+ [1. 1.]
+ [2. 1.]]
+
+>>> # Transform from one orientation to another
+>>> ras_ornt = io_orientation(np.eye(4))
+>>> lia_ornt = io_orientation([[-1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]])
+>>> transform = ornt_transform(ras_ornt, lia_ornt)
+>>> print(transform)
+[[ 0. -1.]
+ [ 2.  1.]
+ [ 1. -1.]]
+
+>>> # Convert to axis codes
+>>> axcodes = ornt2axcodes(lia_ornt)
+>>> print(axcodes)
+('L', 'I', 'A')
+
+"""
 
 import numpy as np
 import numpy.linalg as npl
@@ -98,18 +147,63 @@ def io_orientation(affine, tol=None):
 def ornt_transform(start_ornt, end_ornt):
     """Return the orientation that transforms from `start_ornt` to `end_ornt`.
 
+    Computes the transformation that converts an orientation from one coordinate
+    system to another. This is particularly useful for converting between 
+    different image orientations.
+
     Parameters
     ----------
     start_ornt : (n,2) orientation array
-        Initial orientation.
-
+        Initial orientation - describes how the input data relates to world coordinates.
     end_ornt : (n,2) orientation array
-        Final orientation.
+        Final orientation - describes how the desired output relates to world coordinates.
 
     Returns
     -------
-    orientations : (p, 2) ndarray
+    orientations : (n, 2) ndarray
        The orientation that will transform the `start_ornt` to the `end_ornt`.
+       
+    Notes
+    -----
+    The ornt_transform function is essential for composing orientation transformations.
+    It calculates how to convert from one orientation representation to another.
+    
+    For example, if you have:
+    - An image with orientation `start_ornt` (say LIA)
+    - And you want to convert it to orientation `end_ornt` (say RAS)
+    
+    Then `ornt_transform(start_ornt, end_ornt)` gives you the transformation
+    needed to perform this conversion.
+    
+    This is often used as::
+
+        transform = ornt_transform(img_ornt, target_ornt)
+
+    and the resulting ``transform`` is passed to :func:`apply_orientation`
+    together with the data array and ``img_ornt``, while the image affine is
+    reoriented with :func:`ornt_transform` composed through
+    :func:`io_orientation` conventions.
+    
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from nibabel.orientations import ornt_transform, io_orientation
+    
+    >>> # Convert from RAS to LIA
+    >>> ras_ornt = io_orientation(np.eye(4))  # RAS orientation
+    >>> lia_ornt = io_orientation([[-1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]])  # LIA orientation
+    >>> transform = ornt_transform(ras_ornt, lia_ornt)
+    >>> print(transform)
+    [[ 0. -1.]
+     [ 2.  1.]
+     [ 1. -1.]]
+    
+    >>> # Mapping back: from LIA to RAS
+    >>> back_to_ras = ornt_transform(lia_ornt, ras_ornt)
+    >>> print(back_to_ras)
+    [[ 0. -1.]
+     [ 2. -1.]
+     [ 1.  1.]]
     """
     start_ornt = np.asarray(start_ornt)
     end_ornt = np.asarray(end_ornt)
@@ -255,6 +349,9 @@ def flip_axis(arr, axis=0):
 def ornt2axcodes(ornt, labels=None):
     """Convert orientation `ornt` to labels for axis directions
 
+    Converts an orientation array to human-readable axis codes, typically used
+    to describe the anatomical orientation of an image.
+
     Parameters
     ----------
     ornt : (N,2) array-like
@@ -274,9 +371,42 @@ def ornt2axcodes(ornt, labels=None):
         labels for positive end of voxel axes.  Dropped axes get a label of
         None.
 
+    Notes
+    -----
+    Axis codes are commonly used to represent anatomical orientations:
+    - 'L': Left
+    - 'R': Right  
+    - 'P': Posterior
+    - 'A': Anterior
+    - 'I': Inferior
+    - 'S': Superior
+    
+    The orientation array format [[0, 1], [1, -1], [2, 1]] means:
+    - Input axis 0 maps to output axis 0 in same direction (R)
+    - Input axis 1 maps to output axis 1 in opposite direction (P becomes A)
+    - Input axis 2 maps to output axis 2 in same direction (S)
+    
     Examples
     --------
-    >>> ornt2axcodes([[1, 1],[0,-1],[2,1]], (('L','R'),('B','F'),('D','U')))
+    >>> import numpy as np
+    >>> from nibabel.orientations import ornt2axcodes, io_orientation
+    
+    >>> # Standard RAS orientation
+    >>> ras_ornt = io_orientation(np.eye(4))
+    >>> axcodes = ornt2axcodes(ras_ornt)
+    >>> print(axcodes)
+    ('R', 'A', 'S')
+    
+    >>> # LIA orientation (common in neuroimaging)
+    >>> lia_affine = [[-1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
+    >>> lia_ornt = io_orientation(lia_affine)
+    >>> axcodes = ornt2axcodes(lia_ornt)
+    >>> print(axcodes)
+    ('L', 'I', 'A')
+    
+    >>> # Custom labels
+    >>> axcodes = ornt2axcodes([[1, 1],[0,-1],[2,1]], (('L','R'),('B','F'),('D','U')))
+    >>> print(axcodes)
     ('F', 'L', 'U')
     """
     if labels is None:
@@ -302,6 +432,8 @@ def ornt2axcodes(ornt, labels=None):
 def axcodes2ornt(axcodes, labels=None):
     """Convert axis codes `axcodes` to an orientation
 
+    Converts human-readable axis codes to the internal orientation array format.
+
     Parameters
     ----------
     axcodes : (N,) tuple
@@ -318,12 +450,37 @@ def axcodes2ornt(axcodes, labels=None):
     ornt : (N,2) array-like
         orientation array - see io_orientation docstring
 
+    Notes
+    -----
+    This function is the inverse of ornt2axcodes and is used to convert
+    human-readable anatomical orientation descriptions into the internal
+    orientation representation used by NiBabel.
+    
     Examples
     --------
-    >>> axcodes2ornt(('F', 'L', 'U'), (('L','R'),('B','F'),('D','U')))
-    array([[ 1.,  1.],
-           [ 0., -1.],
-           [ 2.,  1.]])
+    >>> import numpy as np
+    >>> from nibabel.orientations import axcodes2ornt, io_orientation
+    
+    >>> # Standard RAS orientation
+    >>> ornt = axcodes2ornt(('R', 'A', 'S'))
+    >>> print(ornt)
+    [[0. 1.]
+     [1. 1.]
+     [2. 1.]]
+    
+    >>> # LIP orientation
+    >>> ornt = axcodes2ornt(('L', 'I', 'P'))
+    >>> print(ornt)
+    [[ 0. -1.]
+     [ 2. -1.]
+     [ 1. -1.]]
+    
+    >>> # Custom labels
+    >>> ornt = axcodes2ornt(('F', 'L', 'U'), (('L','R'),('B','F'),('D','U')))
+    >>> print(ornt)
+    [[ 1.  1.]
+     [ 0. -1.]
+     [ 2.  1.]]
     """
     labels = list(zip('LPI', 'RAS')) if labels is None else labels
     allowed_labels = sum(map(list, labels), [None])
