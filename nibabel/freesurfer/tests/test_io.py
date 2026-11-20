@@ -298,6 +298,30 @@ def test_write_annot_fill_ctab():
         assert names2 == names
 
 
+@pytest.mark.parametrize(
+    'dtype',
+    [np.uint8, np.int16, np.uint16, np.int32, np.int64, np.float16, np.float32, np.float64],
+)
+def test_write_annot_ctab_dtype(tmp_path, dtype):
+    """Test annotation values for colour tables with different dtypes."""
+    colours = [[25, 5, 25, 0], [140, 220, 220, 0], [255, 192, 32, 0]]
+    labels = np.array([0, 1, 2, 1, 2], dtype=np.int32)
+    names = ['a', 'b', 'c']
+    annot_path = tmp_path / 'colours.annot'
+    write_annot(annot_path, labels, np.array(colours, dtype=dtype), names)
+
+    # Check the stored annotation values independently of read_annot.
+    payload = annot_path.read_bytes()
+    records = np.frombuffer(payload, '>i4', count=2 * len(labels), offset=4).reshape(-1, 2)
+    packed = np.array([r + 256 * g + 65536 * b for r, g, b, _ in colours])
+    np.testing.assert_array_equal(records[:, 1], packed[labels])
+
+    labels2, ctab, _ = read_annot(annot_path)
+    np.testing.assert_array_equal(labels2, labels)
+    np.testing.assert_array_equal(ctab[:, :4], colours)
+    np.testing.assert_array_equal(ctab[:, 4], packed)
+
+
 @pytest.mark.thread_unsafe
 def test_read_annot_old_format():
     """Test reading an old-style .annot file."""

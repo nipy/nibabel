@@ -85,14 +85,17 @@ def _pack_rgb(rgb):
     Parameters
     ----------
     rgb : ndarray, shape (n, 3)
-        RGB colors
+        RGB colors in an array with an integer or floating-point dtype.
 
     Returns
     -------
     out : ndarray, shape (n, 1)
         Annotation values for each color.
     """
-    bitshifts = 2 ** np.array([[0], [8], [16]], dtype=rgb.dtype)
+    dtype = rgb.dtype
+    if dtype.itemsize < 4:
+        dtype = np.float32 if dtype.kind == 'f' else np.int32
+    bitshifts = 2 ** np.array([[0], [8], [16]], dtype=dtype)
     return rgb.dot(bitshifts)
 
 
