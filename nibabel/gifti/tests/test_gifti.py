@@ -563,6 +563,17 @@ def test_data_array_round_trip():
     assert_array_equal(vertices, verts)
 
 
+@pytest.mark.parametrize('ordering', ['RowMajorOrder', 'ColumnMajorOrder'])
+@pytest.mark.parametrize('shape', [(5,), (3, 4), (2, 3, 4), (2, 1, 3, 2), (1, 2, 1, 1, 3, 2)])
+def test_ascii_round_trip_nd(shape, ordering):
+    # GIFTI data arrays can have up to 6 dimensions
+    data = np.arange(np.prod(shape), dtype=np.int32).reshape(shape)
+    darray = GiftiDataArray(data, encoding='ASCII', ordering=ordering)
+    img = GiftiImage.from_bytes(GiftiImage(darrays=[darray]).to_bytes())
+    assert_array_equal(img.darrays[0].data, data)
+    assert img.darrays[0].data.shape == shape
+
+
 def test_darray_dtype_coercion_failures():
     dtypes = (np.uint8, np.int32, np.int64, np.float32, np.float64)
     encodings = ('ASCII', 'B64BIN', 'B64GZ')
