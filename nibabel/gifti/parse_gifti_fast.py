@@ -79,8 +79,14 @@ def read_data_block(darray, fname, data, mmap):
     shape = tuple(darray.dims)
     order = array_index_order_codes.npcode[darray.ind_ord]
 
+    # An empty <Data/> element (e.g. a zero-length array) gives no character data
+    if data is None:
+        data = ''
+
     # GIFTI_ENCODING_ASCII
     if enclabel == 'ASCII':
+        if not data.strip():
+            return np.empty(0, dtype=dtype).reshape(shape, order=order)
         return np.loadtxt(StringIO(data), dtype=dtype, ndmin=1).reshape(shape, order=order)
 
     # We assume that the external data file is raw uncompressed binary, with

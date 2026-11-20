@@ -563,6 +563,21 @@ def test_data_array_round_trip():
     assert_array_equal(vertices, verts)
 
 
+@pytest.mark.parametrize(
+    'encoding', ['GIFTI_ENCODING_ASCII', 'GIFTI_ENCODING_B64BIN', 'GIFTI_ENCODING_B64GZ']
+)
+@pytest.mark.parametrize('shape', [(0,), (0, 3)])
+def test_empty_data_array_round_trip(encoding, shape, recwarn):
+    # A zero-length array is written as an empty <Data/> element
+    arr = np.zeros(shape, dtype=np.float32)
+    img = GiftiImage(darrays=[GiftiDataArray(arr, encoding=encoding)])
+    gio = GiftiImage.from_bytes(img.to_bytes())
+    data = gio.darrays[0].data
+    assert data.dtype == np.float32
+    assert data.shape == shape
+    assert not recwarn.list
+
+
 def test_darray_dtype_coercion_failures():
     dtypes = (np.uint8, np.int32, np.int64, np.float32, np.float64)
     encodings = ('ASCII', 'B64BIN', 'B64GZ')
