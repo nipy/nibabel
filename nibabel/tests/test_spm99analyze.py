@@ -25,6 +25,7 @@ needs_scipy = unittest.skipUnless(have_scipy, 'scipy not available')
 
 from ..casting import sctypes_aliases, shared_range, type_info
 from ..spatialimages import HeaderDataError
+from ..spm2analyze import Spm2AnalyzeHeader
 from ..spm99analyze import HeaderTypeError, Spm99AnalyzeHeader, Spm99AnalyzeImage
 from ..testing import (
     assert_allclose_safely,
@@ -530,3 +531,20 @@ def test_origin_affine():
             [0.0, 0.0, 0.0, 1.0],
         ],
     )
+
+
+@pytest.mark.parametrize('header_class', [Spm99AnalyzeHeader, Spm2AnalyzeHeader])
+def test_origin_affine_preserves_header(header_class):
+    hdr = header_class()
+    hdr.set_data_shape((10, 12, 14))
+    hdr.set_zooms((2, 2, 2))
+    hdr['origin'][:3] = [5, 6, 7]
+    before = hdr.binaryblock
+
+    expected = np.diag([-2.0, 2.0, 2.0, 1.0])
+    expected[:3, 3] = [8, -10, -12]
+
+    assert_array_equal(hdr.get_origin_affine(), expected)
+    assert hdr.binaryblock == before
+    assert_array_equal(hdr.get_origin_affine(), expected)
+    assert hdr.binaryblock == before
