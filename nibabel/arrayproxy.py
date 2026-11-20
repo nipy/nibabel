@@ -28,6 +28,7 @@ See :mod:`nibabel.tests.test_proxy_api` for proxy API conformance checks.
 
 from __future__ import annotations
 
+import mmap
 import typing as ty
 import warnings
 from contextlib import contextmanager
@@ -80,13 +81,29 @@ class ArrayLike(ty.Protocol):
 
     # If no dtype is passed, any dtype might be returned, depending on the array-like
     @ty.overload
-    def __array__(self, dtype: None = ..., /) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
+    def __array__(
+        self, dtype: None = ..., *, copy: bool | None = ...
+    ) -> np.ndarray[ty.Any, np.dtype[ty.Any]]: ...
 
     # Any dtype might be passed, and *that* dtype must be returned
     @ty.overload
-    def __array__(self, dtype: _DType, /) -> np.ndarray[ty.Any, _DType]: ...
+    def __array__(
+        self, dtype: _DType, *, copy: bool | None = ...
+    ) -> np.ndarray[ty.Any, _DType]: ...
 
     def __getitem__(self, key, /) -> npt.NDArray: ...
+
+
+_NO_COPY_MSG = 'Unable to avoid copy while creating an array as requested.\n'
+
+
+def _is_mmapped(arr) -> bool:
+    """True if `arr` is a memory map of a file, not an array derived from one
+
+    Casting a memory map gives another ``np.memmap`` instance that owns its
+    data, so the class alone does not tell.
+    """
+    return isinstance(arr, np.memmap) and isinstance(arr.base, mmap.mmap)
 
 
 class ArrayProxy(ArrayLike):
@@ -384,12 +401,17 @@ class ArrayProxy(ArrayLike):
             with openers.ImageOpener(self.file_like, keep_open=False) as opener:
                 yield opener
 
-    def _get_unscaled(self, slicer):
-        if canonical_slicers(slicer, self._shape, False) == canonical_slicers(
+    def _get_unscaled(self, slicer, copy=None):
+        whole = canonical_slicers(slicer, self._shape, False) == canonical_slicers(
             (), self._shape, False
-        ):
+        )
+        # Only a memory map of the whole array is existing data to view; say
+        # so before reading anything when it is known not to be on offer
+        if copy is False and not (whole and self._mmap):
+            raise ValueError(_NO_COPY_MSG + 'The data is not memory-mapped.')
+        if whole:
             with self._get_fileobj() as fileobj, self._lock:
-                return array_from_file(
+                arr = array_from_file(
                     self._shape,
                     self._dtype,
                     fileobj,
@@ -397,6 +419,11 @@ class ArrayProxy(ArrayLike):
                     order=self.order,
                     mmap=self._mmap,
                 )
+            # A file that cannot be mapped (a compressed one, say) is read
+            # into memory instead, which only shows once it has happened
+            if copy is False and not _is_mmapped(arr):
+                raise ValueError(_NO_COPY_MSG + 'The file could not be memory-mapped.')
+            return arr
         with self._get_fileobj() as fileobj:
             return fileslice(
                 fileobj,
@@ -408,7 +435,15 @@ class ArrayProxy(ArrayLike):
                 lock=self._lock,
             )
 
-    def _get_scaled(self, dtype, slicer):
+    def _get_scaled(self, dtype, slicer, copy=None):
+        if copy is False:
+            # Scaling and casting both allocate, so refuse before the read
+            if (self._slope, self._inter) != (1, 0):
+                raise ValueError(_NO_COPY_MSG + 'The data has to be scaled.')
+            if dtype is not None and np.dtype(dtype) != self._dtype:
+                raise ValueError(
+                    _NO_COPY_MSG + f'The data has to be cast from {self._dtype} to {dtype}.'
+                )
         # Ensure scale factors have dtypes
         scl_slope = np.asanyarray(self._slope)
         scl_inter = np.asanyarray(self._inter)
@@ -419,8 +454,13 @@ class ArrayProxy(ArrayLike):
         if np.can_cast(scl_inter, use_dtype):
             scl_inter = scl_inter.astype(use_dtype)
         # Read array and upcast as necessary for big slopes, intercepts
-        scaled = apply_read_scaling(self._get_unscaled(slicer=slicer), scl_slope, scl_inter)
-        if dtype is not None:
+        # Subclasses written before ``copy`` existed do not take it
+        kwargs = {} if copy is None else {'copy': copy}
+        unscaled = self._get_unscaled(slicer=slicer, **kwargs)
+        scaled = apply_read_scaling(unscaled, scl_slope, scl_inter)
+        # Promotion normalizes byte order, so skip it when the dtype already
+        # matches, or a big-endian file would be cast twice to come back as is
+        if dtype is not None and scaled.dtype != np.dtype(dtype):
             scaled = scaled.astype(np.promote_types(scaled.dtype, dtype), copy=False)
         return scaled
 
@@ -431,7 +471,7 @@ class ArrayProxy(ArrayLike):
         """
         return self._get_unscaled(slicer=())
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, *, copy=None):
         """Read data from file and apply scaling, casting to ``dtype``
 
         If ``dtype`` is unspecified, the dtype of the returned array is the
@@ -446,15 +486,26 @@ class ArrayProxy(ArrayLike):
         ----------
         dtype : numpy dtype specifier, optional
             A numpy dtype specifier specifying the type of the returned array.
+        copy : {None, True, False}, optional
+            By default, calling ``__array__`` returns data with as few memory allocations
+            as possible. If ``copy=True`` is passed, the resulting array is guaranteed to be
+            newly allocated. If ``copy=False`` is passed, only arrays that can be memory
+            mapped will be returned, and a ``ValueError`` is raised if that is not possible.
 
         Returns
         -------
         array
             Scaled image data with type `dtype`.
         """
-        arr = self._get_scaled(dtype=dtype, slicer=())
+        # With copy=False, _get_scaled raises where the allocation would happen
+        # (and only then is it passed on: older subclasses do not take it)
+        kwargs = {} if copy is None else {'copy': copy}
+        arr = self._get_scaled(dtype=dtype, slicer=(), **kwargs)
         if dtype is not None:
             arr = arr.astype(dtype, copy=False)
+        # Whatever is not the memory map itself was allocated on the way here
+        if copy and _is_mmapped(arr):
+            arr = arr.copy()
         return arr
 
     def __getitem__(self, slicer):
