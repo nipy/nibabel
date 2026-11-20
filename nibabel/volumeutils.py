@@ -388,6 +388,17 @@ def _is_compressed_fobj(fobj: io.IOBase) -> bool:
     return isinstance(fobj, COMPRESSED_FILE_LIKES)
 
 
+# Chunk size for reading from file-likes without readinto; see array_from_file
+_READ_CHUNK_SIZE = 2**22
+
+
+def _short_read_message(n_bytes: int, n_read: int, infile: io.IOBase) -> str:
+    return (
+        f'Expected {n_bytes} bytes, got {n_read} bytes from '
+        f'{getattr(infile, "name", "object")}\n - could the file be damaged?'
+    )
+
+
 def array_from_file(
     shape: tuple[int, ...],
     in_dtype: np.dtype[DT],
@@ -443,7 +454,22 @@ def array_from_file(
     in_dtype = np.dtype(in_dtype)
     # Get file-like object from Opener instance
     infile = getattr(infile, 'fobj', infile)
+    # Use reduce and mul to work around numpy integer overflow
+    n_bytes = reduce(mul, shape) * in_dtype.itemsize if len(shape) else 0
     if mmap and not _is_compressed_fobj(infile):
+        # Check the file holds the data before mapping it; mapping past the
+        # end raises platform-specific errors (OSError on Windows,
+        # OverflowError on 32-bit) rather than the ValueError caught below
+        try:
+            infile.seek(0, 2)
+            n_available = max(infile.tell() - offset, 0)
+        except (AttributeError, TypeError, OSError):
+            # Minimal file-likes may lack tell() or whence, and cannot be
+            # mapped anyway
+            pass
+        else:
+            if n_available < n_bytes:
+                raise OSError(_short_read_message(n_bytes, n_available, infile))
         mode = 'c' if mmap is True else mmap
         try:  # Try memmapping file on disk
             return np.memmap(infile, in_dtype, mode=mode, shape=shape, order=order, offset=offset)
@@ -451,32 +477,42 @@ def array_from_file(
             # changed in different incarnations of the numpy routine
         except (AttributeError, TypeError, ValueError):
             pass
-    if len(shape) == 0:
-        return np.array([], in_dtype)
-    # Use reduce and mul to work around numpy integer overflow
-    n_bytes = reduce(mul, shape) * in_dtype.itemsize
     if n_bytes == 0:
         return np.array([], in_dtype)
     # Read data from file
     infile.seek(offset)
-    if hasattr(infile, 'readinto'):
-        data_bytes = bytearray(n_bytes)
-        n_read = infile.readinto(data_bytes)
-        needs_copy = False
-    else:
-        data_bytes = infile.read(n_bytes)
-        n_read = len(data_bytes)
-        needs_copy = True
+    try:
+        # np.empty does not touch its memory, so pages are only committed as
+        # data are read into them.  A header claiming far more data than the
+        # stream holds then fails on the short read, without first allocating
+        # (as bytearray would) memory for the full claimed size.
+        data = np.empty(n_bytes, dtype=np.uint8)
+    except (MemoryError, ValueError):
+        # Too large to allocate at all; report a short read if that is the
+        # real problem
+        n_read = len(infile.read(_READ_CHUNK_SIZE))
+        if n_read < _READ_CHUNK_SIZE:
+            raise OSError(_short_read_message(n_bytes, n_read, infile)) from None
+        raise
+    buf = memoryview(data)
+    readinto = getattr(infile, 'readinto', None)
+    n_read = 0
+    while n_read < n_bytes:
+        if readinto is not None:
+            # readinto only writes what it reads, so no need to chunk, and
+            # many small calls are slow for indexed_gzip
+            n_chunk = readinto(buf[n_read:])
+        else:
+            # read() may allocate the whole request up front
+            chunk = infile.read(min(n_bytes - n_read, _READ_CHUNK_SIZE))
+            n_chunk = len(chunk)
+            buf[n_read : n_read + n_chunk] = chunk
+        if not n_chunk:
+            break
+        n_read += n_chunk
     if n_bytes != n_read:
-        raise OSError(
-            f'Expected {n_bytes} bytes, got {n_read} bytes from '
-            f'{getattr(infile, "name", "object")}\n - could the file be damaged?'
-        )
-    arr: np.ndarray = np.ndarray(shape, in_dtype, buffer=data_bytes, order=order)
-    if needs_copy:
-        return arr.copy()
-    arr.flags.writeable = True
-    return arr
+        raise OSError(_short_read_message(n_bytes, n_read, infile))
+    return np.ndarray(shape, in_dtype, buffer=data, order=order)
 
 
 def array_to_file(
