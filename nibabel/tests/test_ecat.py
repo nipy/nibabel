@@ -18,6 +18,7 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 from ..ecat import (
     EcatHeader,
     EcatImage,
+    EcatImageArrayProxy,
     EcatSubHeader,
     get_frame_order,
     get_series_framenumbers,
@@ -234,6 +235,28 @@ class TestEcatImage(TestCase):
         prox = self.img.dataobj
         assert prox.is_proxy
         for sliceobj in slicer_samples(self.img.shape):
+            assert_array_equal(arr[sliceobj], prox[sliceobj])
+
+    def test_array_proxy_frame_slicing(self):
+        # Test slicing over the frames of a multi-frame image
+        class FourFrames:
+            _mlist = np.array([[16842753 + i, 0, 0, 1] for i in range(4)])
+
+            def get_shape(self):
+                return (2, 3, 4)
+
+            def get_nframes(self):
+                return 4
+
+            def data_from_fileobj(self, frame):
+                return np.arange(24.0).reshape(2, 3, 4) + 100 * frame
+
+        prox = EcatImageArrayProxy(FourFrames())
+        arr = np.array(prox)
+        assert_array_equal(arr[..., 2], np.arange(24.0).reshape(2, 3, 4) + 200)
+        for sliceobj in slicer_samples(prox.shape):
+            assert_array_equal(arr[sliceobj], prox[sliceobj])
+        for sliceobj in (np.s_[..., ::-1], np.s_[..., 1:], np.s_[..., 1:3], np.s_[0, :, 1, ::2]):
             assert_array_equal(arr[sliceobj], prox[sliceobj])
 
     @pytest.mark.thread_unsafe

@@ -738,9 +738,9 @@ class EcatImageArrayProxy:
         # Work out axis corresponding to volume in output
         in2out_ind = slice2outax(len(self.shape), sliceobj)[3]
         # Iterate over specified 4th axis indices
-        for i in list(range(self.shape[3]))[slice3]:
+        for out_i, i in enumerate(range(self.shape[3])[slice3]):
             data = self._subheader.data_from_fileobj(frame_mapping[i][0])
-            out_slicer[in2out_ind] = i
+            out_slicer[in2out_ind] = out_i
             out_data[tuple(out_slicer)] = data[in_slicer]
         return out_data
 
