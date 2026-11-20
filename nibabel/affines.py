@@ -338,12 +338,13 @@ def obliquity(affine):
     return np.arccos(best_cosines)
 
 
-def rescale_affine(affine, shape, zooms, new_shape=None):
+def rescale_affine(affine, shape, zooms, new_shape=None, *, center='voxel'):
     """Return a new affine matrix with updated voxel sizes (zooms)
 
     This function preserves the rotations and shears of the original
-    affine, as well as the RAS location of the central voxel of the
-    image.
+    affine, as well as the RAS location of the center of the image, defined
+    either as the central voxel (the default) or as the center of the field of
+    view (see `center`).
 
     Parameters
     ----------
@@ -359,13 +360,50 @@ def rescale_affine(affine, shape, zooms, new_shape=None):
     new_shape : (N-1,) array-like, optional
         The extent of the (N-1) dimensions of the space described by the
         new affine. If ``None``, use ``shape``.
+    center : {'voxel', 'image'}, optional, keyword-only
+        Which point keeps its RAS location.
+        If ``'voxel'`` (the default), the central voxel, at voxel coordinate
+        ``(shape - 1) // 2`` in the original image, is mapped to the same
+        location as the central voxel ``(new_shape - 1) // 2`` of the new
+        image. Along even-length axes, the central voxel is the one just
+        before the midpoint. Because the new central voxel is centered on an
+        original voxel, the two grids share voxel centers when one voxel size
+        is an integer multiple of the other, as when conforming an image with
+        :func:`nibabel.processing.conform`.
+        If ``'image'``, the center of the field of view, at voxel coordinate
+        ``(shape - 1) / 2``, is preserved. When the new shape and zooms cover
+        the same field of view as the original, the outer edges of the two
+        grids coincide. This is the convention used by, e.g., SimpleITK and
+        TorchIO when resampling an image.
 
     Returns
     -------
     affine : (N, N) array
         A new affine transform with the specified voxel sizes
 
+    Examples
+    --------
+    Rescale a 1mm isotropic 4x4x4 image to a 2mm isotropic 2x2x2 image.
+    By default, voxel (1, 1, 1) of the original image, at (1, 1, 1) mm, is the
+    central voxel and becomes voxel (0, 0, 0) of the new image:
+
+    >>> rescale_affine(np.eye(4), (4, 4, 4), (2, 2, 2), (2, 2, 2))
+    array([[2., 0., 0., 1.],
+           [0., 2., 0., 1.],
+           [0., 0., 2., 1.],
+           [0., 0., 0., 1.]])
+
+    With ``center='image'``, the center of the image, at (1.5, 1.5, 1.5) mm,
+    is preserved, and both images span -0.5mm to 3.5mm along each axis:
+
+    >>> rescale_affine(np.eye(4), (4, 4, 4), (2, 2, 2), (2, 2, 2), center='image')
+    array([[2. , 0. , 0. , 0.5],
+           [0. , 2. , 0. , 0.5],
+           [0. , 0. , 2. , 0.5],
+           [0. , 0. , 0. , 1. ]])
     """
+    if center not in ('voxel', 'image'):
+        raise ValueError(f"center must be 'voxel' or 'image', got {center!r}")
     shape = np.asarray(shape)
     new_shape = np.array(new_shape if new_shape is not None else shape)
 
@@ -373,6 +411,10 @@ def rescale_affine(affine, shape, zooms, new_shape=None):
     rzs_out = affine[:-1, :-1] * zooms / s
 
     # Using xyz = A @ ijk, determine translation
-    centroid = apply_affine(affine, (shape - 1) // 2)
-    t_out = centroid - rzs_out @ ((new_shape - 1) // 2)
+    if center == 'voxel':
+        centroid = apply_affine(affine, (shape - 1) // 2)
+        t_out = centroid - rzs_out @ ((new_shape - 1) // 2)
+    else:
+        centroid = apply_affine(affine, (shape - 1) / 2)
+        t_out = centroid - rzs_out @ ((new_shape - 1) / 2)
     return from_matvec(rzs_out, t_out)
