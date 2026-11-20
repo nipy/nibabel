@@ -25,6 +25,14 @@ Eric Larson (EL), Demian Wassermann, Stephan Gerhard and Ross Markello (RM).
 
 References like "pr/298" refer to github pull request numbers.
 
+Next release
+============
+
+Bug fixes
+---------
+* Load MINC1 vector images without requiring a coordinate variable for
+  ``vector_dimension`` (Dhairya Jangir).
+
 5.5.0 (Monday 9 November 2026)
 ==============================
 
