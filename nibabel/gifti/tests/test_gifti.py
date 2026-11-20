@@ -537,6 +537,7 @@ ExternalFileName="" ExternalFileOffset="">
     _check_gifti(gio)
     # Write and read again
     bio.seek(0)
+    bio.truncate()
     gio.to_file_map(fmap)
     bio.seek(0)
     gio2 = GiftiImage.from_file_map(fmap)
@@ -561,6 +562,22 @@ def test_data_array_round_trip():
     gio = GiftiImage.from_file_map(fmap)
     vertices = gio.darrays[0].data
     assert_array_equal(vertices, verts)
+
+
+@pytest.mark.parametrize('encoding', ['ASCII', 'B64BIN', 'B64GZ'])
+def test_float_round_trip_precision(encoding):
+    # Small and non-terminating values must survive the text representations
+    # (ASCII data and MatrixData) without rounding to a fixed number of decimals
+    data = np.array([1e-30, 1 / 3, 5e-7, -123456.789, np.pi], dtype=np.float32)
+    xform = np.eye(4)
+    xform[:3, :3] = [[0, -1 / 3, 0], [1e-9, 0, 2 / 3], [1 / 7, 0, 0]]
+    xform[:3, 3] = [-12.3456789, 98.7654321, 1e-8]
+    coordsys = GiftiCoordSystem(dataspace=3, xformspace=3, xform=xform)
+    img = GiftiImage(darrays=[GiftiDataArray(data, encoding=encoding, coordsys=coordsys)])
+
+    darray = GiftiImage.from_bytes(img.to_bytes()).darrays[0]
+    assert_array_equal(darray.data, data)
+    assert_array_equal(darray.coordsys.xform, xform)
 
 
 def test_darray_dtype_coercion_failures():
