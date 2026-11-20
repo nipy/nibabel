@@ -184,7 +184,8 @@ def from_matvec(matrix, vector=None):
     """
     matrix = np.asarray(matrix)
     nin, nout = matrix.shape
-    t = np.zeros((nin + 1, nout + 1), matrix.dtype)
+    dtype = matrix.dtype if vector is None else np.result_type(matrix, np.asarray(vector))
+    t = np.zeros((nin + 1, nout + 1), dtype)
     t[0:nin, 0:nout] = matrix
     t[nin, nout] = 1.0
     if vector is not None:
@@ -237,7 +238,8 @@ def append_diag(aff, steps, starts=()):
         raise AffineError('Steps should have same length as starts')
     old_n_out, old_n_in = aff.shape[0] - 1, aff.shape[1] - 1
     # make new affine
-    aff_plus = np.zeros((old_n_out + n_steps + 1, old_n_in + n_steps + 1), dtype=aff.dtype)
+    dtype = np.result_type(aff, steps, starts) if n_steps else aff.dtype
+    aff_plus = np.zeros((old_n_out + n_steps + 1, old_n_in + n_steps + 1), dtype=dtype)
     # Get stuff from old affine
     aff_plus[:old_n_out, :old_n_in] = aff[:old_n_out, :old_n_in]
     aff_plus[:old_n_out, -1] = aff[:old_n_out, -1]
