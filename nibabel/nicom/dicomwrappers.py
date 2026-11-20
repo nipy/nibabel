@@ -996,8 +996,8 @@ class MultiframeWrapper(Wrapper):
             scale, offset = scale_factors[0]
             return self._apply_scale_offset(data, scale, offset)
         orig_shape = data.shape
-        data = data.reshape(data.shape[:2] + (len(self.frames),))
-        return (data * scale_factors[:, 0] + scale_factors[:, 1]).reshape(orig_shape)
+        data = data.reshape(data.shape[:2] + (len(self.frames),), order='F')
+        return (data * scale_factors[:, 0] + scale_factors[:, 1]).reshape(orig_shape, order='F')
 
 
 class SiemensWrapper(Wrapper):
