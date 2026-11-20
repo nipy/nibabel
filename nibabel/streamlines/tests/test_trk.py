@@ -26,8 +26,6 @@ DATA = {}
 
 
 def setup_module():
-    global DATA
-
     DATA['empty_trk_fname'] = pjoin(data_path, 'empty.trk')
     # simple.trk contains only streamlines
     DATA['simple_trk_fname'] = pjoin(data_path, 'simple.trk')

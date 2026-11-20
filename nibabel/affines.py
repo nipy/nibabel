@@ -307,8 +307,8 @@ def voxel_sizes(affine):
         Voxel sizes for each input axis of affine.  Usually 1D array length 3,
         but in general has length (N-1) where input `affine` is shape (M, N).
     """
-    top_left = affine[:-1, :-1]
-    return np.sqrt(np.sum(top_left**2, axis=0))
+    top_left = np.asarray(affine)[:-1, :-1]
+    return np.linalg.norm(top_left, axis=0)
 
 
 def obliquity(affine):

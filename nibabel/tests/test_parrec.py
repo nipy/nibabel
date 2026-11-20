@@ -1,6 +1,7 @@
 """Testing parrec module"""
 
 from glob import glob
+from io import StringIO
 from os.path import basename, dirname
 from os.path import join as pjoin
 from warnings import simplefilter
@@ -287,7 +288,7 @@ def test_affine_regression():
     # Checked against Michael's data using some GUI tools
     # Data at http://psydata.ovgu.de/philips_achieva_testfiles/conversion2
     for basename_affine, exp_affine in PREVIOUS_AFFINES.items():
-        fname = pjoin(DATA_PATH, basename_affine + '.PAR')
+        fname = pjoin(DATA_PATH, f'{basename_affine}.PAR')
         with open(fname) as fobj:
             hdr = PARRECHeader.from_fileobj(fobj)
         assert_almost_equal(hdr.get_affine(), exp_affine)
@@ -475,6 +476,53 @@ def test_truncated_load():
         assert len(wlist) == 1
 
 
+def test_truncated_general_info_line():
+    # General information line cut before its colon is a PAR format error
+    with open(EG_PAR) as fobj:
+        text = fobj.read()
+    cut = text.index('Max. number of slices/locations') + len('Max. number of slices')
+    with pytest.raises(PARRECError):
+        parse_PAR_header(StringIO(text[:cut]))
+
+
+@pytest.mark.parametrize('image_no', [1, 2])
+@pytest.mark.parametrize(
+    ('par_file', 'expected_values', 'n_values'),
+    [(EG_PAR, 49, 10), (EG_PAR, 49, 17), (V41_PAR, 48, 46)],
+)
+def test_truncated_image_info_line(par_file, expected_values, n_values, image_no):
+    # Image information line with too few values is a PAR format error
+    with open(par_file) as fobj:
+        lines = fobj.readlines()
+    first = next(i for i, line in enumerate(lines) if line.strip()[:1].isdigit())
+    row = first + image_no - 1
+    lines[row] = ' '.join(lines[row].split()[:n_values]) + '\n'
+    with pytest.raises(PARRECError) as exc:
+        parse_PAR_header(StringIO(''.join(lines)))
+    message, summary = str(exc.value).splitlines()
+    assert message == f'Image information line has {n_values} values, expected {expected_values}'
+    assert summary.startswith(f'Image information line {image_no}: ')
+    assert len(summary) <= 80
+
+
+@pytest.mark.parametrize(
+    ('line', 'expected_summary'),
+    [
+        ('1 2', 'Image information line 1: 1 2'),
+        ('1' + ' ' * 52 + '2', 'Image information line 1: 1' + ' ' * 52 + '2'),
+        ('1' + ' ' * 53 + '2', 'Image information line 1: 1' + ' ' * 48 + '[...]'),
+    ],
+)
+def test_image_info_error_summary(line, expected_summary):
+    # Preserve summaries up to 80 characters and truncate longer ones.
+    with pytest.raises(PARRECError) as exc:
+        parrec._process_image_lines([f'{line}\n'], 'V4.2')
+    assert str(exc.value).splitlines() == [
+        'Image information line has 2 values, expected 49',
+        expected_summary,
+    ]
+
+
 def test_vol_calculations():
     # Test vol_is_full on sample data
     for par, fobj in gen_par_fobj():
@@ -562,7 +610,7 @@ def test_null_diffusion_params():
 def test_epi_params():
     # Check EPI conversion
     for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
-        epi_par = pjoin(DATA_PATH, par_root + '.PAR')
+        epi_par = pjoin(DATA_PATH, f'{par_root}.PAR')
         with open(epi_par) as fobj:
             epi_hdr = PARRECHeader.from_fileobj(fobj)
         assert len(epi_hdr.get_data_shape()) == 4
@@ -572,7 +620,7 @@ def test_epi_params():
 def test_xyzt_unit_conversion():
     # Check conversion to NIfTI-like has sensible units
     for par_root in ('T2_-interleaved', 'T2_', 'phantom_EPI_asc_CLEAR_2_1'):
-        epi_par = pjoin(DATA_PATH, par_root + '.PAR')
+        epi_par = pjoin(DATA_PATH, f'{par_root}.PAR')
         with open(epi_par) as fobj:
             epi_hdr = PARRECHeader.from_fileobj(fobj)
         nifti_hdr = Nifti1Header.from_header(epi_hdr)

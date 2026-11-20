@@ -192,7 +192,18 @@ contributed code and discussion (in rough order of appearance):
 * Alex Daniel
 * Jon Cluce
 * `Leonardo Ayala`_
-* Remi Gau
+* Rémi Gau
+* Michael Krause
+* Karolina Surma
+* Cedric Conday
+* Nagizaaz Shaik
+* Venish Paneliya
+* Siddhardha Nanda
+* Nathan Suttie
+* Jeffrey Cooney
+* Erfan Mohamadboland
+* Gabriel Lafis
+* Don Yin
 
 License reprise
 ===============

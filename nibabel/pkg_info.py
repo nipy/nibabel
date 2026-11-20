@@ -107,6 +107,7 @@ def pkg_commit_hash(pkg_path: str | None = None) -> tuple[str, str]:
     with suppress(FileNotFoundError):
         proc = run(
             ('git', 'rev-parse', '--short', 'HEAD'),
+            check=False,
             capture_output=True,
             cwd=pkg_path,
         )

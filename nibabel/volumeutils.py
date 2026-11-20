@@ -330,7 +330,7 @@ def pretty_mapping(
     >>> def getter(obj, key):
     ...     # Look for any 'get_<name>' methods
     ...     try:
-    ...         return obj.__getattribute__('get_' + key)()
+    ...         return obj.__getattribute__(f'get_{key}')()
     ...     except AttributeError:
     ...         return obj[key]
     >>> print(pretty_mapping(C(), getter))
@@ -1277,10 +1277,10 @@ def finite_range(
             max_good = False
             if np.isnan(maxes[s]):
                 has_nan = True
-            elif maxes[s] != np.inf:
+            elif np.isfinite(maxes[s]):
                 max_good = True
                 mins[s] = np.min(this_slice)
-                if mins[s] != -np.inf:
+                if np.isfinite(mins[s]):
                     # Only case where we escape the default np.isfinite
                     # algorithm
                     continue

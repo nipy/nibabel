@@ -33,7 +33,7 @@ def test_loading():
         pimg = load(par)
         assert pimg.shape[:3] == (80, 80, 10)
         # Compare against NIFTI if present
-        nifti_fname = pjoin(BALLS, 'NIFTI', par_root + '.nii.gz')
+        nifti_fname = pjoin(BALLS, 'NIFTI', f'{par_root}.nii.gz')
         if exists(nifti_fname):
             nimg = top_load(nifti_fname)
             assert_almost_equal(nimg.affine[:3, :3], pimg.affine[:3, :3], 3)
@@ -70,7 +70,7 @@ def test_oblique_loading():
         pimg = load(par)
         assert pimg.shape == (560, 560, 1)
         # Compare against NIFTI if present
-        nifti_fname = pjoin(OBLIQUE, 'NIFTI', par_root + '.nii')
+        nifti_fname = pjoin(OBLIQUE, 'NIFTI', f'{par_root}.nii')
         nimg = top_load(nifti_fname)
         assert_almost_equal(nimg.affine[:3, :3], pimg.affine[:3, :3], 3)
         # The translation part is always off

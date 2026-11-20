@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_array_equal
 
-from nibabel import nifti1 as nifti1
+from nibabel import nifti1
 from nibabel.affines import from_matvec
 from nibabel.casting import have_binary128, type_info
 from nibabel.eulerangles import euler2mat
@@ -39,9 +39,10 @@ from nibabel.optpkg import optional_package
 from nibabel.pkg_info import cmp_pkg_version
 from nibabel.spatialimages import HeaderDataError
 from nibabel.tmpdirs import InTemporaryDirectory
+from nibabel.volumeutils import native_code
 
 from ..freesurfer import load as mghload
-from ..orientations import aff2axcodes
+from ..orientations import aff2axcodes, inv_ornt_aff
 from ..testing import (
     bytesio_filemap,
     bytesio_round_trip,
@@ -284,9 +285,8 @@ class TestNifti1PairHeader(tana.TestAnalyzeHeader, tspm.HeaderScalingMixin):
         fhdr, message, raiser = self.log_chk(hdr, 40)
         assert fhdr['vox_offset'] == hdr.single_vox_offset
         assert (
-            message == 'vox offset 10 too low for single '
-            'file nifti1; setting to minimum value '
-            'of ' + str(hdr.single_vox_offset)
+            message == 'vox offset 10 too low for single file nifti1; '
+            f'setting to minimum value of {hdr.single_vox_offset}'
         )
 
     def test_freesurfer_large_vector_hack(self):
@@ -1017,7 +1017,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         hdr_len = len(img.header.binaryblock)
         img.header['vox_offset'] = hdr_len + 400
         with InTemporaryDirectory():
-            img.to_filename('another_file' + ext)
+            img.to_filename(f'another_file{ext}')
 
     @pytest.mark.thread_unsafe
     def test_load_save(self):
@@ -1035,7 +1035,7 @@ class TestNifti1Pair(tana.TestAnalyzeImage, tspm.ImageScalingMixin):
         assert_array_equal(img2.get_fdata(), data)
         with InTemporaryDirectory() as tmpdir:
             for ext in ('', '.gz', '.bz2'):
-                fname = os.path.join(tmpdir, 'test' + img_ext + ext)
+                fname = os.path.join(tmpdir, f'test{img_ext}{ext}')
                 img.to_filename(fname)
                 img3 = IC.load(fname)
                 assert isinstance(img3, img.__class__)
@@ -1308,6 +1308,15 @@ def test_extension_list():
     assert not ext_c0 == ext_c1
     ext_c0.append(ext)
     assert ext_c0 == ext_c1
+
+
+@pytest.mark.parametrize('esize', [0, -16])
+@pytest.mark.parametrize('endianness', ['<', '>'])
+def test_undersized_extension_does_not_read_payload(esize, endianness):
+    bio = BytesIO(struct.pack(f'{endianness}ii', esize, 6) + b'sentinel')
+    with pytest.raises(HeaderDataError):
+        Nifti1Extensions.from_fileobj(bio, -1, endianness != native_code)
+    assert bio.tell() == 8
 
 
 @pytest.mark.thread_unsafe
@@ -1584,6 +1593,82 @@ class TestNifti1General:
                 bias_thresh = np.max([max_miss / np.sqrt(count), eps])
                 assert np.abs(bias) < bias_thresh
 
+    def test_reoriented_preserves_xform_codes(self):
+        # gh-1427: reorienting permutes and flips axes, it does not move the
+        # image into another space, so the sform/qform codes must survive.
+        # dcm2niix writes scanner anat (code 1) for both.
+        affine = np.diag([-2.0, 2, 2, 1])
+        affine[:3, 3] = [10, -20, -30]
+        img = self.single_class(np.zeros((4, 4, 4)), affine)
+        img.header.set_sform(affine, code=1)
+        img.header.set_qform(affine, code=1)
+
+        reoriented = img.as_reoriented([[0, -1], [1, 1], [2, 1]])
+
+        assert int(reoriented.header['sform_code']) == 1
+        assert int(reoriented.header['qform_code']) == 1
+        # The header must still describe the affine the image reports.
+        assert_array_equal(reoriented.affine, reoriented.header.get_best_affine())
+
+    def test_reoriented_keeps_qform_and_sform_in_their_own_spaces(self):
+        # gh-1546 review: a scanner qform (code 1) next to an sform registered
+        # to MNI (code 4).  Each form must be reoriented from its own matrix;
+        # img.affine is the sform here, and copying it into the qform slot
+        # would label MNI coordinates as scanner coordinates.
+        shape = (4, 5, 6)
+        qform = np.diag([-2.0, 2, 2, 1])
+        qform[:3, 3] = [10, -20, -30]
+        sform = np.array([[0, 0, -2.0, 5], [0, 2.0, 0, -7], [2.0, 0, 0, 3], [0, 0, 0, 1]])
+        img = self.single_class(np.zeros(shape), sform)
+        img.header.set_sform(sform, code=4)
+        img.header.set_qform(qform, code=1)
+        ornt = [[1, -1], [0, 1], [2, -1]]
+
+        reoriented = img.as_reoriented(ornt)
+
+        vox_ornt = inv_ornt_aff(ornt, shape)
+        new_sform, new_scode = reoriented.header.get_sform(coded=True)
+        new_qform, new_qcode = reoriented.header.get_qform(coded=True)
+        assert new_scode == 4
+        assert new_qcode == 1
+        assert_almost_equal(new_sform, sform @ vox_ornt)
+        assert_almost_equal(new_qform, qform @ vox_ornt)
+        assert_array_equal(reoriented.affine, reoriented.header.get_best_affine())
+
+    def test_reoriented_leaves_unset_xform_codes_alone(self):
+        # An image with no qform has nothing to preserve there, and clearing
+        # what the affine write-back set could leave it with no valid form.
+        affine = np.diag([-2.0, 2, 2, 1])
+        img = self.single_class(np.zeros((4, 4, 4)), affine)
+        img.header.set_sform(affine, code=4)
+        img.header.set_qform(None, code=0)
+
+        reoriented = img.as_reoriented([[0, -1], [1, 1], [2, 1]])
+
+        assert int(reoriented.header['sform_code']) == 4
+        assert int(reoriented.header['qform_code']) == 0
+        assert_array_equal(reoriented.affine, reoriented.header.get_best_affine())
+
+    def test_reoriented_slice_times(self):
+        # Each slice keeps its acquisition time when the slice axis is flipped
+        arr = np.zeros((7, 3, 7), dtype='f4')
+        img = self.single_class(arr, np.diag([2, 3, 4, 1]))
+        for slice_dim in (0, 2):
+            img.header.set_dim_info(slice=slice_dim)
+            img.header.set_slice_duration(0.1)
+            for slice_code in range(1, 7):
+                img.header['slice_code'] = slice_code
+                for slice_start, slice_end in ((0, 0), (0, 6), (1, 5), (2, 6), (0, 4)):
+                    img.header['slice_start'], img.header['slice_end'] = slice_start, slice_end
+                    times = np.array(img.header.get_slice_times(), dtype=float)
+                    for ornt in ALL_ORNTS:
+                        ornt = np.array(ornt)
+                        rimg = img.as_reoriented(ornt)
+                        new_times = np.array(rimg.header.get_slice_times(), dtype=float)
+                        # See test_reoriented_dim_info() if you can't remember how to read ornts
+                        # off the top of your head. This is the cheapest test for a slice flip.
+                        assert_array_equal(new_times, times[:: ornt[slice_dim, 1]])
+
     def test_reoriented_dim_info(self):
         # Check that dim_info is reoriented correctly
         arr = np.arange(24, dtype='f4').reshape((2, 3, 4))
@@ -1614,6 +1699,11 @@ class TestNifti1General:
                 new_pdir = dirs[new_phas] if new_phas is not None else None
                 new_sdir = dirs[new_slic] if new_slic is not None else None
                 assert (new_fdir, new_pdir, new_sdir) == (fdir, pdir, sdir)
+                # Verify ornt[slic, 1] is a shorthand for flipping the slice direction
+                # This is just to convince ourselves that we are using the right condition
+                # in test_reoriented_slice_times()
+                if sdir is not None:
+                    assert (sdir in axcode) == (ornt[slic][1] == 1)
 
 
 @runif_extra_has('slow')

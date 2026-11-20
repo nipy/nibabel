@@ -732,6 +732,35 @@ def test_series():
         assert sr != sr_other
 
 
+@pytest.mark.parametrize('size', [0, 1, 4, 5])
+@pytest.mark.parametrize(
+    'selection',
+    [
+        slice(None, None, 2),
+        slice(None, None, -2),
+        slice(-100, None),
+        slice(None, -100, -2),
+        slice(5, None, -1),
+        slice(100, None, -2),
+        slice(-100, None, -1),
+        slice(100, 200),
+    ],
+)
+def test_series_slice_matches_numpy(size, selection):
+    axis = axes.SeriesAxis(3, 2, size, 'HERTZ')
+    sliced = axis[selection]
+    expected = axis.time[selection]
+    np.testing.assert_array_equal(sliced.time, expected)
+    assert sliced.size == expected.size
+    assert sliced.unit == axis.unit
+    assert sliced.step == axis.step * (selection.step or 1)
+
+
+def test_series_slice_zero_step():
+    with pytest.raises(ValueError, match='slice step cannot be zero'):
+        axes.SeriesAxis(3, 2, 5)[::0]
+
+
 def test_writing():
     """
     Tests the writing and reading back in of custom created CIFTI-2 axes
@@ -740,6 +769,24 @@ def test_writing():
         for ax2 in get_axes():
             arr = np.random.randn(len(ax1), len(ax2))
             check_rewrite(arr, (ax1, ax2))
+
+
+@pytest.mark.parametrize('axis', [*get_axes(), axes.SeriesAxis(start=-1000, step=1000, size=3)])
+@pytest.mark.parametrize(
+    'index_type',
+    [int, np.uint8, np.int32],
+)
+def test_integer_index(axis, index_type):
+    start = 0 if np.issubdtype(index_type, np.unsignedinteger) else -len(axis)
+    for index in range(start, len(axis)):
+        np.testing.assert_equal(axis[index_type(index)], axis[index])
+
+    for index in (len(axis), len(axis) + 1):
+        with pytest.raises(IndexError):
+            axis[index_type(index)]
+    if start < 0:
+        with pytest.raises(IndexError):
+            axis[index_type(-len(axis) - 1)]
 
 
 def test_common_interface():

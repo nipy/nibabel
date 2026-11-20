@@ -157,11 +157,11 @@ class ApiDocWriter:
         """
         if uri == self.package_name:
             return os.path.join(self.root_path, '__init__.py')
-        path = uri.replace(self.package_name + '.', '')
+        path = uri.replace(f'{self.package_name}.', '')
         path = path.replace('.', os.path.sep)
         path = os.path.join(self.root_path, path)
         # XXX maybe check for extensions as well?
-        if os.path.exists(path + '.py'):  # file
+        if os.path.exists(f'{path}.py'):  # file
             path += '.py'
         elif os.path.exists(os.path.join(path, '__init__.py')):
             path = os.path.join(path, '__init__.py')
@@ -185,7 +185,7 @@ class ApiDocWriter:
             # nothing that we could handle here.
             return ([], [])
 
-        f = open(filename, 'rt')
+        f = open(filename)
         functions, classes = self._parse_lines(f)
         f.close()
         return functions, classes
@@ -217,7 +217,7 @@ class ApiDocWriter:
                 continue
             obj = mod.__dict__[obj_str]
             # Check if function / class defined in module
-            if not self.other_defines and not getmodule(obj) == mod:
+            if not self.other_defines and getmodule(obj) != mod:
                 continue
             # figure out if obj is a function or class
             if isinstance(obj, (FunctionType, BuiltinFunctionType)):
@@ -274,7 +274,7 @@ class ApiDocWriter:
 
         # Make a shorter version of the uri that omits the package name for
         # titles
-        uri_short = re.sub(r'^%s\.' % self.package_name, '', uri)
+        uri_short = re.sub(rf'^{self.package_name}\.', '', uri)
 
         head = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
         body = ''
@@ -282,20 +282,23 @@ class ApiDocWriter:
         # Set the chapter title to read 'module' for all modules except for the
         # main packages
         if '.' in uri_short:
-            title = 'Module: :mod:`' + uri_short + '`'
-            head += title + '\n' + self.rst_section_levels[2] * len(title)
+            title = f'Module: :mod:`{uri_short}`'
+            underline = self.rst_section_levels[2] * len(title)
+            head += f'{title}\n{underline}'
         else:
-            title = ':mod:`' + uri_short + '`'
-            head += title + '\n' + self.rst_section_levels[1] * len(title)
+            title = f':mod:`{uri_short}`'
+            underline = self.rst_section_levels[1] * len(title)
+            head += f'{title}\n{underline}'
 
-        head += '\n.. automodule:: ' + uri + '\n'
-        head += '\n.. currentmodule:: ' + uri + '\n'
-        body += '\n.. currentmodule:: ' + uri + '\n\n'
+        head += f'\n.. automodule:: {uri}\n'
+        head += f'\n.. currentmodule:: {uri}\n'
+        body += f'\n.. currentmodule:: {uri}\n\n'
         for c in classes:
-            body += '\n:class:`' + c + '`\n' + self.rst_section_levels[3] * (len(c) + 9) + '\n\n'
-            body += '\n.. autoclass:: ' + c + '\n'
-            # must NOT exclude from index to keep cross-refs working
+            underline = self.rst_section_levels[3] * (len(c) + 9)
             body += (
+                f'\n:class:`{c}`\n{underline}\n\n'
+                f'\n.. autoclass:: {c}\n'
+                # must NOT exclude from index to keep cross-refs working
                 '  :members:\n'
                 '  :undoc-members:\n'
                 '  :show-inheritance:\n'
@@ -304,14 +307,13 @@ class ApiDocWriter:
             )
         head += '.. autosummary::\n\n'
         for f in classes + functions:
-            head += '   ' + f + '\n'
+            head += f'   {f}\n'
         head += '\n'
 
         for f in functions:
             # must NOT exclude from index to keep cross-refs working
-            body += f + '\n'
-            body += self.rst_section_levels[3] * len(f) + '\n'
-            body += '\n.. autofunction:: ' + f + '\n\n'
+            underline = self.rst_section_levels[3] * len(f)
+            body += f'{f}\n{underline}\n\n.. autofunction:: {f}\n\n'
 
         return head, body
 
@@ -393,10 +395,10 @@ class ApiDocWriter:
                 f[:-3] for f in filenames if f.endswith('.py') and not f.startswith('__init__')
             ]
             for filename in filenames:
-                package_uri = '/'.join((dirpath, filename))
+                package_uri = f'{dirpath}/{filename}'
 
             for subpkg_name in dirnames + filenames:
-                package_uri = '.'.join((root_uri, subpkg_name))
+                package_uri = f'{root_uri}.{subpkg_name}'
                 package_path = self._uri2path(package_uri)
                 if package_path and self._survives_exclude(package_uri, 'package'):
                     modules.append(package_uri)
@@ -425,7 +427,7 @@ class ApiDocWriter:
             document_body = []
 
             for m in mods:
-                print('  -> ' + m)
+                print(f'  -> {m}')
                 head, body = self.generate_api_doc(m)
 
                 document_head.append(head)
@@ -433,7 +435,7 @@ class ApiDocWriter:
 
             out_module = ulm + self.rst_extension
             outfile = os.path.join(outdir, out_module)
-            fileobj = open(outfile, 'wt')
+            fileobj = open(outfile, 'w')
 
             fileobj.writelines(document_head + document_body)
             fileobj.close()
@@ -469,8 +471,6 @@ class ApiDocWriter:
 
         Parameters
         ----------
-        path : string
-            Filename to write index to
         outdir : string
             Directory to which to write generated index file
         froot : string, optional
@@ -491,12 +491,12 @@ class ApiDocWriter:
             relpath = (outdir + os.path.sep).replace(relative_to + os.path.sep, '')
         else:
             relpath = outdir
-        idx = open(path, 'wt')
+        idx = open(path, 'w')
         w = idx.write
         w('.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n')
 
         title = 'API Reference'
-        w(title + '\n')
+        w(f'{title}\n')
         w('=' * len(title) + '\n\n')
         w('.. toctree::\n\n')
         for f in self.written_modules:

@@ -145,3 +145,24 @@ class TestBadVars:
         for var in self.vars:
             with pytest.raises(self.module.AFNIHeaderError):
                 self.module._unpack_var(var)
+
+
+def test_complex_brick(tmp_path):
+    # BRICK_TYPES 5 is complex64: two float32 values per voxel
+    info = brikhead.parse_AFNI_header(EXAMPLE_IMAGES[0]['head'])
+    info.update(
+        DATASET_DIMENSIONS=[4, 5, 6],
+        DATASET_RANK=[3, 1, 0, 0, 0, 0, 0, 0],
+        BRICK_TYPES=5,
+        BRICK_FLOAT_FACS=0,
+    )
+    hdr = brikhead.AFNIHeader(info)
+    assert hdr.get_data_dtype() == np.dtype('<c8')
+    data = (
+        (np.arange(120) + 1j * np.arange(120, 0, -1))
+        .astype('<c8')
+        .reshape(hdr.get_data_shape(), order='F')
+    )
+    brik = tmp_path / 'complex+orig.BRIK'
+    brik.write_bytes(data.tobytes(order='F'))
+    assert_array_equal(np.asanyarray(brikhead.AFNIArrayProxy(str(brik), hdr)), data)

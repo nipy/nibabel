@@ -282,7 +282,8 @@ def test_parrec2nii():
         for eg_dict in PARREC_EXAMPLES:
             fname = eg_dict['fname']
             run_command(['parrec2nii', fname])
-            out_froot = splitext(basename(fname))[0] + '.nii'
+            froot, _ = splitext(basename(fname))
+            out_froot = f'{froot}.nii'
             img = load(out_froot)
             assert img.shape == eg_dict['shape']
             assert_dt_equal(img.get_data_dtype(), eg_dict['dtype'])
@@ -333,13 +334,13 @@ def test_parrec2nii_with_data():
                 continue
             # Do conversion
             run_command(['parrec2nii', par])
-            conved_img = load(par_root + '.nii')
+            conved_img = load(f'{par_root}.nii')
             # Confirm parrec2nii conversions are LAS
             assert aff2axcodes(conved_img.affine) == tuple('LAS')
             # Shape same whether LPS or LAS
             assert conved_img.shape[:3] == (80, 80, 10)
             # Test against original converted NIfTI
-            nifti_fname = pjoin(BALLS, 'NIFTI', par_root + '.nii.gz')
+            nifti_fname = pjoin(BALLS, 'NIFTI', f'{par_root}.nii.gz')
             if exists(nifti_fname):
                 philips_img = load(nifti_fname)
                 # Confirm Philips converted image always LPS

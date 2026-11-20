@@ -53,7 +53,7 @@ class Pointset:
 
     Parameters
     ----------
-    coords : array-like
+    coordinates : array-like
       (*N*, *n*) array with *N* being points and columns their *n*-dimensional coordinates
     affine : :class:`numpy.ndarray`
       Affine transform to be applied to coordinates array
@@ -130,11 +130,6 @@ class Pointset:
         as_homogeneous : :class:`bool`
             Return homogeneous coordinates if ``True``, or Cartesian
             coordinates if ``False``.
-
-        name : :class:`str`
-            Select a particular coordinate system if more than one may exist.
-            By default, `None` is equivalent to `"world"` and corresponds to
-            an RAS+ coordinate system.
         """
         ident = np.allclose(self.affine, np.eye(self.affine.shape[0]))
         if self.homogeneous == as_homogeneous and ident:

@@ -52,16 +52,16 @@ def cp_files(in_path, globs, out_path):
 
 def filename_search_replace(sr_pairs, filename, backup=False):
     """Search and replace for expressions in files"""
-    in_txt = open(filename, 'rt').read(-1)
+    in_txt = open(filename).read(-1)
     out_txt = in_txt[:]
     for in_exp, out_exp in sr_pairs:
         in_exp = re.compile(in_exp)
         out_txt = in_exp.sub(out_exp, out_txt)
     if in_txt == out_txt:
         return False
-    open(filename, 'wt').write(out_txt)
+    open(filename, 'w').write(out_txt)
     if backup:
-        open(filename + '.bak', 'wt').write(in_txt)
+        open(f'{filename}.bak', 'w').write(in_txt)
     return True
 
 
@@ -105,21 +105,21 @@ def make_link_targets(
     .. _`proj_name`: url
     .. _`proj_name` mailing list: url
     """
-    link_contents = open(known_link_fname, 'rt').readlines()
+    link_contents = open(known_link_fname).readlines()
     have_url = not url is None
     have_ml_url = not ml_url is None
     have_gh_url = None
     for line in link_contents:
         if not have_url:
-            match = re.match(r'..\s+_%s:\s+' % proj_name, line)
+            match = re.match(rf'..\s+_{proj_name}:\s+', line)
             if match:
                 have_url = True
         if not have_ml_url:
-            match = re.match(r'..\s+_`%s mailing list`:\s+' % proj_name, line)
+            match = re.match(rf'..\s+_`{proj_name} mailing list`:\s+', line)
             if match:
                 have_ml_url = True
         if not have_gh_url:
-            match = re.match(r'..\s+_`%s github`:\s+' % proj_name, line)
+            match = re.match(rf'..\s+_`{proj_name} github`:\s+', line)
             if match:
                 have_gh_url = True
     if not have_url or not have_ml_url:
@@ -137,7 +137,7 @@ def make_link_targets(
         return
     # A neat little header line
     lines = [f'.. {proj_name}\n'] + lines
-    out_links = open(out_link_fname, 'wt')
+    out_links = open(out_link_fname, 'w')
     out_links.writelines(lines)
     out_links.close()
 

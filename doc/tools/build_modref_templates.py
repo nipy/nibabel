@@ -1,19 +1,18 @@
 #!/usr/bin/env python
-"""Script to auto-generate our API docs.
-"""
+"""Script to auto-generate our API docs."""
 
 import os
 import re
 
 # stdlib imports
 import sys
-
-# version comparison
-from packaging.version import Version as V
 from os.path import join as pjoin
 
 # local imports
 from apigen import ApiDocWriter
+
+# version comparison
+from packaging.version import Version as V
 
 # *****************************************************************************
 
@@ -39,7 +38,7 @@ if __name__ == '__main__':
     try:
         __import__(package)
     except ImportError:
-        abort('Can not import ' + package)
+        abort(f'Can not import {package}')
 
     module = sys.modules[package]
 
@@ -94,4 +93,4 @@ if __name__ == '__main__':
     ]
     docwriter.write_api_docs(outdir)
     docwriter.write_index(outdir, 'index', relative_to=outdir)
-    print('%d files written' % len(docwriter.written_modules))
+    print(f'{len(docwriter.written_modules)} files written')

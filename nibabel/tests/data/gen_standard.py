@@ -86,4 +86,4 @@ if __name__ == '__main__':
     # Save the standard tractogram in every available file format.
     for ext, cls in FORMATS.items():
         tfile = cls(tractogram, header)
-        nib.streamlines.save(tfile, 'standard' + ext)
+        nib.streamlines.save(tfile, f'standard{ext}')

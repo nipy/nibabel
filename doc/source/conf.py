@@ -60,7 +60,7 @@ if Version(np.__version__) >= Version('1.22'):
 rel = run_path(os.path.join('..', '..', 'nibabel', 'info.py'))
 
 # Write long description from info
-with open('_long_description.inc', 'wt') as fobj:
+with open('_long_description.inc', 'w') as fobj:
     fobj.write(rel['long_description'])
 
 # Load metadata from setup.cfg
@@ -87,7 +87,7 @@ extensions = [
 
 # Extensions configuration
 copybutton_exclude = '.linenos, .gp, .go'
-copybutton_selector = ":not(.prompt) > div.highlight pre"
+copybutton_selector = ':not(.prompt) > div.highlight pre'
 
 # Autosummary always wants to use a `generated/` directory.
 # We generate with `make api-stamp`
@@ -108,7 +108,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'NiBabel'
-copyright = f"2006, {authors['name']} <{authors['email']}>"
+copyright = f'2006, {authors["name"]} <{authors["email"]}>'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -225,7 +225,7 @@ html_theme_options = {
             'icon': 'fa-solid fa-users',
             'type': 'fontawesome',
         },
-    ]
+    ],
 }
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -265,7 +265,7 @@ html_index = 'index.html'
 
 # Keep a useful left sidebar with navigation/search while staying theme-neutral.
 html_sidebars = {
-    "**": ["sidebar-nav-bs"],
+    '**': ['sidebar-nav-bs'],
 }
 
 # Additional templates that should be rendered to pages, maps page names to

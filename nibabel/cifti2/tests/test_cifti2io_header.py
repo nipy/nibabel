@@ -196,7 +196,7 @@ def test_cifti2types():
             ]
 
     for klass, count in counter.items():
-        assert count > 0, 'No exercise of ' + klass.__name__
+        assert count > 0, f'No exercise of {klass.__name__}'
 
 
 @needs_nibabel_data('nitest-cifti2')
@@ -449,7 +449,7 @@ class TestCifti2SingleHeader(tn2.TestNifti2SingleHeader):
         hdr['pixdim'][1] = -2  # severity 35
         fhdr, message, raiser = self.log_chk(hdr, 35)
         assert fhdr['pixdim'][1] == 2
-        assert message == self._pixdim_message + '; setting to abs of pixdim values'
+        assert message == f'{self._pixdim_message}; setting to abs of pixdim values'
 
         pytest.raises(*raiser)
 

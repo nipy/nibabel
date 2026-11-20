@@ -14,7 +14,6 @@ SEQ_DATA = {}
 
 
 def setup_module():
-    global SEQ_DATA
     rng = np.random.RandomState(42)
     SEQ_DATA['rng'] = rng
     SEQ_DATA['data'] = generate_data(nb_arrays=5, common_shape=(3,), rng=rng)
@@ -66,6 +65,63 @@ def check_arr_seq_view(seq_view, seq):
     assert np.may_share_memory(seq_view._data, seq._data)
     assert seq_view._offsets is not seq._offsets
     assert seq_view._lengths is not seq._lengths
+
+
+@pytest.mark.parametrize('operation', ['constructor', 'generator', 'extend', 'cached_append'])
+@pytest.mark.parametrize('shape', [(1, 1), (2, 1), (2, 2)])
+def test_build_rejects_mismatched_common_shape(operation, shape):
+    elements = [np.ones((2, 3)), np.full(shape, 7)]
+    seq = ArraySequence()
+    with pytest.raises(
+        ValueError, match='All dimensions, except the first one, must match exactly'
+    ):
+        if operation == 'constructor':
+            ArraySequence(elements)
+        elif operation == 'generator':
+            ArraySequence(iter(elements))
+        elif operation == 'extend':
+            seq.extend(elements)
+        else:
+            for element in elements:
+                seq.append(element, cache_build=True)
+
+
+def test_cached_append_shape_error_preserves_previous_elements():
+    first = np.arange(6).reshape(2, 3)
+    seq = ArraySequence(buffer_size=1.0 / 1024**2)
+    seq.append(first, cache_build=True)
+    data_before = seq._data.copy()
+
+    with pytest.raises(
+        ValueError, match='All dimensions, except the first one, must match exactly'
+    ):
+        seq.append(np.ones((2, 1)), cache_build=True)
+
+    np.testing.assert_array_equal(seq._data, data_before)
+    seq.finalize_append()
+    check_arr_seq(seq, [first])
+
+
+@pytest.mark.parametrize('operation', ['constructor', 'generator', 'extend', 'cached_append'])
+def test_build_accepts_empty_elements_and_variable_lengths(operation):
+    first = np.arange(6, dtype=np.float32).reshape(2, 3)
+    second = np.array([[7, 8, 9]], dtype=np.float32)
+    elements = [np.empty((0, 3), dtype=np.float32), first, np.empty((0, 1)), second]
+    if operation == 'constructor':
+        seq = ArraySequence(elements)
+    elif operation == 'generator':
+        seq = ArraySequence(iter(elements))
+    else:
+        seq = ArraySequence()
+        if operation == 'extend':
+            seq.extend(elements)
+        else:
+            for element in elements:
+                seq.append(element, cache_build=True)
+            seq.finalize_append()
+
+    check_arr_seq(seq, [first, second])
+    assert seq._data.dtype == np.float32
 
 
 class TestArraySequence(unittest.TestCase):
@@ -326,6 +382,29 @@ class TestArraySequence(unittest.TestCase):
         # Invalid index.
         with pytest.raises(TypeError):
             seq[object()] = None
+
+    def test_empty_arraysequence_operators(self):
+        for source in (ArraySequence(), ArraySequence([np.ones((2, 3))])[:0]):
+            for op, value in (
+                ('__add__', 1),
+                ('__truediv__', 2),
+                ('__eq__', 1),
+                ('__neg__', None),
+                ('__add__', source.copy()),
+                ('__iadd__', 1),
+            ):
+                seq = source.copy()
+                args = [] if value is None else [value]
+                result = getattr(seq, op)(*args)
+                expected_args = [value._data[:0]] if isinstance(value, ArraySequence) else args
+                expected = getattr(source._data[:0], op)(*expected_args)
+                assert len(result) == 0
+                assert result._data.shape == expected.shape
+                assert result._data.dtype == expected.dtype
+                assert (result is seq) == (op == '__iadd__')
+
+            with pytest.raises(ValueError):
+                source + ArraySequence([np.ones((2, 3))])
 
     def test_arraysequence_operators(self):
         # Disable division per zero warnings.

@@ -20,7 +20,7 @@ def _err(msg=None):
     """To return a string to signal "error" in output table"""
     if msg is None:
         msg = 'error'
-    return '!' + msg
+    return f'!{msg}'
 
 
 def verbose(thing, msg):
@@ -90,7 +90,7 @@ def ap(helplist, format_, sep=', '):
 def safe_get(obj, name):
     """A getattr which would return '-' if getattr fails"""
     try:
-        f = getattr(obj, 'get_' + name)
+        f = getattr(obj, f'get_{name}')
         return f()
     except Exception as e:
         verbose(2, f'get_{name}() failed -- {e}')

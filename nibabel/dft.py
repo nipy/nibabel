@@ -469,7 +469,7 @@ class _DB:
 
     def _init_db(self):
         if self.verbose:
-            logger.info('db filename: ' + self.fname)
+            logger.info(f'db filename: {self.fname}')
 
         self._session = sqlite3.connect(self.fname, isolation_level='EXCLUSIVE')
         with self.readwrite_cursor() as c:

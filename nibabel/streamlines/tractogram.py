@@ -162,7 +162,7 @@ class PerArrayDict(SliceableDataDict):
             raise ValueError(msg)
 
         self.n_rows += other.n_rows
-        for key in other.keys():
+        for key in other.keys():  # noqa: SIM118
             if key not in self:
                 self[key] = other[key]
             else:
@@ -636,7 +636,7 @@ class LazyTractogram(Tractogram):
         lazy_tractogram : :class:`LazyTractogram` object
             New lazy tractogram.
         """
-        lazy_tractogram = cls(lambda: tractogram.streamlines.copy())
+        lazy_tractogram = cls(tractogram.streamlines.copy)
 
         # Set data_per_streamline using data_func
         def _gen(key):

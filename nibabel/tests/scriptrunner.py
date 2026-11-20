@@ -69,7 +69,7 @@ class ScriptRunner:
         module_sdir : str, optional
             Name of subdirectory in top-level directory (directory containing
             setup.py), to find main package directory.
-        debug_print_vsr : str, optional
+        debug_print_var : str, optional
             Name of environment variable that indicates whether to do debug
             printing or no.
         output_processor : callable
@@ -80,7 +80,7 @@ class ScriptRunner:
         self.local_module_dir = local_module_dir(module_sdir)
         if debug_print_var is None:
             debug_print_var = f'{module_sdir.upper()}_DEBUG_PRINT'
-        self.debug_print = os.environ.get(debug_print_var, False)
+        self.debug_print = os.environ.get(debug_print_var)
         self.output_processor = output_processor
 
     def run_command(self, cmd, check_code=True):

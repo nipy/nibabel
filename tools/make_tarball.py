@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Simple script to create a tarball with proper git info.
-"""
+"""Simple script to create a tarball with proper git info."""
 
 import os
 

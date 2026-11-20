@@ -279,7 +279,7 @@ the sform: ``get_qform()``, ``set_qform()``.
        [  0.  ,   0.  ,   0.  ,   1.  ]]), 1)
 
 The qform also has a corresponding ``qform_code`` with the same interpretation
-as the `sform_code`.
+as the ``sform_code``.
 
 The fall-back header affine
 ===========================
