@@ -166,3 +166,35 @@ def test_complex_brick(tmp_path):
     brik = tmp_path / 'complex+orig.BRIK'
     brik.write_bytes(data.tobytes(order='F'))
     assert_array_equal(np.asanyarray(brikhead.AFNIArrayProxy(str(brik), hdr)), data)
+
+
+@pytest.mark.parametrize('tp', EXAMPLE_IMAGES)
+def test_optional_attributes(tp, tmp_path):
+    # BYTEORDER_STRING and IJK_TO_DICOM_REAL are optional; without them, the
+    # byte order is native and the affine comes from ORIGIN, DELTA and
+    # ORIENT_SPECIFIC
+    with open(tp['head']) as fobj:
+        attrs = fobj.read().split('\n\n')
+    optional = {'BYTEORDER_STRING', 'IJK_TO_DICOM_REAL'}
+    attrs = [attr for attr in attrs if optional.isdisjoint(brikhead.NAME_RE.findall(attr))]
+    head = tmp_path / 'minimal+orig.HEAD'
+    head.write_text('\n\n'.join(attrs))
+    img = brikhead.load(str(head))
+    assert optional.isdisjoint(img.header.info)
+    assert img.get_data_dtype() == np.dtype(tp['dtype'])  # native
+    assert_array_equal(img.affine, tp['affine'])
+
+
+def test_affine_from_cardinal_axes():
+    info = brikhead.parse_AFNI_header(EXAMPLE_IMAGES[0]['head'])
+    del info['IJK_TO_DICOM_REAL']
+    # Dataset axes are A-P, S-I, L-R
+    info.update(ORIENT_SPECIFIC=[3, 5, 1], ORIGIN=[-10.0, 20.0, 30.0], DELTA=[2.0, -3.0, -4.0])
+    affine = brikhead.AFNIHeader(info).get_affine()
+    # Center of voxel (i, j, k) is at dataset coordinates ORIGIN + ijk * DELTA,
+    # which are (y, z, x) in DICOM (LPS) coordinates
+    for ijk in [(0, 0, 0), (1, 2, 3), (5, 0, 7)]:
+        dset_xyz = np.array(info['ORIGIN']) + np.array(ijk) * info['DELTA']
+        lps = dset_xyz[[2, 0, 1]]
+        ras = lps * [-1, -1, 1]
+        assert_array_equal(affine @ (*ijk, 1), (*ras, 1))

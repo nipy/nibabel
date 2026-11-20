@@ -155,7 +155,7 @@ def _get_datatype(info):
     0=uint, 1=int16, 3=float32, 5=complex64 (see ``_dtype_dict``).  This should
     generally be the same value for each sub-brick in the dataset.
     """
-    bo = info['BYTEORDER_STRING']
+    bo = info.get('BYTEORDER_STRING')
     bt = info['BRICK_TYPES']
     if isinstance(bt, list):
         if np.unique(bt).size > 1:
@@ -388,9 +388,20 @@ class AFNIHeader(SpatialHeader):
                [  0.    ,   0.    ,   3.    , -52.3511],
                [  0.    ,   0.    ,   0.    ,   1.    ]])
         """
+        if 'IJK_TO_DICOM_REAL' in self.info:
+            affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
+        else:
+            # IJK_TO_DICOM_REAL is optional; fall back to the mandatory
+            # cardinal axes attributes.  ORIGIN and DELTA are given in dataset
+            # axis order, already in DICOM sign convention, and
+            # ORIENT_SPECIFIC // 2 is the DICOM axis (0=x, 1=y, 2=z) of each
+            # dataset axis.
+            affine = np.zeros((3, 4))
+            for axis, orient in enumerate(self.info['ORIENT_SPECIFIC']):
+                affine[orient // 2, axis] = self.info['DELTA'][axis]
+                affine[orient // 2, 3] = self.info['ORIGIN'][axis]
         # AFNI default is RAI- == LPS+ == DICOM order.  We need to flip RA sign
         # to align with nibabel RAS+ system
-        affine = np.asarray(self.info['IJK_TO_DICOM_REAL']).reshape(3, 4)
         affine = np.vstack((affine * [[-1], [-1], [1]], [0, 0, 0, 1]))
         return affine
 
