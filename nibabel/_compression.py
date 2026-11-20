@@ -13,6 +13,7 @@ from __future__ import annotations
 import bz2
 import gzip
 import io
+import os
 import typing as ty
 
 try:
@@ -27,6 +28,7 @@ from .optpkg import optional_package
 
 if ty.TYPE_CHECKING:
     import indexed_gzip  # type: ignore[import]
+    from isal import igzip  # type: ignore[import-not-found]
 
     if not HAVE_ZSTD:  # PY313
         from backports import zstd  # type: ignore[import]
@@ -34,6 +36,7 @@ if ty.TYPE_CHECKING:
         HAVE_ZSTD = True
 
     HAVE_INDEXED_GZIP = True
+    HAVE_ISAL = True
     HAVE_ZSTD = True
 
     ModeRT = ty.Literal['r', 'rt']
@@ -46,6 +49,7 @@ if ty.TYPE_CHECKING:
 
 else:
     indexed_gzip, HAVE_INDEXED_GZIP, _ = optional_package('indexed_gzip')
+    igzip, HAVE_ISAL, _ = optional_package('isal.igzip')
     if not HAVE_ZSTD:  # PY313
         zstd, HAVE_ZSTD, _ = optional_package('backports.zstd')
 
@@ -124,8 +128,12 @@ def gzip_open(
     If opening a file for reading, and ``indexed_gzip`` is available,
     an ``IndexedGzipFile`` is returned.
 
-    Otherwise (opening for writing, or ``indexed_gzip`` not available),
-    a ``DeterministicGzipFile`` is returned.
+    For writing, ISA-L is used when installed and an explicit compression
+    level from 0 through 3 is requested. Otherwise a
+    ``DeterministicGzipFile`` is returned. Both writers omit the filename
+    and use the requested modification time, but their compressed bytes can
+    differ. Set ``NIBABEL_USE_ISAL=0`` to keep zlib output even when ISA-L is
+    installed.
 
     Parameters:
     -----------
@@ -143,7 +151,23 @@ def gzip_open(
         Whether to keep the file handle open between reads. Ignored when writing,
         or when ``indexed_gzip`` is not present.
     """
-    if not HAVE_INDEXED_GZIP or mode != 'rb':
+    if (
+        HAVE_ISAL
+        and os.environ.get('NIBABEL_USE_ISAL') != '0'
+        and mode in ('w', 'wb')
+        and compresslevel in (0, 1, 2, 3)
+    ):
+        # Pass an empty filename to keep the gzip header independent of the path.
+        fileobj = open(filename, 'wb')
+        try:
+            gzip_file = igzip.IGzipFile(
+                filename='', mode='wb', compresslevel=compresslevel, fileobj=fileobj, mtime=mtime
+            )
+        except BaseException:
+            fileobj.close()
+            raise
+        gzip_file.myfileobj = fileobj
+    elif not HAVE_INDEXED_GZIP or mode != 'rb':
         gzip_file = DeterministicGzipFile(filename, mode, compresslevel, mtime=mtime)
 
     # use indexed_gzip if possible for faster read access.  If keep_open ==

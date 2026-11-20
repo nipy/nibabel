@@ -43,6 +43,13 @@ Windows), and type::
 
 This will download and install NiBabel.
 
+For optional ISA-L acceleration of gzip writes, install ``nibabel[isal]``.
+When ISA-L is available, NiBabel uses it for explicit gzip compression levels
+0 through 3; other levels continue to use the standard library. ISA-L and
+zlib can produce different compressed bytes for the same data, although both
+produce valid gzip files. Set ``NIBABEL_USE_ISAL=0`` to select zlib when
+byte-for-byte compatibility with zlib output is required.
+
 If you really like doing stuff manually, you can install NiBabel by downloading
 the source from `NiBabel pypi`_ .  Go to the pypi page and select the source
 distribution you want.  Download the distribution, unpack it, and then, from
