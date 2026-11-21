@@ -474,14 +474,16 @@ def _read_annot_ctab_new_format(fobj, ctab_version):
     np.fromfile(fobj, f'|S{length}', 1)[0]  # Orig table path
     # number of LUT entries present in the file
     entries_to_read = np.fromfile(fobj, dt, 1)[0]
-    names = list()
+    # Only non-empty entries are stored, each with its index; keep the names
+    # aligned with the rows of ctab
+    names = [b''] * max_index
     for _ in range(entries_to_read):
         # index of this entry
         idx = np.fromfile(fobj, dt, 1)[0]
         # structure name length + string
         name_length = np.fromfile(fobj, dt, 1)[0]
         name = np.fromfile(fobj, f'|S{name_length}', 1)[0]
-        names.append(name)
+        names[idx] = name
         # RGBT
         ctab[idx, :4] = np.fromfile(fobj, dt, 4)
 

@@ -10,7 +10,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_array_equal
 
 from ...fileslice import strided_scalar
 from ...testing import clear_and_catch_warnings
@@ -390,6 +390,43 @@ def test_label_shape(tmp_path, read_scalars, n_vertices):
 
 
 @pytest.mark.thread_unsafe
+def test_read_annot_ctab_gaps():
+    # FreeSurfer writes only the non-empty entries of a colour table, each
+    # with its index, so the indices may have gaps (e.g. FreeSurferColorLUT)
+    dt = '>i'
+    entries = {
+        0: ('Unknown', (25, 5, 25)),
+        3: ('Left-Cerebral-White', (245, 245, 245)),
+        5: ('Left-Inf-Lat-Vent', (196, 58, 250)),
+    }
+    vlabels = np.array([3, 5, 5, 0])
+    rgb = np.array([entries[i][1] for i in vlabels])
+    fbytes = struct.pack(dt, len(vlabels))
+    for vert, annot in enumerate(_pack_rgb(rgb).ravel()):
+        fbytes += struct.pack(dt + 'i', vert, annot)
+    # colour table present, version 2, max index + 1, original LUT name
+    fbytes += struct.pack(dt + 'iii', 1, -2, 6, 23) + b'FreeSurferColorLUT.txt\x00'
+    fbytes += struct.pack(dt, len(entries))
+    for idx, (name, color) in entries.items():
+        fbytes += struct.pack(dt + 'i', idx, len(name) + 1) + name.encode() + b'\x00'
+        fbytes += struct.pack(dt + 'iii', *color, 0)
+    with InTemporaryDirectory():
+        with open('gaps.annot', 'wb') as f:
+            f.write(fbytes)
+        labels, ctab, names = read_annot('gaps.annot')
+    assert_array_equal(labels, vlabels)
+    assert len(names) == len(ctab) == 6
+    for idx, (name, color) in entries.items():
+        assert names[idx] == name.encode()
+        assert_array_equal(ctab[idx, :3], color)
+    assert [names[label] for label in labels] == [
+        b'Left-Cerebral-White',
+        b'Left-Inf-Lat-Vent',
+        b'Left-Inf-Lat-Vent',
+        b'Unknown',
+    ]
+
+
 def test_write_annot_maxstruct():
     """Test writing ANNOT files with repeated labels"""
     with InTemporaryDirectory():
