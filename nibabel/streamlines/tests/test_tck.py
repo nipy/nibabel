@@ -10,7 +10,7 @@ from numpy.testing import assert_array_equal
 from ...testing import data_path, error_warnings
 from ..array_sequence import ArraySequence
 from ..tck import TckFile
-from ..tractogram import Tractogram
+from ..tractogram import LazyTractogram, Tractogram
 from ..tractogram_file import DataError, HeaderError, HeaderWarning
 from .test_tractogram import assert_tractogram_equal
 
@@ -201,6 +201,38 @@ class TestTCK(unittest.TestCase):
         tck.header['new_entry'] = 'val:ue'  # : not allowed
         with pytest.raises(HeaderError):
             tck.save(tck_file)
+
+    def test_write_matches_lazy_tractogram(self):
+        # Saving a Tractogram writes the same bytes as streaming the same
+        # streamlines through a LazyTractogram, including for sliced views,
+        # float64 points, empty streamlines and several write blocks.
+        rng = np.random.default_rng(0)
+        lengths = rng.integers(0, 20, 25)
+        lengths[3] = 0
+        points = [rng.normal(size=(n, 3)) for n in lengths]
+        for dtype in ('<f4', '<f8'):
+            seq = ArraySequence(p.astype(dtype) for p in points)
+            for streams in (seq, seq[1:], seq[::-2], seq[[4, 3, 4, 0]]):
+                tractogram = Tractogram(streams, affine_to_rasmm=np.eye(4))
+                lazy = LazyTractogram(
+                    lambda streams=streams: iter(streams), affine_to_rasmm=np.eye(4)
+                )
+                expected = BytesIO()
+                TckFile(lazy).save(expected)
+                tck_file = BytesIO()
+                TckFile(tractogram).save(tck_file)
+                assert tck_file.getvalue() == expected.getvalue()
+
+                expected = b''.join(
+                    np.r_[s, TckFile.FIBER_DELIMITER].astype('<f4').tobytes() for s in streams
+                )
+                for block_size in (1, 7):
+                    tck_file = BytesIO()
+                    nb_streamlines = TckFile._write_streamlines(
+                        tck_file, streams, np.dtype('<f4'), block_size=block_size
+                    )
+                    assert nb_streamlines == len(streams)
+                    assert tck_file.getvalue() == expected
 
     def test_write_bigheader_file(self):
         tractogram = Tractogram(DATA['streamlines'], affine_to_rasmm=np.eye(4))
