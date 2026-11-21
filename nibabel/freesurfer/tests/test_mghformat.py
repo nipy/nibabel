@@ -153,6 +153,34 @@ def test_write_noaffine_mgh():
     assert_array_almost_equal(h['Pxyz_c'], [0, 0, 0])
 
 
+def test_mgh_intent_version():
+    # FreeSurfer writes the intent of the content into the version field as
+    # (intent << 8) | 1, e.g. 513 for curvature converted to MGH
+    data = np.arange(10, dtype=np.float32).reshape(10, 1, 1)
+    img = MGHImage(data, np.eye(4))
+    for version in ((2 << 8) | 1, (3 << 8) | 1):
+        img.header['version'] = version
+        bio = io.BytesIO()
+        img.to_file_map({'image': FileHolder(fileobj=bio)})
+        bio.seek(0)
+        img2 = MGHImage.from_file_map({'image': FileHolder(fileobj=bio)})
+        assert img2.header['version'] == version
+        assert_array_equal(img2.get_fdata(), data)
+
+
+@pytest.mark.parametrize('version', [0, 2, (2 << 8) | 2])
+def test_mgh_bad_version(version):
+    # Only the low byte is the format version, so anything else is still an error
+    hdr = MGHHeader()
+    hdr['version'] = version
+    with imageglobals.LoggingOutputSuppressor():
+        with pytest.raises(HeaderDataError):
+            MGHHeader(hdr.binaryblock)
+    # A repair sets the low byte to 1 and keeps the intent in the higher bytes
+    fixed, _ = MGHHeader.chk_version(hdr._structarr.copy(), fix=True)
+    assert fixed['version'] == (version & ~0xFF) | 1
+
+
 def test_set_zooms():
     mgz = load(MGZ_FNAME)
     h = mgz.header

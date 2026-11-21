@@ -32,7 +32,7 @@ DATA_OFFSET = 284
 # Note that mgh data is strictly big endian ( hence the > sign )
 # fmt: off
 header_dtd = [
-    ('version', '>i4'),             # 0; must be 1
+    ('version', '>i4'),             # 0; low byte must be 1 (see chk_version)
     ('dims', '>i4', (4,)),          # 4; width, height, depth, nframes
     ('type', '>i4'),                # 20; data type
     ('dof', '>i4'),                 # 24; degrees of freedom
@@ -134,11 +134,14 @@ class MGHHeader(LabeledWrapStruct, SpatialHeader):
     @staticmethod
     def chk_version(hdr, fix=False):
         rep = Report()
-        if hdr['version'] != 1:
+        # FreeSurfer stores the content intent (e.g. 2 for surface overlays,
+        # 3 for warps) in the higher bytes: version = (intent << 8) | 1
+        if (hdr['version'] & 0xFF) != 1:
             rep = Report(HeaderDataError, 40)
             rep.problem_msg = 'Unknown MGH format version'
             if fix:
-                hdr['version'] = 1
+                # keep the intent in the higher bytes
+                hdr['version'] = (hdr['version'] & ~0xFF) | 1
         return hdr, rep
 
     @classmethod
