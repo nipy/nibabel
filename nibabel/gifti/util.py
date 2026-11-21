@@ -10,7 +10,8 @@
 from ..volumeutils import Recoder
 
 # Translate dtype.kind char codes to XML text output strings
-KIND2FMT = {'i': '%d', 'u': '%d', 'f': '%10.6f', 'c': '%10.6f', 'V': ''}
+# Float formats use enough significant digits to round-trip float32 values
+KIND2FMT = {'i': '%d', 'u': '%d', 'f': '%.9g', 'c': '%10.6f', 'V': ''}
 
 array_index_order_codes = Recoder(
     (

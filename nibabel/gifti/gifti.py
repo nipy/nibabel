@@ -368,7 +368,8 @@ class GiftiCoordSystem(xml.XmlSerializable):
             xformed_space = xml.SubElement(coord_xform, 'TransformedSpace')
             xformed_space.text = xform_codes.niistring[self.xformspace]
             matrix_data = xml.SubElement(coord_xform, 'MatrixData')
-            matrix_data.text = _arr2txt(self.xform, '%10.6f')
+            # The transform is float64; 17 significant digits round-trip it exactly
+            matrix_data.text = _arr2txt(self.xform, '%.17g')
         return coord_xform
 
     def print_summary(self):
