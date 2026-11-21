@@ -384,7 +384,12 @@ def _data_tag_element(dataarray, encoding, dtype, ordering):
     order = array_index_order_codes.npcode[ordering]
     enclabel = gifti_encoding_codes.label[encoding]
     if enclabel == 'ASCII':
-        da = _arr2txt(dataarray, KIND2FMT[dtype.kind])
+        arr = np.asanyarray(dataarray)
+        if arr.ndim > 2:
+            # One line per index of the first dimension; the reader parses the
+            # values and reshapes them to Dims with ArrayIndexingOrder
+            arr = arr.reshape(arr.shape[0], -1, order=order)
+        da = _arr2txt(arr, KIND2FMT[dtype.kind])
     elif enclabel in ('B64BIN', 'B64GZ'):
         out = np.asanyarray(dataarray, dtype).tobytes(order)
         if enclabel == 'B64GZ':
