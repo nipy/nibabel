@@ -96,7 +96,7 @@ def _pack_rgb(rgb):
     return rgb.dot(bitshifts)
 
 
-def read_geometry(filepath, read_metadata=False, read_stamp=False):
+def read_geometry(filepath, read_metadata=False, read_stamp=False, *, to_scanner=False):
     """Read a triangular format Freesurfer surface mesh.
 
     Parameters
@@ -120,6 +120,12 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
 
     read_stamp : bool, optional
         Return the comment from the file
+    to_scanner : bool, optional
+        Transform surface RAS (tkregister) coordinates to scanner RAS using
+        the volume geometry in the surface footer. Requires valid geometry;
+        raise ValueError when it is unavailable or invalid. Quad surfaces and
+        surface footers marked as already in scanner RAS are not supported.
+        The default False preserves coordinates stored in the surface file.
 
     Returns
     -------
@@ -174,12 +180,35 @@ def read_geometry(filepath, read_metadata=False, read_stamp=False):
             coords = np.fromfile(fobj, '>f4', vnum * 3).reshape(vnum, 3)
             faces = np.fromfile(fobj, '>i4', fnum * 3).reshape(fnum, 3)
 
-            if read_metadata:
+            if read_metadata or to_scanner:
                 volume_info = _read_volume_info(fobj)
         else:
             raise ValueError('File does not appear to be a Freesurfer surface')
 
     coords = coords.astype(np.float64)  # XXX: due to mayavi bug on mac 32bits
+
+    if to_scanner:
+        if 'cras' not in volume_info:
+            raise ValueError('Cannot transform: no volume information in surface file')
+        valid = volume_info['valid'].split('#', 1)[0].strip()
+        vectors = [
+            np.asarray(volume_info[key])
+            for key in ('volume', 'voxelsize', 'xras', 'yras', 'zras', 'cras')
+        ]
+        if (
+            valid != '1'
+            or any(v.shape != (3,) or not np.all(np.isfinite(v)) for v in vectors)
+            or np.any(vectors[0] <= 0)
+            or np.any(vectors[1] <= 0)
+        ):
+            raise ValueError('Invalid volume information for scanner RAS transformation')
+        direction = np.column_stack(vectors[2:5])
+        if np.linalg.matrix_rank(direction) != 3:
+            raise ValueError('Invalid volume information for scanner RAS transformation')
+        # Both affines are centered on the same voxel; the voxel sizes and
+        # dimensions cancel in scanner_affine @ inverse(tkregister_affine).
+        tkr_direction = np.array([[-1, 0, 0], [0, 0, 1], [0, -1, 0]])
+        coords = coords @ (direction @ tkr_direction.T).T + vectors[5]
 
     ret = (coords, faces)
     if read_metadata:
