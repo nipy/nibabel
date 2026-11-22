@@ -298,6 +298,34 @@ def test_write_annot_fill_ctab():
         assert names2 == names
 
 
+def test_write_annot_invalid_ctab(tmp_path):
+    """Test that `write_annot` rejects colour tables and names it cannot write."""
+    annot_path = tmp_path / 'invalid.annot'
+    labels = np.array([0, 1], dtype=np.int32)
+    names = ['a', 'b']
+
+    with pytest.raises(ValueError, match='ctab must have shape'):
+        write_annot(annot_path, labels, np.zeros((2, 3), dtype=np.int32), names)
+
+    with pytest.raises(ValueError, match='ctab must have shape'):
+        write_annot(annot_path, labels, np.zeros(5, dtype=np.int32), names)
+
+    with pytest.raises(ValueError, match='ctab must have shape'):
+        write_annot(
+            annot_path,
+            labels,
+            np.zeros((2, 4), dtype=np.int32),
+            names,
+            fill_ctab=False,
+        )
+
+    with pytest.raises(ValueError, match='names were provided'):
+        write_annot(annot_path, labels, np.zeros((2, 5), dtype=np.int32), [*names, 'c'])
+
+    # Invalid arguments are rejected before the file is created
+    assert not annot_path.exists()
+
+
 @pytest.mark.thread_unsafe
 def test_read_annot_old_format():
     """Test reading an old-style .annot file."""

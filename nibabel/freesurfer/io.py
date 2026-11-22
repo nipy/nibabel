@@ -514,7 +514,24 @@ def write_annot(filepath, labels, ctab, names, fill_ctab=True):
         generated. In this case, the provided `ctab` may have shape
         (n_labels, 4) or (n_labels, 5) - if the latter, the final column is
         ignored.
+
+    Raises
+    ------
+    ValueError
+        If ``ctab`` does not have shape (n_labels, 4) or (n_labels, 5), if
+        ``fill_ctab`` is False and ``ctab`` has only 4 columns, or if the
+        number of ``names`` does not match the number of rows in ``ctab``.
     """
+    ctab = np.asarray(ctab)
+    if ctab.ndim != 2 or ctab.shape[1] not in (4, 5):
+        raise ValueError(f'ctab must have shape (n_labels, 4) or (n_labels, 5), got {ctab.shape}')
+    if not fill_ctab and ctab.shape[1] != 5:
+        raise ValueError(
+            f'ctab must have shape (n_labels, 5) when fill_ctab is False, got {ctab.shape}'
+        )
+    if len(names) != ctab.shape[0]:
+        raise ValueError(f'ctab has {ctab.shape[0]} rows but {len(names)} names were provided')
+
     with open(filepath, 'wb') as fobj:
         dt = _ANNOT_DT
         vnum = len(labels)
