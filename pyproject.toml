@@ -139,38 +139,33 @@ line-length = 99
 exclude = ["nibabel/externals"]
 
 [tool.ruff.lint]
+#  more details at https://docs.astral.sh/ruff/rules
 select = [
-    "B",
-    "C4",
-    "C90",
-    "F",
-    "FLY",
-    "FURB",
-    "I",
-    "EXE",
-    "ISC",
-    "PIE",
-    "PLE",
-    "PLR0911",
-    "PLR0912",
-    "PLR0913",
-    "PLR0915",
-    "PT",
-    "PYI",
-    "PT",
-    "Q",
-    "RSE",
-    "SIM",
-    "TC",
-    "FLY",
-    "I",
-    "PERF",
-    "F",
-    "PGH",
-    "PLE",
-    "UP",
-    "FURB",
-    "RUF",
+    "B", # flake8 bugbear
+    "C4", # flake8-comprehensions
+    "C90", # mccabe complexity: https://docs.astral.sh/ruff/rules/complex-structure/
+    "EXE", # flake8-executable
+    "F", # pyflakes
+    "FLY", # flynt
+    "FURB", # refurb: refurbishing and modernizing code
+    "I", # isort
+    "ISC", #  flake8-implicit-str-concat
+    "PERF", # perflint
+    "PGH", # pygrep-hooks
+    "PIE", # flake8-pie
+    "PLE", # pylint
+    "PLR0911", # pylint return: too-many-return-statements
+    "PLR0912", # pylint return: too-many-branches
+    "PLR0913", # pylint return: too-many-arguments
+    "PLR0915", # pylint return: too-many-statements
+    "PT", # flake8-pytest-style
+    "PYI", # flake8-pyi: type hinting stub files
+    "Q", # flake8-quotes
+    "RSE", # flake8-raise
+    "RUF", # ruff rules
+    "SIM", # flake8-simplify
+    "TC", # flake8-type-checking
+    "UP", # pyupgrade
 ]
 ignore = [
     "B006",   # TODO: enable
