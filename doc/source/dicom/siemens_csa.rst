@@ -73,11 +73,17 @@ directly after the tag.
 Each item
 ---------
 
-1. xx : int32 * 4 .  The first of these seems to be the length of the
-   item in bytes, modified as below.
+1. xx : int32 * 4 .  As for CSA2, ``xx[1]`` is the length of the item in
+   bytes, ``item_len``; ``xx[0]`` and ``xx[3]`` hold the same value and
+   ``xx[2]`` is 77 or 205.
 
-At this point SPM does a check, by calculating the length of this item
-``item_len`` with ``xx[0]`` - the ``nitems`` of the *first* read tag.
+SPM instead takes ``item_len`` as ``xx[0]`` - the ``nitems`` of the
+*first* read tag, and then always skips ``4 - rem(item_len, 4)`` bytes
+(1 to 4, never 0).  When the first tag has one item, as in the CSA1
+files we have seen, that comes to the same next item position, minus the
+final (null) byte of the value.  It does not hold in general, so we read
+``xx[1]``, as GDCM does for both formats.
+
 If ``item_len`` is less than 0 or greater than
 ``csa_max_pos-csa_position`` (the remaining number of bytes to read in
 the whole header) then we break from the item reading loop,

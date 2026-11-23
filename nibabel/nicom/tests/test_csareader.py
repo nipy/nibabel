@@ -137,28 +137,49 @@ def test_missing_csa_elem():
 def _csa1_header(tags, check=77):
     """Build a CSA1 header from ``(name, vm, vr, items)`` tuples.
 
-    The repo's own description of the format is in
-    ``doc/source/dicom/siemens_csa.rst``: a CSA1 item stores its length offset
-    by the ``n_items`` of the first tag in the header.
+    Items use the layout of real CSA1 headers (e.g. a Siemens Sonata image
+    from GDCMData): ``x0 == x1 == x3 == len(item)``, ``x2 == 77``, and each
+    value is padded to a 4 byte boundary.
     """
-    tag0_n_items = len(tags[0][3])
     out = struct.pack('<2I', len(tags), check)
     for name, vm, vr, items in tags:
-        out += struct.pack('<64si4s3i', name.encode(), vm, vr.encode(), 0, len(items), 77)
+        tag_xx = 77 if items else 205
+        out += struct.pack('<64si4s3i', name.encode(), vm, vr.encode(), 0, len(items), tag_xx)
         for item in items:
             item_len = len(item)
-            out += struct.pack('<4i', item_len + tag0_n_items, item_len, 77, 77)
-            out += item
-            pad = item_len % 4
-            if pad:
-                out += b'\x00' * (4 - pad)
+            out += struct.pack('<4i', item_len, item_len, 77, item_len)
+            out += item + b'\x00' * (-item_len % 4)
     return out
 
 
 def test_csa1_read_items():
-    # gh-817: the CSA1 item length offset must come from the tag numbered 0.
-    # The first tag here has three items and the second has one, so reading the
-    # offset from the wrong tag gives the wrong length for every item.
+    # gh-817: CSA1 item lengths are ``x1``, as in CSA2.  The first tag has one
+    # item, as in real files, and the values cover every length modulo 4, so
+    # any offset of the item length misplaces a later item.
+    hdr = _csa1_header(
+        [
+            ('EchoLinePosition', 1, 'IS', [b'85      \x00\x00']),
+            ('Empty', 1, 'LO', []),
+            ('AcquisitionMatrixText', 1, 'LO', [b'166*256\x00\x00']),
+            ('SequenceFileOwner', 1, 'LO', [b'SIEMENS\x00\x00\x00\x00']),
+            ('GradientDelayTime', 3, 'DS', [b'16.0\x00', b'16.0\x00\x00', b'13.0\x00\x00\x00']),
+            ('MeasuredFourierLines', 1, 'IS', [b'171     \x00\x00']),
+        ]
+    )
+    csa_info = csa.read(hdr)
+    assert csa_info['type'] == 1
+    assert csa_info['n_tags'] == 6
+    tags = csa_info['tags']
+    assert tags['EchoLinePosition']['items'] == [85]
+    assert tags['Empty']['items'] == []
+    assert tags['AcquisitionMatrixText']['items'] == ['166*256']
+    assert tags['SequenceFileOwner']['items'] == ['SIEMENS']
+    assert tags['GradientDelayTime']['items'] == [16.0, 16.0, 13.0]
+    assert tags['MeasuredFourierLines']['items'] == [171]
+
+
+def test_csa1_first_tag_n_items():
+    # The item length does not depend on the n_items of the first tag
     hdr = _csa1_header(
         [
             ('FirstTag', 0, 'LO', [b'alpha\x00', b'beta\x00', b'gamma\x00']),
@@ -166,22 +187,21 @@ def test_csa1_read_items():
         ]
     )
     csa_info = csa.read(hdr)
-    assert csa_info['type'] == 1
-    assert csa_info['n_tags'] == 2
     assert csa_info['tags']['FirstTag']['items'] == ['alpha', 'beta', 'gamma']
     assert csa_info['tags']['SecondTag']['items'] == ['0123456789']
 
 
 def test_csa1_single_tag():
-    # gh-817: a CSA1 header with only one tag never reached a tag numbered 1,
-    # so the offset was read before it had been assigned.
+    # gh-817: a CSA1 header with only one tag raised UnboundLocalError
     hdr = _csa1_header([('OnlyTag', 0, 'LO', [b'value\x00'])])
     csa_info = csa.read(hdr)
     assert csa_info['type'] == 1
     assert csa_info['tags']['OnlyTag']['items'] == ['value']
 
 
-def test_csa1_numeric_converter():
-    hdr = _csa1_header([('Numbers', 0, 'DS', [b'1.5\x00', b'2.5\x00'])])
+def test_csa1_item_too_long():
+    # A CSA1 item running past the end of the header ends that tag's items
+    hdr = _csa1_header([('Tag', 1, 'LO', [b'value\x00'])])
+    hdr = hdr[:-4]
     csa_info = csa.read(hdr)
-    assert csa_info['tags']['Numbers']['items'] == [1.5, 2.5]
+    assert csa_info['tags']['Tag']['items'] == ['']

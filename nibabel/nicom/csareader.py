@@ -120,27 +120,21 @@ def read(csa_str):
             n_values = vm
         # data converter
         converter = _CONVERTERS.get(vr)
-        # CSA1 specific length modifier: item lengths are offset by the
-        # n_items of the *first* tag (see doc/source/dicom/siemens_csa.rst).
-        # This has to be the tag numbered 0, both because that is the first
-        # tag read and because the items of tag 0 are parsed below, before a
-        # tag numbered 1 would ever be reached.
-        if tag_no == 0:
-            tag0_n_items = n_items
         if n_items > MAX_CSA_ITEMS:
             raise CSAReadError(f'Expected <= {MAX_CSA_ITEMS} tags, got {n_items}')
         items = []
         for item_no in range(n_items):
             x0, x1, x2, x3 = up_str.unpack('4i')
             ptr = up_str.ptr
-            if hdr_type == 1:  # CSA1 - odd length calculation
-                item_len = x0 - tag0_n_items
+            # In both CSA1 and CSA2 the item length is ``x1`` (``x0`` and
+            # ``x3`` hold the same value; see siemens_csa.rst)
+            item_len = x1
+            if hdr_type == 1:  # CSA1 - give up on this tag if out of range
                 if item_len < 0 or (ptr + item_len) > csa_len:
                     if item_no < vm:
                         items.append('')
                     break
             else:  # CSA2
-                item_len = x1
                 if (ptr + item_len) > csa_len:
                     raise CSAReadError('Item is too long, aborting read')
             if item_no >= n_values:
