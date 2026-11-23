@@ -53,6 +53,7 @@ parrec2nii = "nibabel.cmdline.parrec2nii:main"
 all = ["nibabel[dicomfs,indexed_gzip,minc2,spm,zstd]"]
 # Features
 indexed_gzip = ["indexed_gzip >=1.9.1"]
+isal = ["isal >=1.6"]
 dicom = ["pydicom >=2.3"]
 dicomfs = ["nibabel[dicom]", "pillow >=10.2"]
 minc2 = ["h5py >=3.11"]
