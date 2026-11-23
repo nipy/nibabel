@@ -193,6 +193,19 @@ def test_proxy_slicing_with_scaling():
     assert_array_equal(arr[sliceobj] * 2.0 + 1.0, prox[sliceobj])
 
 
+@pytest.mark.parametrize('shape_type', (int, np.int64, np.uint32, np.uint64))
+@pytest.mark.parametrize('order', ('C', 'F'))
+def test_proxy_slicing_negative_integer_bounds(shape_type, order):
+    arr = np.arange(12, dtype=np.int16).reshape((3, 4))
+    shape = tuple(shape_type(dim) for dim in arr.shape)
+    proxy = ArrayProxy(BytesIO(arr.tobytes(order=order)), (shape, arr.dtype), order=order)
+
+    assert proxy[np.uint64(1), 2] == arr[1, 2]
+    assert proxy[1, -4] == arr[1, 0]
+    with pytest.raises(ValueError, match='Integer index -5 too small'):
+        proxy[1, np.int64(-5)]
+
+
 @pytest.mark.parametrize('order', ('C', 'F'))
 def test_order_override(order):
     shape = (15, 16, 17)

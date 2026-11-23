@@ -122,6 +122,9 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
                 slicer = slice(None)
         else:
             if slicer < 0:
+                dim_len = operator.index(dim_len)
+                if check_inds and slicer < -dim_len:
+                    raise ValueError(f'Integer index {slicer} too small')
                 slicer = dim_len + slicer
             elif check_inds and slicer >= dim_len:
                 raise ValueError(f'Integer index {slicer} too large')
