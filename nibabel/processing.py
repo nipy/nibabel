@@ -92,7 +92,7 @@ def adapt_affine(affine, n_dim):
     affine : array-like
         affine transform. Usually shape (4, 4).  For what follows ``N, M =
         affine.shape``
-    n_dims : int
+    n_dim : int
         Number of dimensions of underlying array, and therefore number of input
         dimensions for affine.
 

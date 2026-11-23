@@ -160,7 +160,7 @@ def check_arr(test_id, V_in, in_type, out_type, scaling_type):
     else:
         # Error from integer rounding
         inting_err = np.abs(scaling_type(slope) / 2)
-        inting_err = inting_err + ulp(inting_err)
+        inting_err += ulp(inting_err)
         # Error from calculation of inter
         inter_err = ulp(scaling_type(inter))
         # Max abs error from floating point

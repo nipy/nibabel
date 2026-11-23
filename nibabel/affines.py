@@ -307,8 +307,8 @@ def voxel_sizes(affine):
         Voxel sizes for each input axis of affine.  Usually 1D array length 3,
         but in general has length (N-1) where input `affine` is shape (M, N).
     """
-    top_left = affine[:-1, :-1]
-    return np.sqrt(np.sum(top_left**2, axis=0))
+    top_left = np.asarray(affine)[:-1, :-1]
+    return np.linalg.norm(top_left, axis=0)
 
 
 def obliquity(affine):
@@ -370,7 +370,7 @@ def rescale_affine(affine, shape, zooms, new_shape=None):
     new_shape = np.array(new_shape if new_shape is not None else shape)
 
     s = voxel_sizes(affine)
-    rzs_out = affine[:3, :3] * zooms / s
+    rzs_out = affine[:-1, :-1] * zooms / s
 
     # Using xyz = A @ ijk, determine translation
     centroid = apply_affine(affine, (shape - 1) // 2)

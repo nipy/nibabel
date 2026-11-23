@@ -584,9 +584,9 @@ def read_label(filepath, read_scalars=False):
         Only returned if `read_scalars` is True.  Array of scalar data for each
         vertex.
     """
-    label_array = np.loadtxt(filepath, dtype=int, skiprows=2, usecols=[0])
+    label_array = np.loadtxt(filepath, dtype=int, skiprows=2, usecols=[0], ndmin=1)
     if read_scalars:
-        scalar_array = np.loadtxt(filepath, skiprows=2, usecols=[-1])
+        scalar_array = np.loadtxt(filepath, skiprows=2, usecols=[-1], ndmin=1)
         return label_array, scalar_array
     return label_array
 

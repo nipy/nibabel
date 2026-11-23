@@ -16,12 +16,8 @@ import sys
 from os import path
 
 if __name__ == '__main__':
-
-    usage = (
-        """Usage: %s [options] <python module> ...
+    usage = f"""Usage: {sys.argv[0]} [options] <python module> ...
     """
-        % sys.argv[0]
-    )
 
     # default options
     convert2kcache = True
@@ -30,8 +26,8 @@ if __name__ == '__main__':
     pfilename = None
     pstatsfilename = None
     profilelines = True
-    profilelevel = 10                   # how many most hungry to list in stats
-    run = True                          # either to run profiling at all
+    profilelevel = 10  # how many most hungry to list in stats
+    run = True  # either to run profiling at all
 
     removed = sys.argv.pop(0)
 
@@ -78,7 +74,7 @@ if __name__ == '__main__':
         raise RuntimeError('No hotshot')
 
     if pfilename is None:
-        pfilename = cmdname + '.prof'
+        pfilename = f'{cmdname}.prof'
 
     if run:
         exec(f'import {root} as runnable')
@@ -111,17 +107,13 @@ if __name__ == '__main__':
         if pstatsfilename:
             stats.dump_stats(pstatsfilename)
 
-    kfilename = pfilename + '.kcache'
-    if convert2kcache:
-        cmd = 'hotshot2calltree -o %s %s' % (kfilename, pfilename)
-        if os.system(cmd):
-            print('!!! Make sure to install kcachegrind-converters ;-)')
-            sys.exit(1)
+    if convert2kcache and os.system(f'hotshot2calltree -o {pfilename}.kcache {pfilename}'):
+        print('!!! Make sure to install kcachegrind-converters ;-)')
+        sys.exit(1)
 
-    if displaykcachegrinder:
-        if os.system('kcachegrind %s' % kfilename):
-            print('!!! Make sure to install kcachegrind ;-)')
-            sys.exit(1)
+    if displaykcachegrinder and os.system(f'kcachegrind {pfilename}.kcache'):
+        print('!!! Make sure to install kcachegrind ;-)')
+        sys.exit(1)
 
 else:
     print('Go away -- nothing to look here for as a module')

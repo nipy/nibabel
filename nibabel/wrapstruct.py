@@ -114,7 +114,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from . import imageglobals as imageglobals
+from . import imageglobals
 from .batteryrunners import BatteryRunner
 from .volumeutils import Recoder, endian_codes, native_code, pretty_mapping, swapped_code
 
@@ -375,14 +375,14 @@ class WrapStruct:
 
         Parameters
         ----------
-        wstr : mapping-like
+        mapping : mapping-like
             Something implementing a mapping.  We will guess the endianness
             from looking at the field values
 
         Returns
         -------
         endianness : {'<', '>'}
-           Guessed endianness of binary data in ``wstr``
+           Guessed endianness of binary data in ``mapping``
         """
         raise NotImplementedError
 

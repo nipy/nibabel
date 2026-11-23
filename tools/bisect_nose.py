@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""Utility for git-bisecting nose failures
-"""
+"""Utility for git-bisecting nose failures"""
+
 DESCRIP = 'Check nose output for given text, set sys exit for git bisect'
 EPILOG = """
 Imagine you've just detected a nose test failure.  The failure is in a
@@ -82,7 +82,7 @@ def main():
     try:
         os.chdir(tmpdir)
         print('Testing')
-        proc = popener('nosetests ' + path)
+        proc = popener(f'nosetests {path}')
         stdout, stderr = proc.communicate()
     finally:
         os.chdir(cwd)

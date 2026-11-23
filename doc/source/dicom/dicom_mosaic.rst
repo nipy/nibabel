@@ -7,7 +7,7 @@
 Siemens mosaic format is a way of storing a 3D image in a DICOM_ image
 file.  The simplest DICOM_ images only knows how to store 2D files.  For
 example, a 3D image in DICOM is usually stored as a series of 2D slices,
-each slices as a separate DICOM image. .  Mosaic format stores the 3D
+each slice as a separate DICOM image. Mosaic format stores the 3D
 image slices as a 2D grid - or mosaic.
 
 For example here are the pixel data as loaded directly from a DICOM image
@@ -107,7 +107,7 @@ Because of the final zero in the voxel translations, this simplifies to:
 .. math::
 
    \mathbf{t} = \mathbf{i} +
-                Q \begin{bmatrix} (md_{rows} - rd_{rowss}) / 2 \\
+                Q \begin{bmatrix} (md_{rows} - rd_{rows}) / 2 \\
                                   (md_{cols} - rd_{cols}) / 2 \end{bmatrix}
 
 where:
@@ -130,7 +130,7 @@ A comment in the code here says that the data are not scaled by the
 maximum amount.  I assume by this they mean that the DICOM scaling may
 not be the maximum scaling, whereas the standard SPM image write is,
 hence the difference, because they are using the DICOM scaling rather
-then their own.  The comment continues by saying that the scaling as
+than their own.  The comment continues by saying that the scaling as
 applied (the DICOM - not maximum - scaling) can lead to rounding errors
 but that it will get around some unspecified problems.
 

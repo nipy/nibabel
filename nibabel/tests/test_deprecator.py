@@ -13,7 +13,6 @@ from nibabel.deprecator import (
     Deprecator,
     ExpiredDeprecationError,
     _add_dep_doc,
-    _dedent_docstring,
     _ensure_cr,
 )
 
@@ -21,13 +20,16 @@ from ..testing import clear_and_catch_warnings
 
 _OWN_MODULE = sys.modules[__name__]
 
-func_docstring = (
-    f'A docstring\n   \n   foo\n   \n{indent(TESTSETUP, "   ", lambda x: True)}'
-    f'   Some text\n{indent(TESTCLEANUP, "   ", lambda x: True)}'
-)
+func_docstring = f"""A docstring
 
-if sys.version_info >= (3, 13):
-    func_docstring = _dedent_docstring(func_docstring)
+foo
+
+{TESTSETUP}Some text
+{TESTCLEANUP}"""
+
+if sys.version_info < (3, 13):
+    # Pre-3.13, docstrings were not auto-dedented, so reinject the indentation
+    func_docstring = indent(func_docstring, '    ', lambda text: text != 'A docstring\n')
 
 
 def test__ensure_cr():
@@ -76,7 +78,10 @@ def func_doc(i):
 
 
 def func_doc_long(i, j):
-    """A docstring\n\n   Some text"""
+    """A docstring
+
+    Some text
+    """
 
 
 class TestDeprecatorFunc:
@@ -112,19 +117,19 @@ class TestDeprecatorFunc:
         with pytest.deprecated_call() as w:
             assert func() is None
             assert len(w) == 1
-        assert (
-            func.__doc__ == f'foo\n\n* Will raise {ExpiredDeprecationError} as of version: 99.4\n'
-        )
+        qualname = f'{ExpiredDeprecationError.__module__}.{ExpiredDeprecationError.__qualname__}'
+        rst_link = f':class:`~{qualname}`'
+        assert func.__doc__ == f'foo\n\n* Will raise {rst_link} as of version: 99.4\n'
         func = dec('foo', until='1.8')(func_no_doc)
         with pytest.raises(ExpiredDeprecationError):
             func()
-        assert func.__doc__ == f'foo\n\n* Raises {ExpiredDeprecationError} as of version: 1.8\n'
+        assert func.__doc__ == f'foo\n\n* Raises {rst_link} as of version: 1.8\n'
         func = dec('foo', '1.2', '1.8')(func_no_doc)
         with pytest.raises(ExpiredDeprecationError):
             func()
         assert (
             func.__doc__ == 'foo\n\n* deprecated from version: 1.2\n* Raises '
-            f'{ExpiredDeprecationError} as of version: 1.8\n'
+            f'{rst_link} as of version: 1.8\n'
         )
         func = dec('foo', '1.2', '1.8')(func_doc_long)
         assert (
@@ -135,7 +140,7 @@ A docstring
 foo
 
 * deprecated from version: 1.2
-* Raises {ExpiredDeprecationError} as of version: 1.8
+* Raises {rst_link} as of version: 1.8
 """
         )
         with pytest.raises(ExpiredDeprecationError):

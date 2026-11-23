@@ -1,0 +1,60 @@
+name: Build documentation
+
+on:
+  push:
+    branches:
+      - ci/build-docs
+    tags:
+      - '*'
+  # Allow job to be triggered manually from GitHub interface
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+# Force tox and pytest to use color
+env:
+  FORCE_COLOR: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ['ubuntu-slim']
+        python-version: ['3.14']
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Setup uv and Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: ${{ matrix.python-version }}
+          activate-environment: true
+          enable-cache: false
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Install tox
+        run: uv tool install -v tox --with=tox-uv-bare
+      - name: Setup tox environment
+        run: tox run -vv --notest -e docs
+      - name: Build docs
+        run: tox -v --skip-pkg-install -e docs
+      - name: Push to gh-pages
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags'))
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/html
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'

@@ -24,7 +24,7 @@ _counter = 0
 def _as_fname(img):
     global _counter
     fname = f'img{_counter:3d}.nii'
-    _counter = _counter + 1
+    _counter += 1
     save(img, fname)
     return fname
 
@@ -169,7 +169,7 @@ def test_closest_canonical():
     img = Nifti1Image(arr, aff)
     xyz_img = as_closest_canonical(img)
     assert img is xyz_img
-    # it's still not diagnonal
+    # it's still not diagonal
     with pytest.raises(OrientationError):
         as_closest_canonical(img, True)
 

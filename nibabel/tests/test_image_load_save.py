@@ -263,15 +263,14 @@ def test_filename_save():
     affine = np.diag([1, 2, 3, 1])
     data = np.arange(np.prod(shape), dtype='f4').reshape(shape)
     for inklass, out_ext, loadklass in inklass_ext_loadklasses:
-        if not have_scipy:
+        if not have_scipy and ('mat', '.mat') in loadklass.files_types:
             # We can't load a SPM analyze type without scipy.  These types have
             # a 'mat' file (the type we can't load)
-            if ('mat', '.mat') in loadklass.files_types:
-                continue
+            continue
         img = inklass(data, affine)
         try:
             pth = mkdtemp()
-            fname = pjoin(pth, 'image' + out_ext)
+            fname = pjoin(pth, f'image{out_ext}')
             for path in (fname, pathlib.Path(fname)):
                 nils.save(img, path)
                 rt_img = nils.load(path)

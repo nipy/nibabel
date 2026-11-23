@@ -439,9 +439,9 @@ def angle_axis2mat(theta, vector, is_normalized=False):
     x, y, z = vector
     if not is_normalized:
         n = math.sqrt(x * x + y * y + z * z)
-        x = x / n
-        y = y / n
-        z = z / n
+        x /= n
+        y /= n
+        z /= n
     c, s = math.cos(theta), math.sin(theta)
     C = 1 - c
     xs, ys, zs = x * s, y * s, z * s

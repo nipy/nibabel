@@ -4,24 +4,14 @@ from __future__ import annotations
 
 import functools
 import re
-import sys
 import typing as ty
 import warnings
-from textwrap import dedent
 
 if ty.TYPE_CHECKING:
     T = ty.TypeVar('T')
     P = ty.ParamSpec('P')
 
 _LEADING_WHITE = re.compile(r'^(\s*)')
-
-
-def _dedent_docstring(docstring):
-    """Compatibility with Python 3.13+.
-
-    xref: https://github.com/python/cpython/issues/81283
-    """
-    return '\n'.join([dedent(line) for line in docstring.split('\n')])
 
 
 TESTSETUP = """
@@ -44,10 +34,6 @@ TESTCLEANUP = """
 
 """
 
-if sys.version_info >= (3, 13):
-    TESTSETUP = _dedent_docstring(TESTSETUP)
-    TESTCLEANUP = _dedent_docstring(TESTCLEANUP)
-
 
 class ExpiredDeprecationError(RuntimeError):
     """Error for expired deprecation
@@ -64,7 +50,7 @@ def _ensure_cr(text: str) -> str:
 
     Ensures that `text` always ends with a carriage return
     """
-    return text.rstrip() + '\n'
+    return f'{text.rstrip()}\n'
 
 
 def _add_dep_doc(
@@ -105,7 +91,7 @@ def _add_dep_doc(
     next_line = line_no + 1
     if next_line >= len(old_lines):
         # nothing following first paragraph, just append message
-        return old_doc + '\n' + dep_doc
+        return f'{old_doc}\n{dep_doc}'
     leading_white = _LEADING_WHITE.match(old_lines[next_line])
     assert leading_white is not None  # Type narrowing, since this always matches
     indent = leading_white.group()
@@ -209,11 +195,12 @@ class Deprecator:
         if (since, until) != ('', ''):
             messages.append('')
         if since:
-            messages.append('* deprecated from version: ' + since)
+            messages.append(f'* deprecated from version: {since}')
         if until:
             messages.append(
                 f'* {"Raises" if self.is_bad_version(until) else "Will raise"} '
-                f'{exception} as of version: {until}'
+                f':class:`~{exception.__module__}.{exception.__qualname__}` '
+                f'as of version: {until}'
             )
         message = '\n'.join(messages)
 

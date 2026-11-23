@@ -1,8 +1,8 @@
 .. _dicom:
 
-==================================
-DICOM concepts and implementations
-==================================
+==============
+DICOM concepts
+==============
 
 Contents:
 

@@ -105,9 +105,9 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
             if Ellipsis in remaining:
                 raise ValueError('More than one Ellipsis in slicing expression')
             real_remaining = [r for r in remaining if r is not None]
-            n_ellided = n_dim - n_real - len(real_remaining)
-            can_slicers.extend((slice(None),) * n_ellided)
-            n_real += n_ellided
+            n_elided = n_dim - n_real - len(real_remaining)
+            can_slicers.extend((slice(None),) * n_elided)
+            n_real += n_elided
             continue
         # int / slice indexing cases
         dim_len = shape[n_real]
@@ -115,14 +115,11 @@ def canonical_slicers(sliceobj, shape, check_inds=True):
         try:  # test for integer indexing
             slicer = int(slicer)
         except TypeError:  # should be slice object
-            if slicer != slice(None):
+            if slicer != slice(None) and (
                 # Could this be full slice?
-                if (
-                    slicer.stop == dim_len
-                    and slicer.start in (None, 0)
-                    and slicer.step in (None, 1)
-                ):
-                    slicer = slice(None)
+                slicer.stop == dim_len and slicer.start in (None, 0) and slicer.step in (None, 1)
+            ):
+                slicer = slice(None)
         else:
             if slicer < 0:
                 slicer = dim_len + slicer
@@ -613,16 +610,15 @@ def slicers2segments(read_slicers, in_shape, offset, itemsize):
             if read_slicer.start != 0:
                 all_segments[0][0] += stride * read_slicer.start
             all_segments[0][1] *= slice_len
-        else:  # Previous or current stuff is not contiguous
-            if is_int:
-                for segment in all_segments:
-                    segment[0] += stride * read_slicer
-            else:  # slice object
-                segments = all_segments
-                all_segments = []
-                for i in range(read_slicer.start, read_slicer.stop, read_slicer.step):
-                    for s in segments:
-                        all_segments.append([s[0] + stride * i, s[1]])
+        elif is_int:  # previous or current stuff is not contiguous
+            for segment in all_segments:
+                segment[0] += stride * read_slicer
+        else:  # slice object
+            segments = all_segments
+            all_segments = []
+            for i in range(read_slicer.start, read_slicer.stop, read_slicer.step):
+                for s in segments:
+                    all_segments.append([s[0] + stride * i, s[1]])
         all_full = all_full and is_full
         stride *= dim_len
     return all_segments

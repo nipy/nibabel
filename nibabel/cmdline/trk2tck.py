@@ -31,7 +31,7 @@ def main():
             continue
 
         filename, _ = os.path.splitext(tractogram)
-        output_filename = filename + '.tck'
+        output_filename = f'{filename}.tck'
         if os.path.isfile(output_filename) and not args.force:
             print(f"Skipping existing file: '{output_filename}'. Use -f to overwrite.")
             continue

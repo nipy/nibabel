@@ -14,6 +14,7 @@ import typing as ty
 
 import numpy as np
 
+from .arrayproxy import get_obj_dtype
 from .deprecated import deprecate_with_version
 from .filebasedimages import FileBasedHeader, FileBasedImage
 
@@ -30,7 +31,7 @@ class DataobjImage(FileBasedImage):
     """Template class for images that have dataobj data stores"""
 
     _data_cache: np.ndarray | None
-    _fdata_cache: np.ndarray[ty.Any, np.dtype[np.floating]] | None
+    _fdata_cache: np.ndarray[ty.Any, np.dtype[np.inexact]] | None
 
     def __init__(
         self,
@@ -226,8 +227,8 @@ class DataobjImage(FileBasedImage):
     def get_fdata(
         self,
         caching: ty.Literal['fill', 'unchanged'] = 'fill',
-        dtype: npt.DTypeLike = np.float64,
-    ) -> np.ndarray[ty.Any, np.dtype[np.floating]]:
+        dtype: npt.DTypeLike | None = None,
+    ) -> np.ndarray[ty.Any, np.dtype[np.inexact]]:
         """Return floating point image data with necessary scaling applied
 
         The image ``dataobj`` property can be an array proxy or an array.  An
@@ -261,9 +262,11 @@ class DataobjImage(FileBasedImage):
             the call to ``get_fdata`` does not create an extra (cached)
             reference to the returned array.  In this case it is easier for
             Python to free the memory from the returned array.
-        dtype : numpy dtype specifier
-            A numpy dtype specifier specifying a floating point type.  Data is
-            returned as this floating point type.  Default is ``np.float64``.
+        dtype : None or numpy dtype specifier, optional
+            A numpy dtype specifier specifying a floating point or complex
+            type.  Data is returned as this type.  If None (the default), uses
+            ``np.float64`` for real (integer or float) data or ``np.complex128``
+            for complex data.
 
         Returns
         -------
@@ -360,13 +363,17 @@ class DataobjImage(FileBasedImage):
         """
         if caching not in ('fill', 'unchanged'):
             raise ValueError('caching value should be "fill" or "unchanged"')
+        if dtype is None:
+            effective_dtype = get_obj_dtype(self._dataobj)
+            dtype = (
+                np.complex128 if np.issubdtype(effective_dtype, np.complexfloating) else np.float64
+            )
         dtype = np.dtype(dtype)
         if not issubclass(dtype.type, np.inexact):
             raise ValueError(f'{dtype} should be floating point type')
         # Return cache if cache present and of correct dtype.
-        if self._fdata_cache is not None:
-            if self._fdata_cache.dtype.type == dtype.type:
-                return self._fdata_cache
+        if self._fdata_cache is not None and self._fdata_cache.dtype.type == dtype.type:
+            return self._fdata_cache
         # Always return requested data type
         # For array proxies, will attempt to confine data array to dtype
         # during scaling

@@ -8,7 +8,7 @@ ci:
 exclude: ".*/data/.*"
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -20,10 +20,10 @@ repos:
       - id: check-merge-conflict
       - id: check-vcs-permalinks
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.3
+    rev: c0f278f1254ccc8fb09676bcdb8d847e7db493e5  # frozen: v0.17.4
     hooks:
       - id: ruff-check
-        args: [ --fix ]
+        args: [ --fix, --show-fixes ]
       - id: ruff-format
   # Use uv run so we can use uv pinning
   - repo: local
@@ -31,12 +31,27 @@ repos:
       - id: typecheck
         name: Typecheck
         language: python
-        entry: uv run --active --no-dev --group=typecheck mypy nibabel
+        entry: uv run -p3.14 --active --no-dev --group=typecheck mypy nibabel
         pass_filenames: false
         additional_dependencies: [uv]
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: 57b21406f092110c18776e39b0bda50d37c945c8  # frozen: v2.4.3
     hooks:
       - id: codespell
         additional_dependencies:
           - tomli
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 39478bf2c099a58683d3f1aedf675105318b078d  # frozen: 0.39.0
+    hooks:
+      - id: check-citation-file-format
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: 3a6eb0fadf60b3cccfd80bad9dbb6fae7e47b316  # frozen: v1.10.0
+    hooks:
+      - id: rst-backticks
+        exclude: "^doc/source/devel/biaps/biap_*"
+      - id: rst-directive-colons
+      - id: rst-inline-touching-normal
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: 06a39750ec31860bb44f2acf67182c40016cd1e7 # frozen: v1.32.0
+    hooks:
+      - id: zizmor

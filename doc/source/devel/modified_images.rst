@@ -47,7 +47,7 @@ In our particular case, ``source_img`` does have a filename
 ``source_filename``.  The question is, how can we be sure that the user has
 done nothing to ``source_img`` to make it diverge from its original state?
 Could ``source_img`` have diverged, in memory, from the state recorded in
-``meantunctional.nii``?
+``meanfunctional.nii``?
 
 If the image and file have not diverged, we return ``meanfunctional.nii`` as
 the ``source_filename``, otherwise we will have to do something like::
@@ -62,7 +62,7 @@ Another situation where we might like to pass around image objects that are
 known to correspond to images on disk is when working in parallel. A set of
 nodes may have fast common access to a filesystem on which the images are
 stored.  If a master is farming out images to nodes, a master node
-distribution jobs to workers might want to check if the image was identical to
+distributing jobs to workers might want to check if the image was identical to
 something on file and pass around a lightweight (proxied) image (with the data
 not loaded into memory), relying on the node pulling the image from disk when
 it uses it.

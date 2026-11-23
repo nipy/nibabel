@@ -2,9 +2,9 @@
 
 .. _api:
 
-=================
-API Documentation
-=================
+***
+API
+***
 
 .. autosummary::
    :toctree: reference
@@ -99,3 +99,5 @@ Alphabetical API reference
     :maxdepth: 2
 
     reference/index
+
+.. include:: links_names.txt

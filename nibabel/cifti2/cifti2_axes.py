@@ -120,6 +120,7 @@ like:
 """
 
 import abc
+from numbers import Integral
 from operator import xor
 
 import numpy as np
@@ -446,7 +447,7 @@ class BrainModelAxis(Axis):
         """
         mim = cifti2.Cifti2MatrixIndicesMap([dim], 'CIFTI_INDEX_TYPE_BRAIN_MODELS')
         for name, to_slice, bm in self.iter_structures():
-            is_surface = name in self.nvertices.keys()
+            is_surface = name in self.nvertices
             if is_surface:
                 voxels = None
                 vertices = cifti2.Cifti2VertexIndices(bm.vertex)
@@ -479,8 +480,10 @@ class BrainModelAxis(Axis):
         tuple with 3 elements:
         - CIFTI-2 brain structure name
         - slice to select the data associated with the brain structure from the tensor
-        - brain model covering that specific brain structure
+        - :class:`BrainModelAxis` covering that specific brain structure
         """
+        if self.size == 0:
+            return
         idx_start = 0
         start_name = self.name[idx_start]
         for idx_current, name in enumerate(self.name):
@@ -567,14 +570,14 @@ class BrainModelAxis(Axis):
         """
         (N, ) boolean array which is true for any element on the surface
         """
-        return np.vectorize(lambda name: name in self.nvertices.keys())(self.name)
+        return np.vectorize(lambda name: name in self.nvertices, otypes=[bool])(self.name)
 
     @property
     def volume_mask(self):
         """
         (N, ) boolean array which is true for any element on the surface
         """
-        return np.vectorize(lambda name: name not in self.nvertices.keys())(self.name)
+        return np.vectorize(lambda name: name not in self.nvertices, otypes=[bool])(self.name)
 
     _affine = None
 
@@ -673,7 +676,7 @@ class BrainModelAxis(Axis):
 
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
-            if name in nvertices.keys() and nvertices[name] != value:
+            if name in nvertices and nvertices[name] != value:
                 raise ValueError(
                     'Trying to concatenate two BrainModels with '
                     f'inconsistent number of vertices for {name}'
@@ -705,7 +708,7 @@ class BrainModelAxis(Axis):
 
         Otherwise returns a new BrainModelAxis
         """
-        if isinstance(item, int):
+        if isinstance(item, Integral):
             return self.get_element(item)
         if isinstance(item, str):
             raise IndexError('Can not index an Axis with a string (except for ParcelsAxis)')
@@ -735,7 +738,7 @@ class BrainModelAxis(Axis):
         - structure.BrainStructure object describing the brain structure the element was taken from
         """
         element_type = 'CIFTI_MODEL_TYPE_' + (
-            'SURFACE' if self.name[index] in self.nvertices.keys() else 'VOXELS'
+            'SURFACE' if self.name[index] in self.nvertices else 'VOXELS'
         )
         struct = self.vertex if 'SURFACE' in element_type else self.voxel
         return element_type, struct[index], self.name[index]
@@ -837,8 +840,8 @@ class ParcelsAxis(Axis):
 
             vertices = {}
             for name, _, bm_part in bm.iter_structures():
-                if name in bm.nvertices.keys():
-                    if name in nvertices.keys() and nvertices[name] != bm.nvertices[name]:
+                if name in bm.nvertices:
+                    if name in nvertices and nvertices[name] != bm.nvertices[name]:
                         raise ValueError(
                             'Got multiple conflicting number of '
                             f'vertices for surface structure {name}'
@@ -882,7 +885,7 @@ class ParcelsAxis(Axis):
             for vertex in parcel.vertices:
                 name = vertex.brain_structure
                 vertices[vertex.brain_structure] = np.array(vertex)
-                if name not in nvertices.keys():
+                if name not in nvertices:
                     raise ValueError(
                         f'Number of vertices for surface structure {name} not defined'
                     )
@@ -978,7 +981,7 @@ class ParcelsAxis(Axis):
         for vert1, vert2 in zip(self.vertices, other.vertices):
             if len(vert1) != len(vert2):
                 return False
-            for name in vert1.keys():
+            for name in vert1:
                 if name not in vert2 or not np.array_equal(vert1[name], vert2[name]):
                     return False
         return True
@@ -1010,7 +1013,7 @@ class ParcelsAxis(Axis):
                 )
         nvertices = dict(self.nvertices)
         for name, value in other.nvertices.items():
-            if name in nvertices.keys() and nvertices[name] != value:
+            if name in nvertices and nvertices[name] != value:
                 raise ValueError(
                     'Trying to concatenate two ParcelsAxis with '
                     f'inconsistent number of vertices for {name}'
@@ -1040,7 +1043,7 @@ class ParcelsAxis(Axis):
             if len(idx) > 1:
                 raise IndexError(f'Multiple parcels with name {item} found')
             return self.voxels[idx[0]], self.vertices[idx[0]]
-        if isinstance(item, int):
+        if isinstance(item, Integral):
             return self.get_element(item)
         return self.__class__(
             self.name[item],
@@ -1176,7 +1179,7 @@ class ScalarAxis(Axis):
         )
 
     def __getitem__(self, item):
-        if isinstance(item, int):
+        if isinstance(item, Integral):
             return self.get_element(item)
         return self.__class__(self.name[item], self.meta[item])
 
@@ -1322,7 +1325,7 @@ class LabelAxis(Axis):
         )
 
     def __getitem__(self, item):
-        if isinstance(item, int):
+        if isinstance(item, Integral):
             return self.get_element(item)
         return self.__class__(self.name[item], self.label[item], self.meta[item])
 
@@ -1426,7 +1429,7 @@ class SeriesAxis(Axis):
     def unit(self, value):
         if value.upper() not in ('SECOND', 'HERTZ', 'METER', 'RADIAN'):
             raise ValueError(
-                'SeriesAxis unit should be one of ' + "('second', 'hertz', 'meter', or 'radian'"
+                "SeriesAxis unit should be one of ('second', 'hertz', 'meter', or 'radian'"
             )
         self._unit = value.upper()
 
@@ -1475,29 +1478,13 @@ class SeriesAxis(Axis):
 
     def __getitem__(self, item):
         if isinstance(item, slice):
-            step = 1 if item.step is None else item.step
-            idx_start = (
-                (self.size - 1 if step < 0 else 0)
-                if item.start is None
-                else (item.start if item.start >= 0 else self.size + item.start)
-            )
-            idx_end = (
-                (-1 if step < 0 else self.size)
-                if item.stop is None
-                else (item.stop if item.stop >= 0 else self.size + item.stop)
-            )
-            if idx_start > self.size and step < 0:
-                idx_start = self.size - 1
-            if idx_end > self.size:
-                idx_end = self.size
-            nelements = (idx_end - idx_start) // step
-            if nelements < 0:
-                nelements = 0
+            idx_start, idx_end, step = item.indices(self.size)
+            nelements = len(range(idx_start, idx_end, step))
             return SeriesAxis(
                 idx_start * self.step + self.start, self.step * step, nelements, self.unit
             )
-        elif isinstance(item, int):
-            return self.get_element(item)
+        elif isinstance(item, Integral):
+            return self.get_element(int(item))
         raise IndexError(
             'SeriesAxis can only be indexed with integers or slices '
             'without breaking the regular structure'

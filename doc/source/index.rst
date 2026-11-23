@@ -10,6 +10,58 @@
 =======
 NiBabel
 =======
+A simple and efficient python package for processing neuroimaging data, part of the `NiPy community`_.
+
+.. grid:: 1 2 3 3
+   :gutter: 2
+
+   .. grid-item-card::
+
+      :fa:`file-waveform;pst-color-primary` Multi-format I/O
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+      Read and write major neuroimaging formats including NIfTI_, ANALYZE_,
+      GIFTI_, MINC_, PAR/REC, selected DICOM_ workflows, etc.
+
+   .. grid-item-card::
+
+      :fa:`tags;pst-color-primary` Rich Header Metadata
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+      Access and edit format-specific metadata safely through structured
+      headers and validated fields.
+
+   .. grid-item-card::
+
+      :fa:`table-cells-large;pst-color-primary` NumPy-first Data Access
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+      Work with image data as NumPy arrays while preserving affine and header
+      context needed for analysis pipelines.
+
+   .. grid-item-card::
+
+      :fa:`memory;pst-color-primary` Memory-efficient Loading
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+      Use array proxies and lazy loading to inspect large datasets without
+      reading full volumes into memory.
+
+   .. grid-item-card::
+
+      :fa:`compass-drafting;pst-color-primary` Spatial Orientation Utilities
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+      Convert orientations, manipulate affines and reason about voxel-to-world
+      coordinates with built-in helpers.
+
+   .. grid-item-card::
+
+      :fa:`code-branch;pst-color-primary` Ecosystem Interoperability
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+      Integrates naturally with scientific Python tools and downstream
+      neuroimaging libraries for end-to-end workflows.
 
 .. include:: _long_description.inc
 
@@ -79,7 +131,6 @@ contributed code and discussion (in rough order of appearance):
 * Syam Gadde
 * Robert D. Vincent
 * Ivan Gonzalez
-* Demian Wassermann
 * Paul McCarthy
 * Fernando Pérez García
 * Venky Reddy
@@ -141,7 +192,18 @@ contributed code and discussion (in rough order of appearance):
 * Alex Daniel
 * Jon Cluce
 * `Leonardo Ayala`_
-* Remi Gau
+* Rémi Gau
+* Michael Krause
+* Karolina Surma
+* Cedric Conday
+* Nagizaaz Shaik
+* Venish Paneliya
+* Siddhardha Nanda
+* Nathan Suttie
+* Jeffrey Cooney
+* Erfan Mohamadboland
+* Gabriel Lafis
+* Don Yin
 
 License reprise
 ===============

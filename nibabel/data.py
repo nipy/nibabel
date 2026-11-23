@@ -112,7 +112,7 @@ class VersionedDatasource(Datasource):
         ----------
         base_path : str
            path to prepend to all relative paths
-        config_filaname : None or str
+        config_filename : None or str
            relative path to configuration file containing version
 
         """
@@ -350,6 +350,6 @@ def datasource_or_bomber(pkg_def, **options):
     if 'name' in pkg_def:
         pkg_name = pkg_def['name']
     else:
-        pkg_name = 'data at ' + unix_relpath
+        pkg_name = f'data at {unix_relpath}'
     msg = f'{pkg_name} is version {ds.version} but we need version >= {version}\n\n{pkg_hint}'
     return Bomber(sys_relpath, DataError(msg))

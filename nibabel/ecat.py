@@ -90,7 +90,9 @@ main_header_dtd = [
     ('patient_age', np.float32),
     ('patient_height', np.float32),
     ('patient_weight', np.float32),
-    ('patient_birth_date', np.uint32),
+    # time_t (seconds since the Unix epoch); signed so that birth dates
+    # before 1970 are representable as negative values (see gh-1434)
+    ('patient_birth_date', np.int32),
     ('physician_name', '32S'),
     ('operator_name', '32S'),
     ('study_description', '32S'),
@@ -283,10 +285,10 @@ class EcatHeader(WrapStruct, SpatialHeader):
     @classmethod
     def guessed_endian(klass, hdr):
         """Guess endian from MAGIC NUMBER value of header data"""
-        if not hdr['sw_version'] == 74:
-            return swapped_code
-        else:
+        if hdr['sw_version'] == 74:
             return native_code
+        else:
+            return swapped_code
 
     @classmethod
     def default_structarr(klass, endianness=None):
@@ -382,7 +384,7 @@ def read_mlist(fileobj, endianness):
         rows = np.ndarray(shape=(32, 4), dtype=dt, buffer=dat)
         # First row special, points to next mlist entries if present
         n_unused, mlist_block_no, _, n_rows = rows[0]
-        if not (n_unused + n_rows) == 31:  # Some error condition here?
+        if n_unused + n_rows != 31:  # Some error condition here?
             mlist = []
             return mlist
         # Use all but first housekeeping row
@@ -979,10 +981,10 @@ class EcatImage(SpatialImage):
             # Move to dictionary offset and write dictionary entry
             self._write_data(mlist[index], imgf, entry_pos, endianness='>')
 
-            entry_pos = entry_pos + 16
+            entry_pos += 16
 
-            current_dir[0] = current_dir[0] - 1
-            current_dir[3] = current_dir[3] + 1
+            current_dir[0] -= 1
+            current_dir[3] += 1
 
             # Create a new directory is previous one is full
             if current_dir[0] == 0:
@@ -1000,8 +1002,8 @@ class EcatImage(SpatialImage):
         while current_dir[0] > 0:
             entry_pos = dir_pos + 16 + (16 * current_dir[3])
             self._write_data(np.zeros(4, dtype=np.int32), imgf, entry_pos)
-            current_dir[0] = current_dir[0] - 1
-            current_dir[3] = current_dir[3] + 1
+            current_dir[0] -= 1
+            current_dir[3] += 1
 
         current_dir[0] = tmp_avail
         current_dir[3] = tmp_used

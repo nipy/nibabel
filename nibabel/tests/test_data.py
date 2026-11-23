@@ -133,7 +133,7 @@ def test_data_path(with_nimd_env):
         def_dirs.append(pjoin('/usr/local', 'share', 'nipy'))
     assert old_pth == def_dirs + ['/user/path']
     # then we'll try adding some of our own
-    tst_pth = '/a/path' + os.path.pathsep + '/b/ path'
+    tst_pth = f'/a/path{os.path.pathsep}/b/ path'
     tst_list = ['/a/path', '/b/ path']
     # First, an environment variable
     os.environ[DATA_KEY] = tst_list[0]

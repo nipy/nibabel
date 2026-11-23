@@ -215,7 +215,7 @@ _hdr_key_dict = {
     # Line below added for par / rec version > 4.1
     'Number of label types   <0=no ASL>': ('nr_label_types', int),
     # The following are duplicates of the above fields, but with slightly
-    # different abbreviation, spelling, or capatilization.  Both variants have
+    # different abbreviation, spelling, or capitalization.  Both variants have
     # been observed in the wild in V4.2 PAR files:
     # https://github.com/nipy/nibabel/issues/505
     'Series_data_type': ('series_type',),
@@ -330,12 +330,14 @@ def _split_header(fobj):
         if state == 'general-info':
             if not line.startswith('.'):
                 state = 'comment-block'
-            else:  # Let match raise error for unexpected field format
-                key, value = GEN_RE.match(line).groups()
+            else:  # Raise error for unexpected field format
+                match = GEN_RE.match(line)
+                if match is None:
+                    raise PARRECError(f'Cannot parse general information line: {line!r}')
+                key, value = match.groups()
                 gen_dict[key] = value
-        if state == 'comment-block':
-            if not line.startswith('#'):
-                state = 'image-info'
+        if state == 'comment-block' and not line.startswith('#'):
+            state = 'image-info'
         if state == 'image-info':
             if line.startswith('#'):
                 break
@@ -368,18 +370,27 @@ def _process_image_lines(image_lines, version):
     """Process image information definition lines according to `version`"""
     # postproc image def props
     image_def_dtd = image_def_dtds[version]
+    # number of values on each image definition line
+    n_values = sum(1 if len(props) == 2 else np.prod(props[2]) for props in image_def_dtd)
     # create an array for all image defs
     image_defs = np.zeros(len(image_lines), dtype=image_def_dtd)
     # for every image definition
     for i, line in enumerate(image_lines):
         items = line.split()
+        if len(items) < n_values:
+            summary = f'Image information line {i + 1}: {line.rstrip()}'
+            if len(summary) > 80:
+                summary = f'{summary[:75]}[...]'
+            raise PARRECError(
+                f'Image information line has {len(items)} values, expected {n_values}\n{summary}'
+            )
         item_counter = 0
         # for all image properties we know about
         for props in image_def_dtd:
             if len(props) == 2:
                 name, np_type = props
                 value = items[item_counter]
-                if not np.dtype(np_type).kind == 'S':
+                if np.dtype(np_type).kind != 'S':
                     value = np_type(value)
                 item_counter += 1
             elif len(props) == 3:
@@ -451,7 +462,7 @@ def vol_is_full(slice_nos, slice_max, slice_min=1):
     is_full = np.ones(slice_nos.shape, dtype=bool)
     for vol_no in set(vol_nos):
         ours = vol_nos == vol_no
-        if not set(slice_nos[ours]) == slice_set:
+        if set(slice_nos[ours]) != slice_set:
             is_full[ours] = False
     return is_full
 
@@ -470,7 +481,7 @@ def _truncation_checks(general_info, image_defs, permit_truncated):
     def _chk_trunc(idef_name, gdef_max_name):
         if gdef_max_name not in general_info:
             return
-        id_values = image_defs[idef_name + ' number']
+        id_values = image_defs[f'{idef_name} number']
         n_have = len(set(id_values))
         n_expected = general_info[gdef_max_name]
         if n_have != n_expected:
@@ -491,7 +502,7 @@ def _truncation_checks(general_info, image_defs, permit_truncated):
 
 
 def one_line(long_str):
-    """Make maybe mutli-line `long_str` into one long line"""
+    """Make maybe multi-line `long_str` into one long line"""
     return ' '.join(line.strip() for line in long_str.splitlines())
 
 

@@ -14,11 +14,11 @@ from sympy import Matrix, Symbol, eye, ones, symbols, zeros
 
 # The code below is general (independent of SPMs code)
 def numbered_matrix(nrows, ncols, symbol_prefix):
-    return Matrix(nrows, ncols, lambda i, j: Symbol(symbol_prefix + '_{%d%d}' % (i + 1, j + 1)))
+    return Matrix(nrows, ncols, lambda i, j: Symbol(f'{symbol_prefix}_{{{i + 1}{i + j}}}'))
 
 
 def numbered_vector(nrows, symbol_prefix):
-    return Matrix(nrows, 1, lambda i, j: Symbol(symbol_prefix + '_{%d}' % (i + 1)))
+    return Matrix(nrows, 1, lambda i, j: Symbol(f'{symbol_prefix}_{{{i + 1}}}'))
 
 
 # premultiplication matrix to go from 0 based to 1 based indexing

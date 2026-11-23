@@ -207,18 +207,17 @@ class Cifti2MetaData(CaretMetaData):
         >>> Cifti2MetaData(metadata='val')
         <Cifti2MetaData {'metadata': 'val'}>
         """
-        if not args and list(kwargs) == ['metadata']:
-            if not isinstance(kwargs['metadata'], str):
-                warn(
-                    'Cifti2MetaData now has a dict-like interface and will '
-                    'no longer accept the ``metadata`` keyword argument in '
-                    'NiBabel 6.0. See ``pydoc dict`` for initialization options.',
-                    FutureWarning,
-                    stacklevel=3,
-                )
-                md = kwargs.pop('metadata')
-                if md is not None:
-                    args = (md,)
+        if not args and list(kwargs) == ['metadata'] and not isinstance(kwargs['metadata'], str):
+            warn(
+                'Cifti2MetaData now has a dict-like interface and will '
+                'no longer accept the ``metadata`` keyword argument in '
+                'NiBabel 6.0. See ``pydoc dict`` for initialization options.',
+                FutureWarning,
+                stacklevel=3,
+            )
+            md = kwargs.pop('metadata')
+            if md is not None:
+                args = (md,)
         if args == (None,):
             warn(
                 'Cifti2MetaData now has a dict-like interface and will no longer '
@@ -433,7 +432,7 @@ class Cifti2NamedMap(xml.XmlSerializable):
 
         Parameters
         ----------
-        meta : Cifti2MetaData
+        metadata : Cifti2MetaData
 
         Returns
         -------

@@ -53,9 +53,9 @@ def rst_table(
     title_heading = format_chars.pop('title_heading', '*')
     if len(format_chars) != 0:
         raise ValueError(f'Unexpected ``format_char`` keys {", ".join(format_chars)}')
-    down_joiner = ' ' + down + ' '
-    down_starter = down + ' '
-    down_ender = ' ' + down
+    down_joiner = f' {down} '
+    down_starter = f'{down} '
+    down_ender = f' {down}'
     cross_joiner = along + cross + along
     cross_starter = cross + along
     cross_ender = along + cross
@@ -79,17 +79,12 @@ def rst_table(
     row_str_list = []
     for row_no in range(R):
         row_strs = [val_fmt.format(val) for val in cell_values[row_no]]
-        max_len = max(len(s) for s in row_strs)
-        if max_len > col_len:
-            col_len = max_len
+        col_len = max(col_len, *map(len, row_strs))
         row_str_list.append(row_strs)
-    row_name_fmt = '{0:<' + str(row_len) + '}'
-    row_names = [row_name_fmt.format(name) for name in row_names]
-    col_name_fmt = '{0:^' + str(col_len) + '}'
-    col_names = [col_name_fmt.format(name) for name in col_names]
+    row_names = [f'{name:<{row_len}}' for name in row_names]
+    col_names = [f'{name:^{col_len}}' for name in col_names]
     col_headings = [' ' * row_len] + col_names
     col_header = down_joiner.join(col_headings)
-    row_val_fmt = '{0:<' + str(col_len) + '}'
     table_strs = []
     if title != '':
         table_strs += [
@@ -110,7 +105,7 @@ def rst_table(
         crossed_thick_line,
     ]
     for row_no, row_name in enumerate(row_names):
-        row_vals = [row_val_fmt.format(row_str) for row_str in row_str_list[row_no]]
+        row_vals = [f'{row_str:<{col_len}}' for row_str in row_str_list[row_no]]
         row_line = down_starter + down_joiner.join([row_name] + row_vals) + down_ender
         table_strs.append(row_line)
     table_strs.append(crossed_line)

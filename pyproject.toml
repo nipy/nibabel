@@ -9,9 +9,9 @@ authors = [{ name = "NiBabel developers", email = "neuroimaging@python.org" }]
 maintainers = [{ name = "Christopher Markiewicz" }]
 readme = "README.rst"
 license = "MIT"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-  "numpy >=1.25",
+  "numpy >=2.0",
   "packaging >=20",
   "importlib_resources >=5.12; python_version < '3.12'",
   "typing_extensions >=4.6; python_version < '3.13'",
@@ -22,19 +22,19 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Topic :: Scientific/Engineering",
 ]
-# Version from setuptools_scm
+# Version from hatch-vcs
 dynamic = ["version"]
 
 [project.urls]
-"Homepage" = "https://nipy.org/nibabel"
-"Development" = "https://github.com/nipy/nibabel"
+homepage = "https://nipy.org/nibabel"
+source = "https://github.com/nipy/nibabel"
 
 [project.scripts]
 nib-conform = "nibabel.cmdline.conform:main"
@@ -52,12 +52,12 @@ parrec2nii = "nibabel.cmdline.parrec2nii:main"
 [project.optional-dependencies]
 all = ["nibabel[dicomfs,indexed_gzip,minc2,spm,zstd]"]
 # Features
-indexed_gzip = ["indexed_gzip >=1.6"]
+indexed_gzip = ["indexed_gzip >=1.9.1"]
 dicom = ["pydicom >=2.3"]
-dicomfs = ["nibabel[dicom]", "pillow >=8.4"]
-minc2 = ["h5py >=3.8"]
-spm = ["scipy >=1.11"]
-viewers = ["matplotlib >=3.7"]
+dicomfs = ["nibabel[dicom]", "pillow >=10.2"]
+minc2 = ["h5py >=3.11"]
+spm = ["scipy >=1.12"]
+viewers = ["matplotlib >=3.9"]
 zstd = ["backports.zstd >=1.1; python_version<'3.14'"]
 # Test dependencies, to allow testing an installed package
 test = [
@@ -86,6 +86,9 @@ dev = [
 ]
 doc = [
   "sphinx >=7.4",
+  "pydata-sphinx-theme >= 0.17.0",
+  "sphinx-design <= 0.7.0",
+  "sphinx-copybutton >= 0.5.2",
   "matplotlib>=3.5",
   "numpydoc >=1.9",
   "texext >=0.6.8",
@@ -133,7 +136,7 @@ __version_tuple__ = version_tuple = {version_tuple!r}
 
 [tool.ruff]
 line-length = 99
-exclude = ["doc", "nibabel/externals", "tools", "version.py", "versioneer.py"]
+exclude = ["nibabel/externals"]
 
 [tool.ruff.lint]
 select = [
@@ -144,9 +147,8 @@ select = [
     "FLY",
     "FURB",
     "I",
+    "EXE",
     "ISC",
-    "PERF",
-    "PGH",
     "PIE",
     "PLE",
     "PLR0911",
@@ -155,11 +157,20 @@ select = [
     "PLR0915",
     "PT",
     "PYI",
+    "PT",
     "Q",
     "RSE",
-    "RUF",
-    "TCH",
+    "SIM",
+    "TC",
+    "FLY",
+    "I",
+    "PERF",
+    "F",
+    "PGH",
+    "PLE",
     "UP",
+    "FURB",
+    "RUF",
 ]
 ignore = [
     "B006",   # TODO: enable
@@ -176,8 +187,8 @@ ignore = [
     "C401",
     "C408",
     "C416",
-    "PERF203",
     "PIE790",
+    "PYI024",
     "PT007",
     "PT010",  # Consider: Set expected exception in pytest.raises
     "PT011",
@@ -187,7 +198,12 @@ ignore = [
     "PT028",  # Consider: Test function parameter has default argument
     "PT030",  # Consider: pytest.warns(UserWarning) is too broad
     "PT031",  # Consider: pytest.warns(UserWarning) block should contain 1 statement
-    "PYI024",
+    "SIM105",
+    "SIM108",
+    "SIM115",
+    "SIM300",
+    "TC003",  # Consider: Move import into type-checking block
+    "PERF203",
     "RUF005",
     "RUF007", # Consider: itertools.pairwise(x) over zip(x[:-1], x[1:])
     "RUF012", # TODO: enable
@@ -195,7 +211,6 @@ ignore = [
     "RUF017", # TODO: enable
     "RUF059", # Consider: Unpacked variables never used
     "RUF061", # Consider: Use context-manager form of pytest.raises
-    "TC003",  # Consider: Move import into type-checking block
     # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
     "E111",
@@ -214,6 +229,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "doc/source/conf.py" = ["F401"]
+"tools/profile" = ["F821"]
+"nibabel/**/tests/*.py" = ["SIM117", "SIM118", "SIM201", "SIM202"]
 
 [tool.ruff.format]
 quote-style = "single"
@@ -245,3 +262,6 @@ ignore-words-list = "ans,te,ue,ist,nin,nd,ccompiler,ser"
 
 [tool.uv.pip]
 only-binary = ["numpy", "scipy", "h5py"]
+
+[tool.check-wheel-contents]
+ignore = ['W002']

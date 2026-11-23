@@ -16,7 +16,7 @@ from unittest import mock
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from ...loadsave import load, save
 from ...nifti1 import xform_codes
@@ -467,7 +467,7 @@ def test_external_file_failure_cases():
 
 def test_load_compressed():
     for ext in ('', '.gz', '.bz2'):
-        fn = pjoin(IO_DATA_PATH, 'external.gii' + ext)
+        fn = pjoin(IO_DATA_PATH, f'external.gii{ext}')
         img7 = load(fn)
         assert_array_almost_equal(img7.darrays[0].data, DATA_FILE7_darr1)
         assert_array_almost_equal(img7.darrays[1].data, DATA_FILE7_darr2)
@@ -477,3 +477,6 @@ def test_load_flat_ascii_data():
     img = load(DATA_FILE8)
     assert_array_almost_equal(img.darrays[0].data, DATA_FILE8_darr1)
     assert_array_almost_equal(img.darrays[1].data, DATA_FILE8_darr2)
+    # MatrixData values are all on one line
+    assert img.darrays[0].coordsys.xform.shape == (4, 4)
+    assert_array_equal(img.darrays[0].coordsys.xform, np.eye(4))

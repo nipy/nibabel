@@ -1,8 +1,8 @@
 .. _tutorials:
 
-*****************
-General tutorials
-*****************
+*********
+Tutorials
+*********
 
 .. toctree::
 

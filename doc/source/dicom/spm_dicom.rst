@@ -24,7 +24,7 @@ array, one element per (group, element) pair, with fields ``name`` and
 =======================
 
 Reads the given DICOM files into a struct.  It looks like this was
-written by John Ahsburner (JA).  Relevant fixes are:
+written by John Ashburner (JA).  Relevant fixes are:
 
 File opening
 ------------
@@ -104,7 +104,7 @@ For images that are not spectroscopy:
 * Discards images that do not have any of ('MR', 'PT', 'CT') in 'Modality' field.
 * Discards images lacking any of 'StartOfPixelData', 'SamplesperPixel',
   'Rows', 'Columns', 'BitsAllocated', 'BitsStored', 'HighBit',
-  'PixelRespresentation'
+  'PixelRepresentation'
 * Discards images lacking any of 'PixelSpacing', 'ImagePositionPatient',
   'ImageOrientationPatient' - presumably on the basis that SPM cannot
   reconstruct the affine.

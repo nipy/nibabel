@@ -146,9 +146,7 @@ class ArrayWriter:
         # But note - we need to convert to ints, to avoid conversion to float
         # during comparisons, and therefore int -> float conversions which are
         # not exact.  Only a problem for uint64 though.
-        if int(mn) >= int(info.min) and int(mx) <= int(info.max):
-            return False
-        return True
+        return int(mn) < int(info.min) or int(mx) > int(info.max)
 
     @property
     def array(self):

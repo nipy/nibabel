@@ -32,7 +32,6 @@
 .. _nipy development guidelines: http://nipy.org/devel
 .. _`nipy github`: https://github.com/nipy/nipy
 .. _nipy buildbot: https://nipy.bic.berkeley.edu
-.. _travis-ci: https://travis-ci.org
 .. _nibotmi: https://github.com/nipy/nibotmi
 
 .. Documentation tools

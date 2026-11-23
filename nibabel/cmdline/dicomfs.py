@@ -1,4 +1,3 @@
-#!python
 # emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
@@ -35,7 +34,7 @@ except ImportError:
 from optparse import Option, OptionParser
 
 import nibabel as nib
-import nibabel.dft as dft
+from nibabel import dft
 
 encoding = locale.getlocale()[1]
 
@@ -117,7 +116,7 @@ class DICOMFS(fuse.Fuse):
         if matched_path is None:
             return -errno.ENOENT
         logger.debug(f'matched {matched_path}')
-        fnames = [k.encode('ascii', 'replace') for k in matched_path.keys()]
+        fnames = [k.encode('ascii', 'replace') for k in matched_path]
         fnames.extend(('.', '..'))
         return [fuse.Direntry(f) for f in fnames]
 
@@ -194,7 +193,7 @@ def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
         usage=f'{os.path.basename(sys.argv[0])} [OPTIONS] <DIRECTORY CONTAINING DICOMSs> <mount point>',
-        version='%prog ' + nib.__version__,
+        version=f'%prog {nib.__version__}',
     )
 
     p.add_options(

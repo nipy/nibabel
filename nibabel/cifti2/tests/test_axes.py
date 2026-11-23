@@ -12,6 +12,27 @@ vol_shape = (5, 10, 3)
 use_label = {0: ('something', (0.2, 0.4, 0.1, 0.5)), 1: ('even better', (0.3, 0.8, 0.43, 0.9))}
 
 
+@pytest.mark.parametrize('shape', [(4,), (2, 3, 4)])
+def test_empty_brain_model_mask(shape):
+    axis = axes.BrainModelAxis.from_mask(np.zeros(shape, dtype=bool), name='CortexLeft')
+    assert len(axis) == 0
+    assert axis.surface_mask.shape == (0,)
+    assert axis.volume_mask.shape == (0,)
+    assert axis.surface_mask.dtype == bool
+    assert axis.volume_mask.dtype == bool
+    assert list(axis.iter_structures()) == []
+
+
+@pytest.mark.parametrize('selection', [slice(0, 0), np.array([False, False])])
+def test_empty_brain_model_selection(selection):
+    axis = axes.BrainModelAxis.from_surface([0, 1], 4, name='CortexLeft')
+    empty = axis[selection]
+    assert len(empty) == 0
+    assert list(empty.iter_structures()) == []
+    assert empty + axis == axis
+    assert axis + empty == axis
+
+
 def get_brain_models():
     """
     Generates a set of practice BrainModelAxis axes
@@ -711,6 +732,35 @@ def test_series():
         assert sr != sr_other
 
 
+@pytest.mark.parametrize('size', [0, 1, 4, 5])
+@pytest.mark.parametrize(
+    'selection',
+    [
+        slice(None, None, 2),
+        slice(None, None, -2),
+        slice(-100, None),
+        slice(None, -100, -2),
+        slice(5, None, -1),
+        slice(100, None, -2),
+        slice(-100, None, -1),
+        slice(100, 200),
+    ],
+)
+def test_series_slice_matches_numpy(size, selection):
+    axis = axes.SeriesAxis(3, 2, size, 'HERTZ')
+    sliced = axis[selection]
+    expected = axis.time[selection]
+    np.testing.assert_array_equal(sliced.time, expected)
+    assert sliced.size == expected.size
+    assert sliced.unit == axis.unit
+    assert sliced.step == axis.step * (selection.step or 1)
+
+
+def test_series_slice_zero_step():
+    with pytest.raises(ValueError, match='slice step cannot be zero'):
+        axes.SeriesAxis(3, 2, 5)[::0]
+
+
 def test_writing():
     """
     Tests the writing and reading back in of custom created CIFTI-2 axes
@@ -719,6 +769,24 @@ def test_writing():
         for ax2 in get_axes():
             arr = np.random.randn(len(ax1), len(ax2))
             check_rewrite(arr, (ax1, ax2))
+
+
+@pytest.mark.parametrize('axis', [*get_axes(), axes.SeriesAxis(start=-1000, step=1000, size=3)])
+@pytest.mark.parametrize(
+    'index_type',
+    [int, np.uint8, np.int32],
+)
+def test_integer_index(axis, index_type):
+    start = 0 if np.issubdtype(index_type, np.unsignedinteger) else -len(axis)
+    for index in range(start, len(axis)):
+        np.testing.assert_equal(axis[index_type(index)], axis[index])
+
+    for index in (len(axis), len(axis) + 1):
+        with pytest.raises(IndexError):
+            axis[index_type(index)]
+    if start < 0:
+        with pytest.raises(IndexError):
+            axis[index_type(-len(axis) - 1)]
 
 
 def test_common_interface():

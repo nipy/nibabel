@@ -165,6 +165,7 @@ def test_set_zooms():
         (1, 1, -1, 1),
         (1, 1, 1, -1),
         (1, 1, 1, 1, 5),
+        (1, 1),  # too few zooms to cover the 3 spatial dimensions
     ):
         with pytest.raises(HeaderDataError):
             h.set_zooms(zooms)
@@ -200,7 +201,7 @@ def test_filename_exts():
     # Check if these extensions allow round trip
     for ext in ('.mgh', '.mgz'):
         with InTemporaryDirectory():
-            fname = 'tmpname' + ext
+            fname = f'tmpname{ext}'
             save(img, fname)
             # read from the tmp file and see if it checks out
             img_back = load(fname)

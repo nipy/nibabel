@@ -9,8 +9,8 @@ import numpy as np
 import numpy.linalg as npl
 
 import nibabel
-import nibabel.nifti1 as nifti1
 import nibabel.parrec as pr
+from nibabel import nifti1
 from nibabel.affines import apply_affine, from_matvec, to_matvec
 from nibabel.filename_parser import splitext_addext
 from nibabel.mriutils import MRIError, calculate_dwell_time
@@ -22,8 +22,8 @@ from nibabel.volumeutils import fname_ext_ul_case
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage=f'{sys.argv[0]} [OPTIONS] <PAR files>\n\n' + __doc__,
-        version='%prog ' + nibabel.__version__,
+        usage=f'{sys.argv[0]} [OPTIONS] <PAR files>\n\n{__doc__}',
+        version=f'%prog {nibabel.__version__}',
     )
     p.add_option(
         Option(
@@ -236,7 +236,7 @@ def verbose(msg, indent=0):
 
 
 def error(msg, exit_code):
-    sys.stderr.write(msg + '\n')
+    sys.stderr.write(f'{msg}\n')
     sys.exit(exit_code)
 
 
@@ -250,9 +250,9 @@ def proc_file(infile, opts):
     # prep a file
     if opts.compressed:
         verbose('Using gzip compression')
-        outfilename = basefilename + '.nii.gz'
+        outfilename = f'{basefilename}.nii.gz'
     else:
-        outfilename = basefilename + '.nii'
+        outfilename = f'{basefilename}.nii'
     if os.path.isfile(outfilename) and not opts.overwrite:
         raise OSError(f'Output file "{outfilename}" exists, use --overwrite to overwrite it')
 
@@ -305,16 +305,15 @@ def proc_file(infile, opts):
         in_data = apply_orientation(in_data, ornt)
 
     bvals, bvecs = pr_hdr.get_bvals_bvecs()
-    if not opts.keep_trace:  # discard Philips DTI trace if present
-        if bvecs is not None:
-            bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
-            if bad_mask.sum() > 0:
-                pl = 's' if bad_mask.sum() != 1 else ''
-                verbose(f'Removing {bad_mask.sum()} DTI trace volume{pl}')
-                good_mask = ~bad_mask
-                in_data = in_data[..., good_mask]
-                bvals = bvals[good_mask]
-                bvecs = bvecs[good_mask]
+    if not opts.keep_trace and bvecs is not None:
+        # discard Philips DTI trace if present
+        bad_mask = np.logical_and(bvals != 0, (bvecs == 0).all(axis=1))
+        if n_bad := bad_mask.sum():
+            verbose(f'Removing {n_bad} DTI trace volume{"s" if n_bad != 1 else ""}')
+            good_mask = ~bad_mask
+            in_data = in_data[..., good_mask]
+            bvals = bvals[good_mask]
+            bvecs = bvecs[good_mask]
 
     # Make corresponding NIfTI image
     nimg = nifti1.Nifti1Image(in_data, affine, pr_hdr)
@@ -356,7 +355,7 @@ def proc_file(infile, opts):
                 'DTI volumes detected, but no diffusion direction info was'
                 'found.  Writing .bvals file only.'
             )
-            with open(basefilename + '.bvals', 'w') as fid:
+            with open(f'{basefilename}.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 fid.writelines(f'{val} ' for val in bvals)
                 fid.write('\n')
@@ -366,11 +365,11 @@ def proc_file(infile, opts):
             orig2new = npl.inv(t_aff)
             bv_reorient = from_matvec(to_matvec(orig2new)[0], [0, 0, 0])
             bvecs = apply_affine(bv_reorient, bvecs)
-            with open(basefilename + '.bvals', 'w') as fid:
+            with open(f'{basefilename}.bvals', 'w') as fid:
                 # np.savetxt could do this, but it's just a loop anyway
                 fid.writelines(f'{val} ' for val in bvals)
                 fid.write('\n')
-            with open(basefilename + '.bvecs', 'w') as fid:
+            with open(f'{basefilename}.bvecs', 'w') as fid:
                 for row in bvecs.T:
                     fid.writelines(f'{val} ' for val in row)
                     fid.write('\n')
@@ -380,7 +379,7 @@ def proc_file(infile, opts):
         labels = pr_img.header.get_volume_labels()
         if len(labels) > 0:
             vol_keys = list(labels.keys())
-            with open(basefilename + '.ordering.csv', 'w', newline='') as csvfile:
+            with open(f'{basefilename}.ordering.csv', 'w', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile, delimiter=',')
                 csvwriter.writerow(vol_keys)
                 for vals in zip(*[labels[k] for k in vol_keys]):
@@ -399,7 +398,7 @@ def proc_file(infile, opts):
                 f'Writing dwell time ({dwell_time!r} sec) '
                 f'calculated assuming {opts.field_strength}T magnet'
             )
-            with open(basefilename + '.dwell_time', 'w') as fid:
+            with open(f'{basefilename}.dwell_time', 'w') as fid:
                 fid.write(f'{dwell_time!r}\n')
     # done
 
@@ -424,7 +423,7 @@ def main():
         except Exception as e:
             errs.append(f'{infile}: {e}')
 
-    if len(errs):
+    if errs:
         error(f'Caught {len(errs)} exceptions. Dump follows:\n\n' + '\n'.join(errs), 1)
     else:
         verbose('Done')

@@ -463,13 +463,11 @@ class Wrapper:
         if (
             dcm_data.get('RescaleSlope') is not None
             or dcm_data.get('RescaleIntercept') is not None
+        ) and not (
+            self.vendor == Vendor.PHILIPS
+            and dcm_data.get('RescaleType', 'US') in {'', 'US', 'normalized'}
         ):
-            if self.vendor != Vendor.PHILIPS or dcm_data.get('RescaleType', 'US') not in (
-                '',
-                'US',
-                'normalized',
-            ):
-                return (dcm_data.get('RescaleSlope', 1), dcm_data.get('RescaleIntercept', 0))
+            return (dcm_data.get('RescaleSlope', 1), dcm_data.get('RescaleIntercept', 0))
 
     def _get_philips_scale_factor(self, dcm_data):
         """Return scale factors from Philips private element
@@ -597,7 +595,46 @@ class FilterDwiIso(FrameFilter):
         return frame.MRDiffusionSequence[0].DiffusionDirectionality != 'ISOTROPIC'
 
 
-DEFUALT_FRAME_FILTERS = (FilterMultiStack(), FilterDwiIso())
+class FilterMultiOrient(FrameFilter):
+    """Filter out all but one orientation when a stack contains multiple orientations.
+
+    DICOM permits a stack to contain a group of frames with different
+    orientations, but nibabel can only process one orientation at a time.
+    This filter retains only the frames that belong to the first or a specific
+    group index.
+    """
+
+    def __init__(self, keep_group=None):
+        self._keep_group = keep_group if keep_group is not None else 0
+        self._implicit = keep_group is None
+
+    def _frame_iop(self, frame):
+        try:
+            iop = frame.PlaneOrientationSequence[0].ImageOrientationPatient
+            return tuple(round(float(v), 4) for v in iop)
+        except AttributeError:
+            return None
+
+    def applies(self, dcm_wrp) -> bool:
+        iops = dict.fromkeys(self._frame_iop(f) for f in dcm_wrp.frames)
+        if None in iops or len(iops) <= 1:
+            return False
+        if self._keep_group >= len(iops) or self._keep_group < 0:
+            raise WrapperError(f'MultiOrientation group index must be in [0,{len(iops) - 1}]')
+        self._selected = list(iops.keys())[self._keep_group]
+        if self._implicit:
+            warnings.warn(
+                'Multiple frame orientations found in a single stack; '
+                'nibabel can only process one orientation at a time. '
+                'Retaining only frames matching the first orientation.'
+            )
+        return True
+
+    def keep(self, frame) -> bool:
+        return self._frame_iop(frame) == self._selected
+
+
+DEFAULT_FRAME_FILTERS = (FilterMultiStack(), FilterDwiIso(), FilterMultiOrient())
 
 
 class MultiframeWrapper(Wrapper):
@@ -668,15 +705,18 @@ class MultiframeWrapper(Wrapper):
             raise WrapperError('SharedFunctionalGroupsSequence is empty.')
         # Apply frame filters one at a time in the order provided
         if frame_filters is None:
-            frame_filters = DEFUALT_FRAME_FILTERS
+            frame_filters = DEFAULT_FRAME_FILTERS
         frame_filters = [filt for filt in frame_filters if filt.applies(self)]
         for filt in frame_filters:
             self.frames = [f for f in self.frames if filt.keep(f)]
         # Make sure there is only one StackID remaining
         first_fcs = self.frames[0].get('FrameContentSequence', (None,))[0]
-        if first_fcs is not None and hasattr(first_fcs, 'StackID'):
-            if len({frame.FrameContentSequence[0].StackID for frame in self.frames}) > 1:
-                raise WrapperError('More than one StackID remains after filtering')
+        if (
+            first_fcs is not None
+            and hasattr(first_fcs, 'StackID')
+            and len({frame.FrameContentSequence[0].StackID for frame in self.frames}) > 1
+        ):
+            raise WrapperError('More than one StackID remains after filtering')
         # Try to determine slice order and minimal image position patient
         self._frame_slc_ord = self._ipp = self._slice_spacing = None
         try:

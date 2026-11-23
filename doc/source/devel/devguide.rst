@@ -30,6 +30,9 @@ Code Documentation
 
 Please write documentation using Numpy documentation conventions:
 
+.. seealso::
+
+  Numpy documentation conventions:
   https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard
 
 
@@ -75,6 +78,8 @@ Please prefix all commit summaries with one (or more) of the following labels.
 This should help others to easily classify the commits into meaningful
 categories:
 
+.. admonition:: Commit labels
+
   * *BF* : bug fix
   * *RF* : refactoring
   * *NF* : new feature
@@ -89,9 +94,9 @@ Merges
 ------
 
 For easy tracking of what changes were absorbed during merge, we
-advise that you enable merge summaries within git:
+advise that you enable merge summaries within git::
 
-  git-config merge.summary true
+    git-config merge.summary true
 
 See :ref:`configure-git` for more detail.
 
@@ -108,9 +113,9 @@ The simplest way to install the necessary tools is to run::
     uv sync --group=dev
 
 This will install tox_ and pre-commit_ with uv_ plugins into a local
-`.venv` environment.
+``.venv`` environment.
 
-Otherwise, you may install tox using `uv tool`::
+Otherwise, you may install tox using ``uv tool``::
 
     uv tool install --with=tox-uv-bare tox
 
@@ -122,7 +127,7 @@ Or in any environment with::
 This will run the tests in several configurations, with multiple sets of
 optional dependencies.
 If you have multiple versions of Python installed in your path, it will
-repeat the process for each version of Python iin our supported range.
+repeat the process for each version of Python in our supported range.
 It may be useful to pick a particular version for rapid development::
 
     tox -e py311-full-x64
@@ -195,7 +200,7 @@ Changelog
 =========
 
 The changelog is located in the toplevel directory of the source tree in the
-`Changelog` file. The content of this file should be formatted as restructured
+``Changelog`` file. The content of this file should be formatted as restructured
 text to make it easy to put it into manual appendix and on the website.
 
 This changelog should neither replicate the VCS commit log nor the

@@ -1,4 +1,3 @@
-#!python
 # emacs: -*- mode: python-mode; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
@@ -30,7 +29,7 @@ MAX_UNIQUE = 1000  # maximal number of unique values to report for --counts
 def get_opt_parser():
     # use module docstring for help output
     p = OptionParser(
-        usage=f'{sys.argv[0]} [OPTIONS] [FILE ...]\n\n' + __doc__,
+        usage=f'{sys.argv[0]} [OPTIONS] [FILE ...]\n\n{__doc__}',
         version='%prog ' + nib.__version__,
     )
 
@@ -130,11 +129,11 @@ def proc_file(f, opts):
         else:
             header_fields = opts.header_fields.split(',')
 
-        for f in header_fields:
-            if not f:  # skip empty
+        for field in header_fields:
+            if not field:  # skip empty
                 continue
             try:
-                row += [str(h[f])]
+                row += [str(h[field])]
             except (KeyError, ValueError):
                 row += [_err()]
 

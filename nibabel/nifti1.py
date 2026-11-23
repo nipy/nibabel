@@ -29,6 +29,7 @@ from .casting import have_binary128
 from .deprecated import alert_future_error
 from .filebasedimages import ImageFileError, SerializableImage
 from .optpkg import optional_package
+from .orientations import inv_ornt_aff
 from .quaternions import fillpositive, mat2quat, quat2mat
 from .spatialimages import HeaderDataError
 from .spm99analyze import SpmAnalyzeHeader
@@ -277,7 +278,7 @@ intent_codes = Recoder(
             (),
             'NIFTI_INTENT_TIME_SERIES',
             'NIFTI_INTENT_TIMESERIES',
-        ),  # this mis-spell occurs in the wild
+        ),  # this misspelling occurs in the wild
         (2002, 'node index', (), 'NIFTI_INTENT_NODE_INDEX'),
         (2003, 'rgb vector', (), 'NIFTI_INTENT_RGB_VECTOR'),
         (2004, 'rgba vector', (), 'NIFTI_INTENT_RGBA_VECTOR'),
@@ -622,7 +623,7 @@ class Nifti1DicomExtension(Nifti1Extension[DicomDataset]):
         valid VRs
         """
         potential_vr = content[4:6].decode()
-        return potential_vr not in pdcm.values.converters.keys()
+        return potential_vr not in pdcm.values.converters.keys()  # noqa: SIM118
 
     def _unmangle(self, obj: bytes) -> DicomDataset:
         return pdcm.filereader.read_dataset(
@@ -684,7 +685,7 @@ class Nifti1Extensions(list):
 
         Parameters
         ----------
-        code : int | str
+        ecode : int | str
             The ecode can be specified either literal or as numerical value.
         """
         count = 0
@@ -765,6 +766,8 @@ class Nifti1Extensions(list):
             # be extra verbose
             ecode = ext_def[1]
             esize = ext_def[0]
+            if esize < 8:
+                raise HeaderDataError('extension size must be at least 8 bytes')
             if esize % 16:
                 warnings.warn(
                     'Extension size is not a multiple of 16 bytes; '
@@ -1352,6 +1355,8 @@ class Nifti1Header(SpmAnalyzeHeader):
         if affine is None:
             return
         affine = np.asarray(affine)
+        if not affine.shape == (4, 4):
+            raise TypeError('Need 4x4 affine as input')
         hdr['srow_x'][:] = affine[0, :]
         hdr['srow_y'][:] = affine[1, :]
         hdr['srow_z'][:] = affine[2, :]
@@ -1510,11 +1515,11 @@ class Nifti1Header(SpmAnalyzeHeader):
                 raise HeaderDataError('Inputs must be in [None, 0, 1, 2]')
         info = 0
         if freq is not None:
-            info = info | ((freq + 1) & 3)
+            info |= (freq + 1) & 3
         if phase is not None:
-            info = info | (((phase + 1) & 3) << 2)
+            info |= ((phase + 1) & 3) << 2
         if slice is not None:
-            info = info | (((slice + 1) & 3) << 4)
+            info |= ((slice + 1) & 3) << 4
         self._structarr['dim_info'] = info
 
     def get_intent(self, code_repr='label'):
@@ -1554,7 +1559,7 @@ class Nifti1Header(SpmAnalyzeHeader):
             if known_intent:
                 label = recoder.label[code]
             else:
-                label = 'unknown code ' + str(code)
+                label = f'unknown code {code}'
         else:
             raise TypeError('repr can be "label" or "code"')
         n_params = len(recoder.parameters[code]) if known_intent else 0
@@ -1614,14 +1619,13 @@ class Nifti1Header(SpmAnalyzeHeader):
         """
         hdr = self._structarr
         known_intent = code in intent_codes
-        if not known_intent:
-            # We can set intent via an unknown integer code, but can't via an
-            # unknown string label
-            if not allow_unknown or isinstance(code, str):
-                raise KeyError('Unknown intent code: ' + str(code))
         if known_intent:
             icode = intent_codes.code[code]
             p_descr = intent_codes.parameters[code]
+        elif not allow_unknown or isinstance(code, str):
+            # We can set intent via an unknown integer code, but can't via an
+            # unknown string label
+            raise KeyError(f'Unknown intent code: {code}')
         else:
             icode = code
             p_descr = ('p1', 'p2', 'p3')
@@ -2401,6 +2405,27 @@ class Nifti1Pair(analyze.AnalyzeImage):
         ]
 
         img.header.set_dim_info(*new_dim)
+
+        # Flipping the slice axis reverses the slice acquisition order
+        slice_dim = self.header.get_dim_info()[2]
+        if slice_dim is not None and ornt[slice_dim, 1] == -1 and self.header['slice_code'] != 0:
+            orig_duration = self.header['slice_duration']
+            img.header.set_slice_times(img.header.get_slice_times()[::-1])
+            # set_slice_times can flip the lowest order bit, but we know it's unchanged
+            img.header['slice_duration'] = orig_duration
+
+        # Reorienting the affine will set the qform and sform to the new affine,
+        # with codes 0 and 2, respectively.
+        # For the purposes of this function, no orientation information has been
+        # lost, so reorient the qform and sform individually and restore their codes,
+        # if they had non-zero codes.
+        vox_ornt = inv_ornt_aff(ornt, self.shape)
+        sform, sform_code = self.header.get_sform(coded=True)
+        qform, qform_code = self.header.get_qform(coded=True)
+        if sform_code != 0:
+            img.header.set_sform(sform @ vox_ornt, code=int(sform_code))
+        if qform_code != 0:
+            img.header.set_qform(qform @ vox_ornt, code=int(qform_code))
 
         return img
 

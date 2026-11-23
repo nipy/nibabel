@@ -53,7 +53,7 @@ _dtype_dict = {
     0: 'B',
     1: 'h',
     3: 'f',
-    5: 'D',
+    5: 'F',
 }
 
 space_codes = Recoder(
@@ -162,7 +162,7 @@ def _get_datatype(info):
             raise AFNIImageError("Can't load file with multiple data types.")
         bt = bt[0]
     bo = _endian_dict.get(bo, '=')
-    bt = _dtype_dict.get(bt, None)
+    bt = _dtype_dict.get(bt)
     if bt is None:
         raise AFNIImageError("Can't deduce image data type.")
     return np.dtype(bo + bt)
