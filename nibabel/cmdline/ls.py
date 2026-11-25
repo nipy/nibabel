@@ -196,4 +196,4 @@ def main(args=None):
 
     rows = [proc_file(f, opts) for f in files]
 
-    print(table2string(rows))
+    print(table2string(rows), end='')
