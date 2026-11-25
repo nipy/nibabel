@@ -153,6 +153,14 @@ def test_nib_ls(args):
 
 @unittest.skipUnless(load_small_file(), "Can't load the small.mnc file")
 @script_test
+def test_nib_ls_ends_with_one_newline(capsys):
+    # gh-349: the output ended with a blank line
+    from nibabel.cmdline.ls import main
+
+    main([pjoin(DATA_PATH, 'example4d.nii.gz')])
+    assert capsys.readouterr().out.count('\n') == 1
+
+
 def test_nib_ls_multiple():
     # verify that correctly lists/formats for multiple files
     fnames = [
