@@ -1307,7 +1307,8 @@ class PARRECImage(SpatialImage):
             hdr = klass.header_class.from_fileobj(
                 hdr_fobj, permit_truncated=permit_truncated, strict_sort=strict_sort
             )
-        rec_fobj = file_map['image'].get_prepare_fileobj()
+        img_fh = file_map['image']
+        rec_fobj = img_fh.filename if img_fh.fileobj is None else img_fh.fileobj
         data = klass.ImageArrayProxy(rec_fobj, hdr, mmap=mmap, scaling=scaling)
         return klass(data, hdr.get_affine(), header=hdr, extra=None, file_map=file_map)
 

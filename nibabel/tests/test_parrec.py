@@ -200,6 +200,13 @@ def test_top_level_load():
     assert_almost_equal(img.affine, AN_OLD_AFFINE)
 
 
+def test_load_does_not_hold_rec_open():
+    # Each loaded image kept its REC file open, so loading many images
+    # ran out of file descriptors
+    img = top_load(EG_PAR)
+    assert img.dataobj.file_like == img.file_map['image'].filename
+
+
 def test_header():
     v42_hdr = PARRECHeader(HDR_INFO, HDR_DEFS)
     for strict_sort in [False, True]:
