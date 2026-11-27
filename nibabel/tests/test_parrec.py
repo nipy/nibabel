@@ -312,6 +312,19 @@ def test_get_sorted_slice_indices():
         hdr = PARRECHeader(HDR_INFO, HDR_DEFS[:-1], permit_truncated=True)
     assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices - 9))
 
+    # Omit last slices with strict_sort=True: partial volume should be sorted last and trimmed
+    with clear_and_catch_warnings(modules=[parrec], record=True):
+        hdr = PARRECHeader(HDR_INFO, HDR_DEFS[:-2], permit_truncated=True, strict_sort=True)
+    assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices - 9))
+
+    # Reversed truncated defs with strict_sort=True should still recover the two complete volumes
+    trunc_rev = HDR_DEFS[:-2][::-1]
+    with clear_and_catch_warnings(modules=[parrec], record=True):
+        hdr = PARRECHeader(HDR_INFO, trunc_rev, permit_truncated=True, strict_sort=True)
+    sorted_idx = hdr.get_sorted_slice_indices()
+    assert_array_equal(trunc_rev['dynamic scan number'][sorted_idx], [1] * 9 + [2] * 9)
+    assert_array_equal(trunc_rev['slice number'][sorted_idx], list(range(1, 10)) * 2)
+
     # different result when strict_sort=True
     hdr = PARRECHeader(HDR_INFO, HDR_DEFS[::-1], strict_sort=True)
     assert_array_equal(hdr.get_sorted_slice_indices(), range(n_slices)[::-1])
