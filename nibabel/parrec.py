@@ -1165,7 +1165,7 @@ class PARRECHeader(SpatialHeader):
         is_full = vol_is_full(slice_nos[initial_sort_order], self.general_info['max_slices'])
 
         # second stage of sorting
-        return initial_sort_order[np.lexsort((vol_nos, is_full))]
+        return initial_sort_order[np.lexsort((vol_nos, np.logical_not(is_full)))]
 
     def _lax_sort_order(self):
         """
