@@ -37,6 +37,7 @@ from ..optpkg import optional_package
 
 _, have_scipy, _ = optional_package('scipy')
 _, have_h5py, _ = optional_package('h5py')
+_, have_pynrrd, _ = optional_package('nrrd')
 
 import unittest
 
@@ -71,6 +72,7 @@ from .. import (
     is_proxy,
     minc1,
     minc2,
+    nrrd,
     parrec,
 )
 from ..arrayproxy import get_obj_dtype
@@ -81,6 +83,7 @@ from .test_api_validators import ValidateAPI
 from .test_brikhead import EXAMPLE_IMAGES as AFNI_EXAMPLE_IMAGES
 from .test_minc1 import EXAMPLE_IMAGES as MINC1_EXAMPLE_IMAGES
 from .test_minc2 import EXAMPLE_IMAGES as MINC2_EXAMPLE_IMAGES
+from .test_nrrd import EXAMPLE_IMAGES as NRRD_EXAMPLE_IMAGES
 from .test_parrec import EXAMPLE_IMAGES as PARREC_EXAMPLE_IMAGES
 
 
@@ -893,3 +896,13 @@ class TestAFNIAPI(LoadImageAPI):
     loader = brikhead.load
     klass = image_maker = brikhead.AFNIImage
     example_images = AFNI_EXAMPLE_IMAGES
+
+
+class TestNrrdAPI(LoadImageAPI):
+    def setup_method(self):
+        if not have_pynrrd:
+            raise unittest.SkipTest('Need pynrrd for these tests')
+
+    loader = nrrd.load
+    klass = nrrd.NrrdImage
+    example_images = NRRD_EXAMPLE_IMAGES
