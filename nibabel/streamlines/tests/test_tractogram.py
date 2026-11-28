@@ -865,7 +865,7 @@ class TestLazyTractogram(unittest.TestCase):
         assert len(tractogram) == len(DATA['streamlines'])
 
         # Generator functions get re-called and creates new iterators.
-        for i in range(2):
+        for _ in range(2):
             assert_tractogram_equal(tractogram, DATA['tractogram'])
 
     def test_lazy_tractogram_from_data_func(self):

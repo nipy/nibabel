@@ -83,7 +83,7 @@ def _add_dep_doc(
     old_doc = _ensure_cr(old_doc)
     old_lines = old_doc.splitlines()
     new_lines = []
-    for line_no, line in enumerate(old_lines):
+    for line_no, line in enumerate(old_lines):  # noqa: B007
         if line.strip():
             new_lines.append(line)
         else:

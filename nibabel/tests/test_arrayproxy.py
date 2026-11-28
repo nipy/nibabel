@@ -157,8 +157,8 @@ def test_nifti1_init():
         assert_array_equal(np.asarray(ap), arr * 2.0 + 10)
 
 
-@pytest.mark.parametrize('n_dim', (1, 2, 3))
-@pytest.mark.parametrize('offset', (0, 20))
+@pytest.mark.parametrize('n_dim', [1, 2, 3])
+@pytest.mark.parametrize('offset', [0, 20])
 def test_proxy_slicing(n_dim, offset):
     shape = (15, 16, 17)[:n_dim]
     arr = np.arange(np.prod(shape)).reshape(shape)
@@ -193,7 +193,7 @@ def test_proxy_slicing_with_scaling():
     assert_array_equal(arr[sliceobj] * 2.0 + 1.0, prox[sliceobj])
 
 
-@pytest.mark.parametrize('order', ('C', 'F'))
+@pytest.mark.parametrize('order', ['C', 'F'])
 def test_order_override(order):
     shape = (15, 16, 17)
     arr = np.arange(np.prod(shape)).reshape(shape)

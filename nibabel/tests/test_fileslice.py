@@ -677,7 +677,7 @@ def test_read_segments_lock():
         segs = []
         nbytes = 0
 
-        for i in range(nsegs):
+        for _ in range(nsegs):
             seglo = np.random.randint(0, 998)
             seghi = np.random.randint(seglo + 1, 1000)
             seglen = seghi - seglo

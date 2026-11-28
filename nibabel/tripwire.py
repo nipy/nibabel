@@ -23,7 +23,7 @@ def is_tripwire(obj: Any) -> bool:
     True
     """
     try:
-        obj.any_attribute
+        obj.any_attribute  # noqa: B018
     except TripWireError:
         return True
     except Exception:

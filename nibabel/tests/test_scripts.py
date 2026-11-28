@@ -429,9 +429,7 @@ def test_parrec2nii_with_data():
         with open('DTI.ordering.csv') as csvfile:
             csvreader = csv.reader(csvfile, delimiter=',')
             csv_keys = next(csvreader)  # header row
-            nlines = 0  # count number of non-header rows
-            for line in csvreader:
-                nlines += 1
+            nlines = sum(1 for _ in csvreader)  # count number of non-header rows
 
         assert sorted(csv_keys) == ['diffusion b value number', 'gradient orientation number']
         assert nlines == 8  # 8 volumes present in DTI.PAR
